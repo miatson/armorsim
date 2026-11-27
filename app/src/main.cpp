@@ -113,11 +113,15 @@ void runLoadingScreen(const std::vector<std::pair<const char*, std::function<voi
 //   --speed V      (with --file) fastest part at V m/s, others scaled alike
 //   --spacing MM   (with --file) particle spacing in mm
 //   --end-time US  (with --file) simulated time in microseconds
+//   --v50 LO HI    (with --file) ballistic limit by bisection between LO and HI m/s
+//   --iterations N (with --v50) bisection steps, default 6
 int main(int argc, char** argv) {
     StartOptions options;
     bool headless = false;
     std::string file, csv;
     HeadlessOverrides overrides;
+    double v50Low = 0.0, v50High = 0.0;
+    int v50Iterations = 6;
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
         if (arg == "--run") options.runAtStart = true;
@@ -127,12 +131,18 @@ int main(int argc, char** argv) {
         else if (arg == "--file" && i + 1 < argc) file = argv[++i];
         else if (arg == "--csv" && i + 1 < argc) csv = argv[++i];
         else if (arg == "--speed" && i + 1 < argc) overrides.speed = std::atof(argv[++i]);
+        else if (arg == "--v50" && i + 2 < argc) {
+            v50Low = std::atof(argv[++i]);
+            v50High = std::atof(argv[++i]);
+        }
+        else if (arg == "--iterations" && i + 1 < argc) v50Iterations = std::atoi(argv[++i]);
         else if (arg == "--spacing" && i + 1 < argc) overrides.spacing = std::atof(argv[++i]) * 1e-3;
         else if (arg == "--end-time" && i + 1 < argc) overrides.endTime = std::atof(argv[++i]) * 1e-6;
         else if (arg == "--scenario" && i + 1 < argc) options.scenario = std::atoi(argv[++i]) - 1;
         else if (arg == "--field" && i + 1 < argc) options.field = std::atoi(argv[++i]);
     }
 
+    if (headless && !file.empty() && v50High > 0) return runHeadlessV50(file, v50Low, v50High, v50Iterations, overrides);
     if (headless) return file.empty() ? runHeadless(options.scenario, csv) : runHeadlessFile(file, csv, overrides);
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);

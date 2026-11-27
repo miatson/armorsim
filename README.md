@@ -16,7 +16,7 @@ The solver itself has no dependencies.
 | B | Mie-Grüneisen shock EOS, Johnson-Cook plasticity, Taylor bar validation, energy-compatible forces | ✅ |
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
 | D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | 🔨 in progress (files, probes, graphs, CSV done) |
-| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 next) |
+| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation +10–13%) |
 | F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | ⏳ |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
 | H | Optional: performance, 3D | ⏳ |
@@ -374,6 +374,36 @@ or the slow test `armor_tests -tc="VALIDATION*" --no-skip`. The builder shows th
 Lanz-Odermatt prediction (Details → Theory) whenever you fire a tungsten rod at
 steel.
 
+### Ballistic limit (V50) of a steel plate (Børvik et al.)
+
+The **V50 tool** finds the speed at which a projectile just perforates a plate, as
+experiments do. It fires shots at two speeds that bracket the limit, then halves
+the gap. A shot counts as **perforated** when the projectile has passed the
+plate's current back surface (measured just outside the projectile's path, so a
+punched-out plug doesn't count) and moves faster than the plate. It also fits the
+Recht-Ipson curve `v_r = a·sqrt(v² − v_bl²)` to the residual velocities.
+
+```
+miataphysim --headless --file scenarios/validation_borvik_blunt.json --v50 150 250
+```
+
+Benchmark: a flat-nosed hardened steel projectile (20 × 80 mm, 197 g) against a
+12 mm Weldox 460 E plate. Measured ballistic limit **184.5 m/s**, with failure by
+shear plugging. Material data: Børvik et al. 2001 (Johnson-Cook strength and
+fracture for Weldox 460 E); projectile yield 1.9 GPa.
+
+| | Simulated (0.4 mm spacing) | Experiment | Difference |
+|---|---|---|---|
+| V50 (bisection: 206.3 stopped, 209.4 perforated) | 207.8 m/s | 184.5 m/s | +12.6% |
+| Recht-Ipson fit to residual velocities | 203.1 m/s | 184.5 m/s | +10.1% |
+
+**Only a partial match.** The plate comes out 10–13% too hard to perforate.
+Possible reasons, still open: the shear band that forms the plug is only a few
+particles wide at this spacing (coarse resolution is known to make plugging too
+hard); the real plate was clamped and 500 mm across, while here it is free and
+200 mm across; the fracture data's strain-rate reference. A resolution study is
+the next step.
+
 ## Known limitations
 
 - **No ceramics yet**: they need the JH-2 brittle model (Stage F).
@@ -410,6 +440,9 @@ steel.
 - A. Colagrossi, M. Landrini, *Numerical simulation of interfacial flows by SPH*, J. Comput. Phys. 191 (2003)
 - G. R. Johnson, W. H. Cook, *Fracture characteristics of three metals subjected to various strains, strain rates, temperatures and pressures*, Eng. Fract. Mech. 21 (1985)
 - G. T. Gray III, P. J. Maudlin, S. R. Chen, *The assessment of damage evolution in metals as a function of microstructure using Taylor impact testing*, LANL LA-UR-01-5614 (2001)
+- T. Børvik, O. S. Hopperstad, T. Berstad, M. Langseth, *A computational model of viscoplasticity and ductile damage for impact and penetration*, Eur. J. Mech. A/Solids 20 (2001)
+- T. Børvik, M. Langseth, O. S. Hopperstad, K. A. Malo, *Perforation of 12 mm thick steel plates by 20 mm diameter projectiles with flat, hemispherical and conical noses*, Int. J. Impact Eng. 27 (2002)
+- A. J. Recht, T. W. Ipson, *Ballistic perforation dynamics*, J. Appl. Mech. 30 (1963)
 - M. M. Carroll, A. C. Holt, *Static and dynamic pore-collapse relations for ductile porous materials*, J. Appl. Phys. 43 (1972)
 - W. Herrmann, *Constitutive equation for the dynamic compaction of ductile porous materials*, J. Appl. Phys. 40 (1969)
 - V. Tvergaard, A. Needleman, *Analysis of the cup-cone fracture in a round tensile bar*, Acta Metall. 32 (1984)

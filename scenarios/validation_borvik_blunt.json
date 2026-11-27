@@ -1,0 +1,19 @@
+{
+  // Stage E validation: ballistic limit of a steel plate (Borvik et al. 2002).
+  "name": "Validation: blunt projectile vs 12 mm Weldox 460 E (Borvik)",
+  "description": "Flat-nosed hardened steel projectile (20 x 80 mm, 197 g) against a 12 mm Weldox 460 E plate. Borvik et al. measured a ballistic limit of 184.5 m/s; the plate fails by shear plugging. Find the simulated limit with: miataphysim --headless --file scenarios/validation_borvik_blunt.json --v50 150 250. (The real plate was clamped and 500 mm across; here it is free and 200 mm across.)",
+  "mode": "axisymmetric",
+  "spacing_mm": 0.4,
+  "end_time_us": 600,
+  "parts": [
+    { "name": "Blunt projectile", "material": "tool_steel_hrc53",
+      "shape": { "type": "cylinder", "x_mm": [-80.4, -0.4], "radius_mm": 10 },
+      "velocity_mps": [200, 0] },
+    { "name": "Weldox 460 E plate", "material": "weldox_460e",
+      "shape": { "type": "cylinder", "x_mm": [0, 12], "radius_mm": 100 } }
+  ],
+  "probes": [
+    { "name": "projectile tail", "at_mm": [-80.2, 0.2], "quantities": ["x", "velocity_x"] }
+  ],
+  "probe_interval_us": 2
+}

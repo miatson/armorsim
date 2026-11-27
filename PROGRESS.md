@@ -348,3 +348,32 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   ~8x cost, run in the background); V50 ballistic-limit tool (bisection on
   speed with a perforation criterion, residual velocity, Lambert-Jonas fit)
   and a published ballistic-limit case to compare against.
+
+## 2026-11-27 — session 11: V50 tool, Borvik plate benchmark
+
+- **Materials** (appended, ids kWeldox460E, kToolSteelHRC53): Weldox 460 E
+  (JC A 490, B 807, n 0.73, C 0.0114, m 0.94, Tm 1800, ref rate 5e-4;
+  fracture D1..D5 0.0705, 1.732, -0.54, -0.015, 0; Borvik et al. 2001) and
+  hardened tool steel (Arne HRC 53: yield 1.9 GPa, tangent 15 GPa; no
+  fracture). Library: borvik_blunt_20mm projectile, weldox460e_12mm plate.
+- **V50 tool** (io/BallisticLimit.h): fireShot (perforated = projectile past
+  the plate's current back surface, measured in a ring 1.5-3 projectile radii
+  out, AND faster than that ring; ends early once clear), findBallisticLimit
+  (bracket low/high, widen x0.7 / x1.4 up to 4 times, then bisect),
+  rechtIpsonFit (p = 2, least squares on v_r^2 vs v^2). CLI:
+  --headless --file F --v50 LO HI [--iterations N].
+- **Borvik blunt vs 12 mm Weldox 460 E** (validation_borvik_blunt.json,
+  0.4 mm, free 200 mm plate): V50 207.8 m/s (206.25 stopped, 209.375
+  perforated), Recht-Ipson 203.1 m/s (a = 0.69), experiment 184.5 m/s:
+  +12.6% / +10.1%. Partial match. Suspects: shear-band resolution, free vs
+  clamped 500 mm plate, fracture data rate reference. Each shot 1-2.5 min.
+- Quick check (5 mm steel ball vs 1 mm Al): V50 146.9, fit 149.4 m/s.
+- **Long-rod convergence run at 0.25 mm was stopped on the user's request**
+  (it was ~200k particles, competing for CPU); rerun when the machine is idle:
+  --file scenarios/validation_long_rod_ld10.json --speed 1500 --spacing 0.25
+- Tests: Recht-Ipson synthetic fit, fireShot stop/perforate, slow skipped
+  VALIDATION Borvik case (±15%). 629 assertions pass.
+- **Stage E next**: resolution study of the Borvik case (0.25-0.2 mm, run in
+  the background, one or two speeds near 185-210 m/s); long-rod convergence
+  rerun; then the hemispherical / conical nose cases need nose shapes in the
+  library (Stage F overlap). Stage D leftover: click-to-place gauges.

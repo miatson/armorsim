@@ -1,0 +1,3 @@
+{ "name": "Blunt hardened steel projectile, 20 x 80 mm (197 g)", "category": "projectile",
+  "description": "The flat-nosed hardened tool-steel projectile of Borvik et al. (2002): 20 mm diameter, 80 mm long, 197 g. Against 12 mm Weldox 460 E plate the measured ballistic limit was 184.5 m/s.",
+  "material": "tool_steel_hrc53", "shape": { "type": "rod", "length_mm": 80, "diameter_mm": 20 }, "speed_mps": 250 }

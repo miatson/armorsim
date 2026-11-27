@@ -15,6 +15,7 @@
 
 #include <fstream>
 
+#include <armor/BallisticLimit.h>
 #include <armor/Recorder.h>
 #include <armor/ScenarioFile.h>
 #include <armor/Solver.h>
@@ -143,6 +144,49 @@ int runHeadlessFile(const std::string& path, const std::string& csvPath, const H
         if (o.spacing > 0) s.dx = o.spacing;
         if (o.endTime > 0) s.endTime = o.endTime;
         return runScenario(s.name, s, file.probes, file.probeInterval, csvPath);
+    } catch (const armor::ScenarioFileError& e) {
+        std::fprintf(stderr, "%s\n", e.what());
+        return 2;
+    }
+}
+
+// Ballistic limit (V50) of a scenario file: the projectile is its first part.
+int runHeadlessV50(const std::string& path, double low, double high, int iterations, const HeadlessOverrides& o) {
+    try {
+        armor::ScenarioFile file = armor::loadScenarioFile(path, armor::defaultMaterials());
+        armor::Scenario base = file.scenario;
+        if (o.spacing > 0) base.dx = o.spacing;
+        if (o.endTime > 0) base.endTime = o.endTime;
+        double fastest = 0.0;
+        for (const armor::Part& p : base.parts) fastest = std::max(fastest, std::hypot(p.velocity.x, p.velocity.y));
+        if (fastest <= 0.0) {
+            std::fprintf(stderr, "%s: nothing moves - the first part should be the projectile\n", path.c_str());
+            return 2;
+        }
+        auto make = [&](double v) {
+            armor::Scenario s = base;
+            for (armor::Part& p : s.parts) p.velocity = p.velocity * (v / fastest);
+            return s;
+        };
+        std::printf("Ballistic limit: %s\n  projectile: %s, spacing %.2f mm, up to %.0f us per shot\n", base.name.c_str(),
+                    base.parts[0].name.c_str(), base.dx * 1e3, base.endTime * 1e6);
+        std::printf("  %8s  %-11s %12s %10s %8s %8s\n", "speed", "result", "residual", "plate", "time", "wall");
+        const armor::BallisticLimitResult r = armor::findBallisticLimit(
+            make, low, high, iterations, armor::defaultMaterials(), [](const armor::ShotResult& s) {
+                std::printf("  %6.1f m/s  %-11s %8.1f m/s %6.1f m/s %5.0f us %6.1f s\n", s.speed,
+                            s.blewUp ? "BLEW UP" : (s.perforated ? "perforated" : "stopped"), s.residualVelocity,
+                            s.plateVelocity, s.timeSimulated * 1e6, s.wallSeconds);
+                std::fflush(stdout);
+            });
+        if (r.bracketed())
+            std::printf("  V50 = %.1f m/s (between %.1f stopped and %.1f perforated)\n", r.v50(), r.highestStopped,
+                        r.lowestPerforated);
+        else
+            std::printf("  not bracketed: highest stopped %.1f m/s, lowest perforated %.1f m/s\n", r.highestStopped,
+                        r.lowestPerforated);
+        if (r.hasFit)
+            std::printf("  Recht-Ipson fit through the perforating shots: v_bl = %.1f m/s, a = %.3f\n", r.fitLimit, r.fitA);
+        return r.bracketed() ? 0 : 1;
     } catch (const armor::ScenarioFileError& e) {
         std::fprintf(stderr, "%s\n", e.what());
         return 2;

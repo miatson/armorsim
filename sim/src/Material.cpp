@@ -160,6 +160,44 @@ std::vector<Material> defaultMaterials() {
         m.source += " Fracture: Lesuer 2000 (Ti-6Al-4V); spall ~4 GPa (approx.).";
         list.push_back(m);
     }
+    {
+        // Structural steel used in the Borvik et al. perforation benchmarks.
+        Material m;
+        m.name = "Steel Weldox 460 E";
+        m.key = "weldox_460e";
+        m.source = "JC strength and fracture: Borvik, Hopperstad, Berstad, Langseth, Eur. J. Mech. A/Solids 20 "
+                   "(2001); E 200 GPa, nu 0.33. EOS as for the RHA steel (Steinberg 1996). Spall ~3 GPa (approx.).";
+        m.density0 = 7850.0;
+        m.eos = MieGruneisenEos{4578.0, 1.33, 1.67};
+        m.bulkModulus = m.density0 * 4578.0 * 4578.0;
+        m.shearModulus = 75.2e9;
+        m.specificHeat = 452.0;
+        JohnsonCookStrength jc{490e6, 807e6, 0.73, 0.0114, 0.94, 1800.0};
+        jc.refStrainRate = 5e-4; // the fit's reference rate
+        m.strength = jc;
+        JohnsonCookFailure jf{0.0705, 1.732, -0.54, -0.015, 0.0};
+        jf.refStrainRate = 5e-4;
+        m.failure = jf;
+        m.spallStrength = 3.0e9;
+        list.push_back(m);
+    }
+    {
+        // Hardened projectile steel of the Borvik et al. tests: barely deforms.
+        Material m;
+        m.name = "Hardened tool steel (Arne, HRC 53)";
+        m.key = "tool_steel_hrc53";
+        m.source = "Borvik et al., Int. J. Impact Eng. 27 (2002): projectile modelled as bilinear elastic-plastic, "
+                   "yield 1900 MPa, tangent modulus 15 GPa, E 204 GPa, nu 0.33. EOS as for the RHA steel. "
+                   "No fracture model (the projectiles stayed intact).";
+        m.density0 = 7850.0;
+        m.eos = MieGruneisenEos{4578.0, 1.33, 1.67};
+        m.bulkModulus = m.density0 * 4578.0 * 4578.0;
+        m.shearModulus = 76.7e9;
+        m.specificHeat = 452.0;
+        m.strength = JohnsonCookStrength{1900e6, 15e9, 1.0, 0.0, 1.0, 1800.0};
+        m.spallStrength = 4.0e9;
+        list.push_back(m);
+    }
     return list;
 }
 

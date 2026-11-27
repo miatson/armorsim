@@ -205,6 +205,8 @@ enum MaterialId : int {
     kCopperOFHC,
     kTungstenHeavyAlloy,
     kTitanium64,
+    kWeldox460E,
+    kToolSteelHRC53,
 };
 
 std::vector<Material> defaultMaterials();

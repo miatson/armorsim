@@ -13,3 +13,5 @@ struct HeadlessOverrides {
     double endTime = 0.0; // s
 };
 int runHeadlessFile(const std::string& path, const std::string& csvPath = {}, const HeadlessOverrides& o = {});
+// Ballistic limit (V50) by bisection between `low` and `high` m/s (widened if needed).
+int runHeadlessV50(const std::string& path, double low, double high, int iterations, const HeadlessOverrides& o = {});
