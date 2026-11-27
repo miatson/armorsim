@@ -131,6 +131,7 @@ struct JohnsonCookFailure {
 
 struct Material {
     std::string name;
+    std::string key;             // short id used in scenario files, e.g. "copper_ofhc"
     std::string source;          // where the numbers come from
     double density0 = 0.0;       // kg/m³ at room temperature, zero pressure
     double bulkModulus = 0.0;    // K, Pa (= ρ0 c0² for Mie-Grüneisen materials)
@@ -208,7 +209,7 @@ enum MaterialId : int {
 
 std::vector<Material> defaultMaterials();
 
-// Index of the material with this name, or -1.
+// Index of the material with this name or key, or -1.
 int findMaterial(std::span<const Material> materials, std::string_view name);
 
 } // namespace armor

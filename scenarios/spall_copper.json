@@ -1,0 +1,21 @@
+{
+  // Symmetric copper plate impact: the classic spall experiment.
+  "name": "Spall: copper flyer on copper target, +-100 m/s",
+  "description": "A 2 mm copper flyer hits a 6 mm copper target at +-100 m/s. The probe on the target's back face records its velocity like a VISAR: it jumps to +100 m/s (2v relative to the target), then drops by the 'pullback' when the target spalls 2 mm inside. Spall strength ~ 0.5 * rho0 * c0 * pullback.",
+  "mode": "axisymmetric",
+  "spacing_mm": 0.1,
+  "end_time_us": 6,
+  "parts": [
+    { "name": "Flyer", "material": "copper_ofhc",
+      "shape": { "type": "cylinder", "x_mm": [-2, 0], "radius_mm": 7.5 },
+      "velocity_mps": [100, 0] },
+    { "name": "Target", "material": "copper_ofhc",
+      "shape": { "type": "cylinder", "x_mm": [0, 6], "radius_mm": 7.5 },
+      "velocity_mps": [-100, 0] }
+  ],
+  "probes": [
+    { "name": "back face", "at_mm": [5.95, 0.55], "quantities": ["velocity_x"] },
+    { "name": "spall plane", "at_mm": [4.0, 0.55], "quantities": ["pressure", "porosity", "damage"] }
+  ],
+  "probe_interval_us": 0.01
+}

@@ -81,6 +81,7 @@ std::vector<Material> defaultMaterials() {
     {
         Material m;
         m.name = "Steel (RHA / 4340-class)";
+        m.key = "steel_rha";
         m.source = "4340 steel, Rc 30: JC from Johnson & Cook 1985; EOS Steinberg 1996. "
                    "RHA (MIL-DTL-12560) is a similar Ni-Cr-Mo steel.";
         m.density0 = 7850.0;
@@ -97,6 +98,7 @@ std::vector<Material> defaultMaterials() {
     {
         Material m;
         m.name = "Aluminium 6061-T6";
+        m.key = "aluminium_6061";
         m.source = "JC: Lesuer et al., LLNL 2001; EOS Steinberg 1996.";
         m.density0 = 2703.0;
         m.eos = MieGruneisenEos{5240.0, 1.40, 1.97};
@@ -112,6 +114,7 @@ std::vector<Material> defaultMaterials() {
     {
         Material m;
         m.name = "Copper (OFHC)";
+        m.key = "copper_ofhc";
         m.source = "JC: Johnson & Cook 1983; EOS Steinberg 1996.";
         m.density0 = 8960.0;
         m.eos = MieGruneisenEos{3940.0, 1.49, 2.02};
@@ -127,6 +130,7 @@ std::vector<Material> defaultMaterials() {
     {
         Material m;
         m.name = "Tungsten heavy alloy (93W-Ni-Fe)";
+        m.key = "tungsten_wha";
         m.source = "JC: Johnson & Cook 1983 (tungsten alloy); EOS: Steinberg 1996 (90W alloy, "
                    "c0 4029 m/s, s 1.237).";
         m.density0 = 17600.0;
@@ -143,6 +147,7 @@ std::vector<Material> defaultMaterials() {
     {
         Material m;
         m.name = "Titanium Ti-6Al-4V";
+        m.key = "titanium_6al4v";
         m.source = "JC: Lesuer, LLNL 2000; EOS Steinberg 1996.";
         m.density0 = 4430.0;
         m.eos = MieGruneisenEos{5130.0, 1.028, 1.23};
@@ -160,7 +165,7 @@ std::vector<Material> defaultMaterials() {
 
 int findMaterial(std::span<const Material> materials, std::string_view name) {
     for (std::size_t i = 0; i < materials.size(); ++i) {
-        if (materials[i].name == name) {
+        if (materials[i].name == name || (!materials[i].key.empty() && materials[i].key == name)) {
             return static_cast<int>(i);
         }
     }

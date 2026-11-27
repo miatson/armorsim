@@ -1,4 +1,8 @@
 #pragma once
-// Run preset `scenarioIndex` (0-based) with its default settings, no window,
-// and print a summary to stdout. Returns 0 = finished, 1 = blew up, 2 = bad index.
-int runHeadless(int scenarioIndex);
+#include <string>
+// Run preset `scenarioIndex` (0-based) with its default settings, or a scenario
+// file, with no window; print a summary to stdout, and write the probe time
+// histories to `csvPath` if given. Returns 0 = finished, 1 = blew up,
+// 2 = bad input.
+int runHeadless(int scenarioIndex, const std::string& csvPath = {});
+int runHeadlessFile(const std::string& path, const std::string& csvPath = {});

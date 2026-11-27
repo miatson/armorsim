@@ -1,7 +1,8 @@
 // -----------------------------------------------------------------------------
-// Headless.cpp - run a preset without a window and print a summary.
-//   armorsim --headless --scenario N
-// Used to check presets from scripts (does it finish? energy? final sizes?).
+// Headless.cpp - run a scenario without a window and print a summary.
+//   armorsim --headless --scenario N                 built-in preset N
+//   armorsim --headless --file x.json [--csv out.csv] scenario file, probes to CSV
+// Used to check scenarios from scripts (does it finish? energy? final sizes?).
 // -----------------------------------------------------------------------------
 #include "Headless.h"
 
@@ -12,22 +13,27 @@
 #include <cstdio>
 #include <vector>
 
+#include <fstream>
+
 #include <armor/Recorder.h>
+#include <armor/ScenarioFile.h>
 #include <armor/Solver.h>
 
 #include "Presets.h"
 
-int runHeadless(int scenarioIndex) {
-    const auto& list = presets();
-    if (scenarioIndex < 0 || scenarioIndex >= static_cast<int>(list.size())) {
-        std::fprintf(stderr, "scenario must be 1..%zu\n", list.size());
-        return 2;
-    }
-    const Preset& preset = list[static_cast<std::size_t>(scenarioIndex)];
-    const armor::Scenario scenario = preset.build(preset.defaults);
+namespace {
+
+int runScenario(const std::string& title, const armor::Scenario& scenario, const std::vector<armor::ProbeSpec>& probes,
+                double probeInterval, const std::string& csvPath) {
     armor::Solver solver(scenario, armor::defaultMaterials());
-    std::printf("%s\n  %zu particles, dx %.3f mm, end %.1f us\n", preset.name.c_str(), solver.particleCount(),
+    std::printf("%s\n  %zu particles, dx %.3f mm, end %.1f us\n", title.c_str(), solver.particleCount(),
                 scenario.dx * 1e3, scenario.endTime * 1e6);
+    armor::ProbeRecorder recorder(probes, solver, probeInterval > 0 ? probeInterval : scenario.endTime / 1000.0);
+    for (std::size_t k = 0; k < probes.size(); ++k) {
+        const armor::Vec2 at = solver.particles().pos[recorder.particleOf(k)];
+        std::printf("  probe \"%s\" follows the particle at (%.3f, %.3f) mm (%.3f mm from the requested point)\n",
+                    probes[k].name.c_str(), at.x * 1e3, at.y * 1e3, recorder.pickError(k) * 1e3);
+    }
 
     const armor::Diagnostics d0 = solver.diagnostics();
     const double speedLimit = 5.0 * std::max(d0.maxSpeed, 1.0); // far above anything physical here
@@ -36,6 +42,7 @@ int runHeadless(int scenarioIndex) {
     unsigned long long steps = 0;
     while (!solver.finished()) {
         solver.step();
+        recorder.update(solver);
         ++steps;
         if (solver.diagnostics().maxSpeed > speedLimit) {
             blewUp = true;
@@ -98,5 +105,36 @@ int runHeadless(int scenarioIndex) {
         std::printf("  %-26s x %.2f..%.2f mm  length %.2f mm, %s %.2f mm\n", b.name.c_str(), x0 * 1e3, x1 * 1e3,
                     len, axi ? "diameter" : "width", wid);
     }
+    if (!csvPath.empty()) {
+        std::ofstream out(csvPath);
+        if (!out) {
+            std::fprintf(stderr, "cannot write %s\n", csvPath.c_str());
+            return 2;
+        }
+        recorder.writeCsv(out);
+        std::printf("  probes: %zu samples written to %s\n", recorder.times().size(), csvPath.c_str());
+    }
     return blewUp ? 1 : 0;
+}
+
+} // namespace
+
+int runHeadless(int scenarioIndex, const std::string& csvPath) {
+    const auto& list = presets();
+    if (scenarioIndex < 0 || scenarioIndex >= static_cast<int>(list.size())) {
+        std::fprintf(stderr, "scenario must be 1..%zu\n", list.size());
+        return 2;
+    }
+    const Preset& preset = list[static_cast<std::size_t>(scenarioIndex)];
+    return runScenario(preset.name, preset.build(preset.defaults), {}, 0.0, csvPath);
+}
+
+int runHeadlessFile(const std::string& path, const std::string& csvPath) {
+    try {
+        const armor::ScenarioFile file = armor::loadScenarioFile(path, armor::defaultMaterials());
+        return runScenario(file.scenario.name, file.scenario, file.probes, file.probeInterval, csvPath);
+    } catch (const armor::ScenarioFileError& e) {
+        std::fprintf(stderr, "%s\n", e.what());
+        return 2;
+    }
 }

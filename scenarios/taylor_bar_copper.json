@@ -1,0 +1,21 @@
+{
+  // Taylor (1948) / Johnson & Cook (1983): OFHC copper rod on a rigid wall.
+  "name": "Taylor bar: OFHC copper, 190 m/s",
+  "description": "A copper rod 25.4 mm long, 7.62 mm across, hits a rigid wall at 190 m/s (modelled by a mirror-image rod: by symmetry the middle plane never moves). Experiment: final length 16.2 mm, foot ~13.5 mm, internal voids ~3 mm behind the face (Gray et al.).",
+  "mode": "axisymmetric",
+  "spacing_mm": 0.254,
+  "end_time_us": 80,
+  "parts": [
+    { "name": "Mirror rod (= the wall)", "material": "copper_ofhc",
+      "shape": { "type": "cylinder", "x_mm": [-25.4, 0], "radius_mm": 3.81 },
+      "velocity_mps": [190, 0] },
+    { "name": "Copper rod", "material": "copper_ofhc",
+      "shape": { "type": "cylinder", "x_mm": [0, 25.4], "radius_mm": 3.81 },
+      "velocity_mps": [-190, 0] }
+  ],
+  "probes": [
+    { "name": "rod tail", "at_mm": [25.3, 0.2], "quantities": ["x", "velocity_x"] },
+    { "name": "axis 3 mm behind face", "at_mm": [3.0, 0.2], "quantities": ["pressure", "porosity"] }
+  ],
+  "probe_interval_us": 0.1
+}

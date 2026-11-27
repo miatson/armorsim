@@ -35,6 +35,14 @@ find_package(Threads REQUIRED)
 add_subdirectory(core)
 add_subdirectory(sim)
 
+# ---- file I/O (Stage D): scenario files (JSON) and probe CSV ----
+FetchContent_Declare(nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM)
+FetchContent_MakeAvailable(nlohmann_json)
+add_subdirectory(io)
+
 # ---- application: raylib (window/drawing) + Dear ImGui (UI widgets) ----
 if(ARMOR_BUILD_APP)
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)

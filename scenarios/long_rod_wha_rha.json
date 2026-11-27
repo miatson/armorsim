@@ -1,0 +1,20 @@
+{
+  // Kinetic-energy penetrator principle at reduced speed.
+  "name": "Long rod: tungsten L/D 10 into RHA steel, 1500 m/s",
+  "description": "A 100 mm tungsten heavy alloy rod (10 mm diameter) hits thick rolled homogeneous armour steel at 1500 m/s. Real tests (Lanz & Odermatt) give a depth of about 0.8-0.9 rod lengths. The probe on the rod tail records the rod's deceleration.",
+  "mode": "axisymmetric",
+  "spacing_mm": 0.5,
+  "end_time_us": 150,
+  "parts": [
+    { "name": "Tungsten rod", "material": "tungsten_wha",
+      "shape": { "type": "cylinder", "x_mm": [-100.5, -0.5], "radius_mm": 5 },
+      "velocity_mps": [1500, 0] },
+    { "name": "Steel armour", "material": "steel_rha",
+      "shape": { "type": "cylinder", "x_mm": [0, 120], "radius_mm": 60 } }
+  ],
+  "probes": [
+    { "name": "rod tail", "at_mm": [-100.25, 0.25], "quantities": ["x", "velocity_x"] },
+    { "name": "armour 20 mm deep", "at_mm": [20, 0.25], "quantities": ["pressure", "temperature"] }
+  ],
+  "probe_interval_us": 0.5
+}

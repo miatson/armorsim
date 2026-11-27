@@ -6,7 +6,9 @@ add_executable(armorsim
     src/Headless.cpp
 )
 target_include_directories(armorsim PRIVATE src)
-target_link_libraries(armorsim PRIVATE armor_sim imgui_rl raylib)
+# Fallback location of the example scenario files (see Presets.cpp).
+target_compile_definitions(armorsim PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios")
+target_link_libraries(armorsim PRIVATE armor_sim armor_io imgui_rl raylib)
 armor_set_warnings(armorsim)
 
 if(MSVC)

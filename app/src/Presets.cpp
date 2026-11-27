@@ -2,7 +2,12 @@
 
 #include <cmath>
 #include <cstdio>
+#include <algorithm>
+#include <cstdlib>
+#include <filesystem>
 #include <variant>
+
+#include <armor/ScenarioFile.h>
 
 using namespace armor;
 
@@ -46,8 +51,9 @@ const MieGruneisenEos& eosOf(const Material& m) { return std::get<MieGruneisenEo
 
 } // namespace
 
-const std::vector<Preset>& presets() {
-    static const std::vector<Preset> kPresets = {
+namespace {
+std::vector<Preset> builtInPresets() {
+    return {
         {"Bar impact (axisymmetric)",
          "Two 100 mm steel rods (10 mm diameter) hit end-on. Axisymmetric: these are real round rods. "
          "Watch the compression wave run along each rod, reflect from the free end as tension, and the rods "
@@ -225,5 +231,82 @@ const std::vector<Preset>& presets() {
                            u, 100.0 * std::sqrt(rp / rt));
          }},
     };
+}
+
+// Where scenario files live: $ARMORSIM_SCENARIOS, else ./scenarios, else the
+// repository's scenarios folder (compiled in).
+std::filesystem::path scenarioDirectory() {
+    namespace fs = std::filesystem;
+#ifdef _MSC_VER
+#pragma warning(suppress : 4996) // getenv: read-only use, no threads modify the environment
+#endif
+    const char* env = std::getenv("ARMORSIM_SCENARIOS");
+    if (env && *env && fs::is_directory(env)) return env;
+    std::error_code ec;
+    if (fs::is_directory("scenarios", ec)) return "scenarios";
+#ifdef ARMOR_SCENARIO_DIR
+    if (fs::is_directory(ARMOR_SCENARIO_DIR, ec)) return ARMOR_SCENARIO_DIR;
+#endif
+    return {};
+}
+
+// A scenario file as a preset. The sliders act on the file's setup: spacing
+// and end time replace the file's values, and the speed slider scales every
+// moving part by (slider / fastest part in the file), keeping their ratios.
+Preset presetFromFile(const armor::ScenarioFile& file, const std::string& fileName) {
+    double fastest = 0.0;
+    for (const armor::Part& p : file.scenario.parts) fastest = std::max(fastest, std::hypot(p.velocity.x, p.velocity.y));
+    Preset preset;
+    preset.name = "[file] " + file.scenario.name;
+    preset.description = (file.description.empty() ? std::string("Scenario file.") : file.description) +
+                         "\n(from scenarios/" + fileName + ")";
+    preset.defaults = {static_cast<float>(fastest), static_cast<float>(file.scenario.dx * 1e3),
+                       static_cast<float>(file.scenario.endTime * 1e6)};
+    preset.maxVelocity = static_cast<float>(std::max(2.0 * fastest, 100.0));
+    preset.build = [file, fastest](const PresetParams& p) {
+        armor::Scenario s = file.scenario;
+        s.dx = p.dxMm * 1e-3;
+        s.endTime = p.endTimeUs * 1e-6;
+        if (fastest > 0.0) {
+            const double scale = p.velocity / fastest;
+            for (armor::Part& part : s.parts) part.velocity = part.velocity * scale;
+        }
+        return s;
+    };
+    preset.theory = [file](const PresetParams&, const std::vector<armor::Material>&) {
+        std::string t = "Loaded from a scenario file (see scenarios/README.md).";
+        if (!file.probes.empty()) {
+            t += "\nProbes in this file (time histories -> CSV):";
+            for (const armor::ProbeSpec& pr : file.probes)
+                t += "\n  " + pr.name + format(" at (%.2f, %.2f) mm", pr.position.x * 1e3, pr.position.y * 1e3);
+            t += "\nRun: armorsim --headless --file <file> --csv out.csv";
+        }
+        return t;
+    };
+    return preset;
+}
+
+} // namespace
+
+const std::vector<Preset>& presets() {
+    static const std::vector<Preset> kPresets = [] {
+        std::vector<Preset> list = builtInPresets();
+        const std::filesystem::path dir = scenarioDirectory();
+        if (dir.empty()) return list;
+        std::vector<std::filesystem::path> files;
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::directory_iterator(dir, ec))
+            if (entry.path().extension() == ".json") files.push_back(entry.path());
+        std::sort(files.begin(), files.end());
+        for (const auto& path : files) {
+            try {
+                list.push_back(presetFromFile(armor::loadScenarioFile(path, armor::defaultMaterials()),
+                                              path.filename().string()));
+            } catch (const armor::ScenarioFileError& e) {
+                std::fprintf(stderr, "skipping scenario file: %s\n", e.what()); // shown in the console
+            }
+        }
+        return list;
+    }();
     return kPresets;
 }

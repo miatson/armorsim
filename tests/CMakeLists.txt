@@ -7,8 +7,11 @@ add_executable(armor_tests
     test_kernel_grid.cpp
     test_solver.cpp
     test_stage_b.cpp
+    test_stage_d.cpp
 )
-target_link_libraries(armor_tests PRIVATE armor_sim doctest_header)
+target_link_libraries(armor_tests PRIVATE armor_sim armor_io doctest_header)
+# Example scenario files are checked by the tests.
+target_compile_definitions(armor_tests PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios")
 armor_set_warnings(armor_tests)
 
 add_test(NAME armor_tests COMMAND armor_tests)
