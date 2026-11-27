@@ -81,7 +81,14 @@ struct MieGruneisenEos {
     double gamma0 = 0.0; // Grüneisen parameter
 };
 
-using Eos = std::variant<LinearEos, MieGruneisenEos>;
+// Polynomial EOS for ceramics (Johnson-Holmquist): compression
+// p = K1 μ + K2 μ² + K3 μ³, tension p = K1 μ, with μ = ρ/ρ0 − 1. The bulking
+// pressure from damage (JH-2) is added per particle by the solver.
+struct PolynomialEos {
+    double K1 = 0.0, K2 = 0.0, K3 = 0.0; // Pa
+};
+
+using Eos = std::variant<LinearEos, MieGruneisenEos, PolynomialEos>;
 
 struct ElasticStrength {};
 
@@ -103,7 +110,30 @@ struct JohnsonCookStrength {
     }
 };
 
-using Strength = std::variant<ElasticStrength, JohnsonCookStrength>;
+// JOHNSON-HOLMQUIST (JH-2) model for brittle materials (ceramics, glass;
+// Johnson & Holmquist 1994). Strengths are normalised by the equivalent
+// stress at the Hugoniot elastic limit (sigmaHEL), pressures by PHEL:
+//   intact    σ_i* = A (P* + T*)^N (1 + C ln ε̇*)
+//   rubble    σ_f* = B (P*)^M (1 + C ln ε̇*) ≤ fracturedMax
+//   current   σ*   = σ_i* − D (σ_i* − σ_f*)
+//   damage    D += Δεp / εpf,   εpf = D1 (P* + T*)^D2
+// A ceramic is very strong when squeezed and weak when pulled; as it cracks
+// (D -> 1) it becomes rubble that still resists in proportion to pressure, and
+// it BULKS: the elastic energy released as strength drops raises the pressure
+// (fraction beta of it), see Solver::integrateCeramic.
+struct JohnsonHolmquist2 {
+    double A = 0.0, B = 0.0, C = 0.0, M = 1.0, N = 1.0;
+    double T = 0.0;            // Pa, maximum hydrostatic tension of intact material
+    double HEL = 0.0;          // Pa, Hugoniot elastic limit (total stress)
+    double PHEL = 0.0;         // Pa, pressure at the HEL
+    double sigmaHEL = 0.0;     // Pa, equivalent stress at the HEL = 1.5 (HEL − PHEL)
+    double fracturedMax = 1e9; // cap on σ_f* (normalised)
+    double D1 = 0.0, D2 = 1.0;
+    double beta = 1.0;         // bulking: share of released elastic energy turned into pressure
+    double refStrainRate = 1.0;
+};
+
+using Strength = std::variant<ElasticStrength, JohnsonCookStrength, JohnsonHolmquist2>;
 
 // Johnson-Cook FRACTURE model (Johnson & Cook 1985). Damage grows with plastic
 // strain, D += Δεp / εf, and the material fails at D = 1. The strain a metal
@@ -185,6 +215,8 @@ struct Material {
         return failure->fractureStrain(triaxiality, strainRate, tStar);
     }
 
+    bool isCeramic() const { return std::holds_alternative<JohnsonHolmquist2>(strength); }
+
     double meltTemperature() const {
         if (const auto* jc = std::get_if<JohnsonCookStrength>(&strength)) return jc->meltTemperature;
         return std::numeric_limits<double>::infinity();
@@ -207,6 +239,8 @@ enum MaterialId : int {
     kTitanium64,
     kWeldox460E,
     kToolSteelHRC53,
+    kAluminaAD995,
+    kBoronCarbide,
 };
 
 std::vector<Material> defaultMaterials();

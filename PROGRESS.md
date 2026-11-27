@@ -392,3 +392,31 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   and suggests spacing = thinnest / 48. The automatic spacing stays coarse
   for speed - consider an "accurate" option later.
 - Long-rod convergence rerun (0.25 mm) still pending.
+
+## 2026-11-27 — session 13: Stage F started - ceramics (JH-2)
+
+- Material.h: PolynomialEos (K1..K3) and JohnsonHolmquist2 strength;
+  Solver::integrateCeramic (EOS + bulking pressure, intact/rubble strength by
+  damage, radial return, damage from plastic strain, bulking from released
+  elastic energy, tension cut -T(1-D)). Particles::bulking. Ceramics skip the
+  density filter and never become "fully failed".
+- Materials (ids 7, 8): alumina AD-995, boron carbide (constants + sources in
+  Material.cpp). PHEL cross-check from EOS + G + HEL reproduces 1.46 / 8.71 GPa
+  (test). Alumina T 0.2 GPa and sigma_f,max 0.2 single-source. SiC left out
+  (sources conflict: rho 3163 vs 3215, HEL 11.7 vs 14.6; JDEU 2025 table
+  mixes in AlN damage constants and gives alumina HEL 19 GPa - unreliable).
+- Library: alumina_tile_10mm, boron_carbide_tile_8mm. App notes updated
+  (materials table shows HEL for ceramics).
+- Tile test (steel ball 500 m/s, 10 mm alumina, 0.25 mm): crushed core
+  (mean D 1.0), front away from contact intact (0.001), bulking 2.7 GPa,
+  energy max 1.000 / final 0.998. Damage map structured (cone + radial
+  cracking from the back), not noise. A backed tile cracked slightly MORE
+  than unbacked (1698 vs 1620) in 25 us - expectation dropped, not explained.
+- **OPEN, top of Stage F**: equal-weight comparison (64 kg/m2, W rod 30x6 mm
+  at 900 m/s, 0.2 mm): alumina10+Al10 686 m/s, Al 23.7 682 m/s, RHA 8.2
+  641 m/s - no ceramic advantage (real composites win clearly). Suspects:
+  fixed 120 us window (rods still slowing?), residual mass/erosion ignored,
+  sigma_f,max 0.2 maybe low, rod tip break-up under-resolved. Next: report
+  residual MASS and run longer; check rubble strength sensitivity; find a
+  published ceramic DOP experiment to validate against.
+- 706 assertions pass.

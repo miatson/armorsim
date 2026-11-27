@@ -368,7 +368,7 @@ void Solver::filterDensity() {
     const double minStrain = scenario_.settings.densityFilterMinPlasticStrain;
     pool_.parallelFor(n, [&](std::size_t b, std::size_t e) {
         for (std::size_t i = b; i < e; ++i) {
-            if (P.plasticStrain[i] < minStrain || P.failed[i]) {
+            if (P.plasticStrain[i] < minStrain || P.failed[i] || materials_[P.material[i]].isCeramic()) {
                 filteredRho_[i] = P.rho[i]; // ordered elastic material: leave untouched
                 continue;
             }
@@ -628,6 +628,70 @@ void Solver::computeForces(std::size_t i) {
 // -----------------------------------------------------------------------------
 void Solver::kick(std::size_t i) { particles_.vel[i] += acc_[i] * dt_; }
 
+// -----------------------------------------------------------------------------
+// CERAMICS: Johnson-Holmquist JH-2 (see Material.h). Called from integrate()
+// with the elastic trial deviatoric stress S, after density and energy are
+// updated.
+//  1. Pressure: polynomial EOS + this particle's bulking pressure ΔP.
+//  2. Strength between intact and rubble according to damage D; radial return.
+//  3. Damage grows with plastic strain: ΔD = Δεp / εpf(P).
+//  4. Bulking: the strength drop releases elastic shear energy
+//     U = σ_y²/(6G); a share beta of it becomes pressure (Johnson & Holmquist):
+//       ΔP_new = −K1 μ + sqrt((K1 μ + ΔP_old)² + 2 beta K1 ΔU)
+//  5. Tension is limited to −T (1 − D): rubble cannot be pulled.
+// The stored pressure is what forces and pressure work use (pEff), so the
+// energy books stay exact. Ceramic particles never become "fully failed":
+// rubble keeps its pressure-dependent strength - the heart of the model.
+// -----------------------------------------------------------------------------
+void Solver::integrateCeramic(std::size_t i, SymTensor S, const JohnsonHolmquist2& jh) {
+    Particles& P = particles_;
+    const Material& mat = materials_[P.material[i]];
+    const double K1 = std::get_if<PolynomialEos>(&mat.eos) ? std::get<PolynomialEos>(mat.eos).K1 : mat.bulkModulus;
+    const double mu = P.rho[i] / mat.density0 - 1.0;
+    const double tStar = jh.T / jh.PHEL;
+    const double rateTerm =
+        1.0 + jh.C * std::log(std::max(P.plasticRate[i] / jh.refStrainRate, 1.0));
+    auto strength = [&](double p, double D) { // σ_y in Pa at pressure p and damage D
+        const double pStar = p / jh.PHEL;
+        const double intact = pStar + tStar > 0.0 ? jh.A * std::pow(pStar + tStar, jh.N) * rateTerm : 0.0;
+        const double rubble = pStar > 0.0 ? std::min(jh.B * std::pow(pStar, jh.M) * rateTerm, jh.fracturedMax) : 0.0;
+        return std::max(intact - D * (intact - rubble), 0.0) * jh.sigmaHEL;
+    };
+    double D = std::min(P.damage[i], 1.0);
+    double p = mat.pressure(P.rho[i], P.energy[i]) + P.bulking[i];
+    p = std::max(p, -jh.T * (1.0 - D));
+
+    // Radial return onto the current (damaged) strength.
+    const double yield = strength(p, D);
+    const double vm = vonMises(S);
+    double dEp = 0.0;
+    P.plasticRate[i] = 0.0;
+    if (vm > yield) {
+        S = vm > 0.0 ? S * (yield / vm) : S;
+        dEp = (vm - yield) / (3.0 * mat.shearModulus);
+        P.plasticStrain[i] += dEp;
+        P.plasticRate[i] = dEp / dt_;
+        P.temperature[i] += mat.taylorQuinney * yield * dEp / (P.rho[i] * mat.specificHeat);
+    }
+    // Damage; in tension the strain to fracture is tiny, so it cracks at once.
+    if (scenario_.settings.failure && dEp > 0.0 && D < 1.0) {
+        const double x = p / jh.PHEL + tStar;
+        const double epf = x > 0.0 ? std::max(jh.D1 * std::pow(x, jh.D2), 1e-6) : 1e-6;
+        const double Dnew = std::min(D + dEp / epf, 1.0);
+        // Bulking from the released elastic energy (per unit volume).
+        const double sOld = strength(p, D), sNew = strength(p, Dnew);
+        const double dU = std::max((sOld * sOld - sNew * sNew) / (6.0 * mat.shearModulus), 0.0);
+        const double k1mu = K1 * mu;
+        const double dPold = P.bulking[i];
+        P.bulking[i] = std::max(-k1mu + std::sqrt((k1mu + dPold) * (k1mu + dPold) + 2.0 * jh.beta * K1 * dU), dPold);
+        D = Dnew;
+        P.damage[i] = D;
+        p = std::max(mat.pressure(P.rho[i], P.energy[i]) + P.bulking[i], -jh.T * (1.0 - D));
+    }
+    P.S[i] = S;
+    P.pressure[i] = p;
+}
+
 void Solver::integrate(std::size_t i) {
     Particles& P = particles_;
     const Material& mat = materials_[P.material[i]];
@@ -647,69 +711,74 @@ void Solver::integrate(std::size_t i) {
     //    (the measure JC fitted their constants with). The total strain rate
     //    is noisy in SPH - particle jitter gives short spikes that would add
     //    spurious rate hardening.
-    const double rate = scenario_.settings.plasticRateForJohnsonCook ? P.plasticRate[i] : strainRate_[i];
-    const double yield = mat.yieldStress(P.plasticStrain[i], rate, P.temperature[i]);
-    const double vm = vonMises(S);
-    P.plasticRate[i] = 0.0;
-    double dEp = 0.0;
-    if (vm > yield) {
-        // 3. RETURN: scale the deviatoric stress straight back ("radially")
-        //    onto the cylinder. The direction of S is kept, only its size
-        //    shrinks to the yield stress.
-        S = S * (yield / vm);
-        // 4. The plastic strain increment that this corresponds to: the
-        //    elastic trial overshot by (vm − σ_y), and in shear the stiffness
-        //    is 3G (σ_vm = 3G·ε_eff for deviatoric strain), so
-        //        Δεp = (vm − σ_y) / (3G)
-        dEp = (vm - yield) / (3.0 * mat.shearModulus);
-        P.plasticStrain[i] += dEp;
-        P.plasticRate[i] = dEp / dt_;
-        // 5. Plastic work per unit volume = σ_y · Δεp. ~90% becomes heat
-        //    (Taylor-Quinney factor): ΔT = χ σ_y Δεp / (ρ c_v).
-        //    (The work itself is already in the energy equation via S:ε̇.)
-        P.temperature[i] += mat.taylorQuinney * yield * dEp / (P.rho[i] * mat.specificHeat);
-    }
-    P.S[i] = S;
-    if (P.failed[i] == kSpall) {
-        updatePorosity(i); // sets pressure from matrix EOS + voids
+    if (const auto* jh = std::get_if<JohnsonHolmquist2>(&mat.strength)) {
+        integrateCeramic(i, S, *jh); // JH-2 (ceramics): own strength, damage and bulking
     } else {
-        P.pressure[i] = mat.pressure(P.rho[i], P.energy[i]);
-    }
-
-    // ---- Failure (Stage C) ----
-    if (scenario_.settings.failure && !fullyFailed(P.failed[i])) {
-        if (dEp > 0.0 && mat.failure) {
-            // Triaxiality σ* = −p/σ_vm with the returned stress (σ_vm = σ_y).
-            const double triax = -P.pressure[i] / std::max(vonMises(S), 1.0);
-            P.damage[i] += dEp / mat.fractureStrain(triax, P.plasticRate[i], P.temperature[i]);
+        const double rate = scenario_.settings.plasticRateForJohnsonCook ? P.plasticRate[i] : strainRate_[i];
+        const double yield = mat.yieldStress(P.plasticStrain[i], rate, P.temperature[i]);
+        const double vm = vonMises(S);
+        P.plasticRate[i] = 0.0;
+        double dEp = 0.0;
+        if (vm > yield) {
+            // 3. RETURN: scale the deviatoric stress straight back ("radially")
+            //    onto the cylinder. The direction of S is kept, only its size
+            //    shrinks to the yield stress.
+            S = S * (yield / vm);
+            // 4. The plastic strain increment that this corresponds to: the
+            //    elastic trial overshot by (vm − σ_y), and in shear the stiffness
+            //    is 3G (σ_vm = 3G·ε_eff for deviatoric strain), so
+            //        Δεp = (vm − σ_y) / (3G)
+            dEp = (vm - yield) / (3.0 * mat.shearModulus);
+            P.plasticStrain[i] += dEp;
+            P.plasticRate[i] = dEp / dt_;
+            // 5. Plastic work per unit volume = σ_y · Δεp. ~90% becomes heat
+            //    (Taylor-Quinney factor): ΔT = χ σ_y Δεp / (ρ c_v).
+            //    (The work itself is already in the energy equation via S:ε̇.)
+            P.temperature[i] += mat.taylorQuinney * yield * dEp / (P.rho[i] * mat.specificHeat);
         }
-        // Spall needs SUSTAINED tension: at least the time a sound wave takes
-        // to cross one smoothing length, the shortest pulse the particles can
-        // resolve; shorter spikes are numerical. Measured spall strengths come
-        // from pulses of tens of ns to µs.
-        if (P.pressure[i] < -mat.spallStrength) {
-            P.spallTime[i] += dt_;
+        P.S[i] = S;
+        if (P.failed[i] == kSpall) {
+            updatePorosity(i); // sets pressure from matrix EOS + voids
         } else {
-            P.spallTime[i] = 0.0;
+            P.pressure[i] = mat.pressure(P.rho[i], P.energy[i]);
         }
-        const double resolvable = std::max(kernel_.h() / mat.soundSpeed(mat.density0), scenario_.settings.spallIncubationTime);
-        if (P.damage[i] >= 1.0) {
-            P.failed[i] = kDuctile;
-        } else if (P.temperature[i] >= mat.meltTemperature()) {
-            P.failed[i] = kMelted;
-        } else if (P.failed[i] == kIntact && P.spallTime[i] >= resolvable) {
-            // Voids nucleate; relax the tension onto the growth threshold now.
-            P.failed[i] = kSpall;
-            P.porosity[i] = scenario_.settings.initialPorosity;
-            updatePorosity(i);
-        } else if (P.failed[i] == kSpall && P.porosity[i] >= scenario_.settings.coalescencePorosity) {
-            // Voids COALESCE: the ligaments between them tear and the
-            // material separates completely.
-            P.failed[i] = kDuctile;
+
+        // ---- Failure (Stage C) ----
+        if (scenario_.settings.failure && !fullyFailed(P.failed[i])) {
+            if (dEp > 0.0 && mat.failure) {
+                // Triaxiality σ* = −p/σ_vm with the returned stress (σ_vm = σ_y).
+                const double triax = -P.pressure[i] / std::max(vonMises(S), 1.0);
+                P.damage[i] += dEp / mat.fractureStrain(triax, P.plasticRate[i], P.temperature[i]);
+            }
+            // Spall needs SUSTAINED tension: at least the time a sound wave takes
+            // to cross one smoothing length, the shortest pulse the particles can
+            // resolve; shorter spikes are numerical. Measured spall strengths come
+            // from pulses of tens of ns to µs.
+            if (P.pressure[i] < -mat.spallStrength) {
+                P.spallTime[i] += dt_;
+            } else {
+                P.spallTime[i] = 0.0;
+            }
+            const double resolvable = std::max(kernel_.h() / mat.soundSpeed(mat.density0), scenario_.settings.spallIncubationTime);
+            if (P.damage[i] >= 1.0) {
+                P.failed[i] = kDuctile;
+            } else if (P.temperature[i] >= mat.meltTemperature()) {
+                P.failed[i] = kMelted;
+            } else if (P.failed[i] == kIntact && P.spallTime[i] >= resolvable) {
+                // Voids nucleate; relax the tension onto the growth threshold now.
+                P.failed[i] = kSpall;
+                P.porosity[i] = scenario_.settings.initialPorosity;
+                updatePorosity(i);
+            } else if (P.failed[i] == kSpall && P.porosity[i] >= scenario_.settings.coalescencePorosity) {
+                // Voids COALESCE: the ligaments between them tear and the
+                // material separates completely.
+                P.failed[i] = kDuctile;
+            }
         }
-    }
-    if (fullyFailed(P.failed[i])) {
-        P.S[i] = {}; // no shear strength left (tension is cut in the pair sums)
+        if (fullyFailed(P.failed[i])) {
+            P.S[i] = {}; // no shear strength left (tension is cut in the pair sums)
+        }
+
     }
 
     if (axisymmetric_ && P.pos[i].y < 0.0) {

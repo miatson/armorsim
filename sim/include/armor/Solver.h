@@ -70,6 +70,7 @@ private:
     void computeStrainRates(std::size_t i);
     void computeForces(std::size_t i);
     void updatePorosity(std::size_t i);
+    void integrateCeramic(std::size_t i, SymTensor S, const JohnsonHolmquist2& jh);
     void kick(std::size_t i);
     void integrate(std::size_t i);
 

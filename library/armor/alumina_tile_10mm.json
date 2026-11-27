@@ -1,0 +1,3 @@
+{ "name": "Alumina ceramic tile, 10 mm", "category": "armor",
+  "description": "99.5% alumina (AD-995) armour ceramic, 10 mm. Very hard: it shatters the projectile's tip and spreads the load, then turns to rubble that still resists when squeezed. Put a metal layer right behind it (gap 0) to catch the rubble - that is how real composite armour works.",
+  "material": "alumina_ad995", "shape": { "type": "plate", "thickness_mm": 10, "width_mm": 60 } }

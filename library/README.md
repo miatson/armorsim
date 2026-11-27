@@ -33,14 +33,15 @@ the source tree. Unknown keys are an error, so typos can't slip through.
 | Key | Meaning |
 |---|---|
 | `category` | `"projectile"` (in `projectiles/`) or `"armor"` (in `armor/`) |
-| `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v` |
+| `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide` |
 | `shape` | Projectiles: `sphere` (`diameter_mm`) or `rod` (`length_mm`, `diameter_mm`, flat nose). Armour: `plate` (`thickness_mm`, `width_mm`) |
 | `speed_mps` | Suggested speed (projectiles) |
 
 `width_mm` is the diameter of a round plate in straight-on shots, or the height of
 the plate in angled (2D slice) shots.
 
-**Ceramics** (alumina, silicon carbide, boron carbide) are not available yet. They
-shatter and keep resisting as rubble, which needs the Johnson-Holmquist (JH-2)
-model planned for Stage F. Using metal physics for them would give results that
-look plausible but are wrong.
+**Ceramics** (`alumina_ad995`, `boron_carbide`) use the Johnson-Holmquist JH-2
+model: very strong when squeezed, weak when pulled, and once cracked they turn
+into rubble that still resists in proportion to pressure. Unbacked tiles shatter
+widely, so put a metal layer directly behind them (gap 0), as in real composite
+armour. Silicon carbide is not included yet: the published constants conflict.

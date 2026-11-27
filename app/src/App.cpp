@@ -630,8 +630,8 @@ bool materialCombo(const char* label, int& index, const std::vector<armor::Mater
             }
         }
         ImGui::Separator();
-        ImGui::TextDisabled("Ceramics (alumina, boron carbide...) arrive with");
-        ImGui::TextDisabled("Stage F: they need a brittle-fracture model (JH-2).");
+        ImGui::TextDisabled("Ceramics shatter and resist as rubble (JH-2 model):");
+        ImGui::TextDisabled("back them with a metal layer, gap 0.");
         ImGui::EndCombo();
     }
     return changed;
@@ -961,6 +961,8 @@ void App::drawDetailsTab() {
                 ImGui::Text("%.0f", m.density0);
                 ImGui::TableNextColumn();
                 if (const auto* jc = std::get_if<armor::JohnsonCookStrength>(&m.strength)) ImGui::Text("%.0f MPa", jc->A / 1e6);
+                else if (const auto* jh = std::get_if<armor::JohnsonHolmquist2>(&m.strength))
+                    ImGui::Text("HEL %.1f GPa", jh->HEL / 1e9);
                 else ImGui::TextUnformatted("-");
                 ImGui::TableNextColumn();
                 if (std::isfinite(m.spallStrength)) ImGui::Text("%.1f GPa", m.spallStrength / 1e9);
@@ -969,7 +971,7 @@ void App::drawDetailsTab() {
             ImGui::EndTable();
         }
         ImGui::TextDisabled("Density in kg/m3. Hover a name for the data sources.");
-        ImGui::TextDisabled("Ceramics need a brittle model (JH-2): Stage F.");
+        ImGui::TextDisabled("Ceramics: strength given as the Hugoniot elastic limit.");
     }
 
     if (ImGui::CollapsingHeader("Controls")) {
@@ -982,7 +984,8 @@ void App::drawDetailsTab() {
     if (ImGui::CollapsingHeader("About")) {
         ImGui::TextWrapped("MiataPhySim - a 2D impact and armour physics simulator (SPH hydrocode). "
                            "Work in progress: elastic solids, plasticity and shocks, and failure (spall, fracture, "
-                           "melting) are in; the scenario builder is being built; ceramics, explosives and 3D come later.");
+                           "melting), the scenario builder, validation against experiments and armour ceramics are in; "
+                           "explosives and 3D come later.");
 #ifdef MIATAPHYSIM_VERSION
         ImGui::TextDisabled("Version %s   github.com/miatson/miataphysim", MIATAPHYSIM_VERSION);
 #else

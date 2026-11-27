@@ -56,6 +56,7 @@ struct Particles {
     std::vector<std::uint8_t> failed;  // 0 intact, else a FailureKind (Stage C)
     std::vector<double> spallTime;     // how long tension has exceeded the spall strength, s
     std::vector<double> porosity;      // void volume fraction φ of spalled material (0 = dense)
+    std::vector<double> bulking;       // JH-2 bulking pressure of damaged ceramic, Pa
     std::vector<std::uint16_t> material;
     std::vector<std::uint16_t> part; // contact body id (bonded parts share one)
 
@@ -76,6 +77,7 @@ struct Particles {
         failed.resize(n);
         spallTime.resize(n);
         porosity.resize(n);
+        bulking.resize(n);
         material.resize(n);
         part.resize(n);
     }
@@ -96,6 +98,7 @@ struct Particles {
         failed.push_back(failed[i]);
         spallTime.push_back(spallTime[i]);
         porosity.push_back(porosity[i]);
+        bulking.push_back(bulking[i]);
         material.push_back(material[i]);
         part.push_back(part[i]);
         return pos.size() - 1;

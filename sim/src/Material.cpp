@@ -26,6 +26,10 @@ double clampCompression(double eta, double s) { return std::min(eta, 0.9 / s); }
 } // namespace
 
 double Material::pressure(double density, double energy) const {
+    if (const auto* pe = std::get_if<PolynomialEos>(&eos)) {
+        const double mu = density / density0 - 1.0;
+        return mu > 0.0 ? mu * (pe->K1 + mu * (pe->K2 + mu * pe->K3)) : pe->K1 * mu;
+    }
     if (const auto* mg = std::get_if<MieGruneisenEos>(&eos)) {
         const double rho0c2 = density0 * mg->c0 * mg->c0;
         const double eta = 1.0 - density0 / density;
@@ -44,6 +48,11 @@ double Material::pressure(double density, double energy) const {
 
 // c² = ∂p/∂ρ at constant entropy = ∂p/∂ρ|_e + (p/ρ²) ∂p/∂e|_ρ
 double Material::bulkSoundSpeed(double density, double energy) const {
+    if (const auto* pe = std::get_if<PolynomialEos>(&eos)) {
+        const double mu = std::max(density / density0 - 1.0, 0.0);
+        const double dp = pe->K1 + mu * (2.0 * pe->K2 + 3.0 * mu * pe->K3); // dp/dμ
+        return std::sqrt(std::max(dp, pe->K1) / density0);
+    }
     if (const auto* mg = std::get_if<MieGruneisenEos>(&eos)) {
         const double rho0c2 = density0 * mg->c0 * mg->c0;
         const double eta = 1.0 - density0 / density;
@@ -196,6 +205,46 @@ std::vector<Material> defaultMaterials() {
         m.specificHeat = 452.0;
         m.strength = JohnsonCookStrength{1900e6, 15e9, 1.0, 0.0, 1.0, 1800.0};
         m.spallStrength = 4.0e9;
+        list.push_back(m);
+    }
+    {
+        // Ceramic armour: alumina 99.5% (Coors AD-995).
+        Material m;
+        m.name = "Alumina ceramic (AD-995)";
+        m.key = "alumina_ad995";
+        m.source = "JH-2 (Johnson & Holmquist 1994): A 0.93, B 0.31, M 0.6, N 0.6, D1 0.005, D2 1, HEL 2.79 GPa, "
+                   "K1 130.95 GPa, G 90.16 GPa, beta 1 (cross-checked: these K1, G and HEL give PHEL = 1.46 GPa, the "
+                   "published value). Tensile strength 0.2 GPa and fractured-strength cap 0.2: single source, approx.";
+        m.density0 = 3700.0;
+        m.eos = PolynomialEos{130.95e9, 0.0, 0.0};
+        m.bulkModulus = 130.95e9;
+        m.shearModulus = 90.16e9;
+        m.specificHeat = 880.0;
+        JohnsonHolmquist2 jh;
+        jh.A = 0.93; jh.B = 0.31; jh.C = 0.0; jh.M = 0.6; jh.N = 0.6;
+        jh.T = 0.2e9; jh.HEL = 2.79e9; jh.PHEL = 1.46e9; jh.sigmaHEL = 1.5 * (2.79e9 - 1.46e9);
+        jh.fracturedMax = 0.2; jh.D1 = 0.005; jh.D2 = 1.0; jh.beta = 1.0;
+        m.strength = jh;
+        list.push_back(m);
+    }
+    {
+        // Ceramic armour: boron carbide, very hard and light.
+        Material m;
+        m.name = "Boron carbide ceramic (B4C)";
+        m.key = "boron_carbide";
+        m.source = "JH-2 (Johnson & Holmquist 1999, J. Appl. Phys. 85): A 0.927, B 0.7, C 0.005, M 0.85, N 0.67, "
+                   "T 0.26 GPa, HEL 19 GPa, fractured cap 0.2, D1 0.001, D2 0.5, K1 233, K2 -593, K3 2800 GPa, "
+                   "G 197 GPa, beta 1 (cross-checked: these give PHEL = 8.71 GPa, the published value).";
+        m.density0 = 2510.0;
+        m.eos = PolynomialEos{233e9, -593e9, 2800e9};
+        m.bulkModulus = 233e9;
+        m.shearModulus = 197e9;
+        m.specificHeat = 950.0;
+        JohnsonHolmquist2 jh;
+        jh.A = 0.927; jh.B = 0.7; jh.C = 0.005; jh.M = 0.85; jh.N = 0.67;
+        jh.T = 0.26e9; jh.HEL = 19e9; jh.PHEL = 8.71e9; jh.sigmaHEL = 1.5 * (19e9 - 8.71e9);
+        jh.fracturedMax = 0.2; jh.D1 = 0.001; jh.D2 = 0.5; jh.beta = 1.0;
+        m.strength = jh;
         list.push_back(m);
     }
     return list;

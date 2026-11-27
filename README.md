@@ -17,7 +17,7 @@ The solver itself has no dependencies.
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
 | D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | 🔨 in progress (files, probes, graphs, CSV done) |
 | E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation ✅ at fine spacing) |
-| F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | ⏳ |
+| F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | 🔨 in progress (alumina & boron carbide ✅) |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
 | H | Optional: performance, 3D | ⏳ |
 
@@ -340,6 +340,58 @@ particle spacing; the non-dispersive plate impact is exact.
 (*) Taylor foot: the simulated wall is frictionless (a mirror-image rod). A real anvil
 grips the rod face and holds the foot back.
 
+## How it works — Stage F (in progress): ceramics
+
+Armour ceramics use the **Johnson-Holmquist JH-2** model (Johnson & Holmquist 1994).
+Strength is normalised by the stress at the Hugoniot elastic limit:
+
+```
+intact   σ_i* = A (P* + T*)^N (1 + C ln ε̇*)
+rubble   σ_f* = B (P*)^M (1 + C ln ε̇*)  ≤ σ_f,max
+current  σ*   = σ_i* − D (σ_i* − σ_f*)        D += Δεp / (D1 (P* + T*)^D2)
+pressure P = K1 μ + K2 μ² + K3 μ³ + ΔP       (tension: K1 μ, limited to −T (1 − D))
+```
+
+A ceramic is very strong when squeezed and weak when pulled. As it cracks it
+becomes rubble that still resists in proportion to pressure, and it **bulks**: the
+elastic energy released as strength drops raises the pressure,
+`ΔP_new = −K1 μ + sqrt((K1 μ + ΔP_old)² + 2 β K1 ΔU)`. Ceramic particles never
+"fully fail" like metals do; the rubble keeps its strength. Pressure and work use
+the same stored value, so energy stays exact.
+
+**Materials:**
+- **Alumina AD-995:** A 0.93, B 0.31, M 0.6, N 0.6, D1 0.005, D2 1, HEL 2.79 GPa,
+  K1 130.95 GPa, G 90.16 GPa.
+- **Boron carbide** (Johnson & Holmquist 1999): A 0.927, B 0.7, C 0.005, M 0.85,
+  N 0.67, T 0.26 GPa, HEL 19 GPa, K1/K2/K3 233/−593/2800 GPa, G 197 GPa.
+- **Cross-check:** the pressure at the HEL is not a free number. It follows from K1–K3,
+  G and the HEL (uniaxial strain), and the code reproduces the published PHEL to
+  0.2% for both (1.46 and 8.71 GPa); this is a test.
+- **Approximate (single source):** alumina's tensile strength (0.2 GPa) and its
+  fractured-strength cap (0.2).
+- **Silicon carbide left out:** the sources conflict, and the check does not close.
+
+**Tile test:** a 10 mm steel ball at 500 m/s into a 10 mm alumina tile gives a
+structured, physical damage pattern rather than noise: a fully crushed cone under
+the ball, cracking spreading outward through the middle and back of the tile, and an
+intact front surface away from the contact. Bulking reaches 2.7 GPa, and total
+energy never grows (final 0.998).
+
+**Open: the composite-armour advantage does not show yet.** A tungsten rod (30 × 6 mm,
+15 g, 900 m/s) against three targets of equal weight (64 kg/m²):
+
+| Target | Rod leaves at |
+|---|---|
+| 10 mm alumina + 10 mm aluminium | 686 m/s |
+| 23.7 mm aluminium | 682 m/s |
+| 8.2 mm steel armour | 641 m/s |
+
+Real ceramic composites beat equal-weight metal clearly. Suspects: the residual
+speed is measured at a fixed 120 µs and ignores how much of the rod is eroded (where
+ceramics win); the rubble strength cap may be too low; the break-up of the rod's tip
+on the hard face is under-resolved. Until this is resolved, treat ceramic results as
+qualitative. Rerun with `armor_tests -tc="DIAG equal-weight*" --no-skip -s`.
+
 ## Validation against experiments (Stage E)
 
 ### Long-rod penetration (Lanz-Odermatt)
@@ -406,7 +458,9 @@ when a plate has fewer than about 40 particles across it.
 
 ## Known limitations
 
-- **No ceramics yet**: they need the JH-2 brittle model (Stage F).
+- Ceramics: alumina and boron carbide only (silicon carbide constants conflict between
+  sources). The ceramic model is checked for consistency, not yet against a ceramic
+  penetration experiment.
 - Spall strengths in the material data are approximate (see `Material.cpp`), and spall
   is a fixed threshold plus a minimum duration, not yet rate-dependent.
 - Fragments are counted (`miataphysim --headless`), not yet shown in the app. A spall
@@ -447,6 +501,9 @@ when a plate has fewer than about 40 particles across it.
 - W. Herrmann, *Constitutive equation for the dynamic compaction of ductile porous materials*, J. Appl. Phys. 40 (1969)
 - V. Tvergaard, A. Needleman, *Analysis of the cup-cone fracture in a round tensile bar*, Acta Metall. 32 (1984)
 - F. L. Addessio, J. N. Johnson, P. J. Maudlin, *The effect of void growth on Taylor cylinder impact experiments*, J. Appl. Phys. 73 (1993)
+- G. R. Johnson, T. J. Holmquist, *An improved computational constitutive model for brittle materials*, High-Pressure Science and Technology, AIP (1994)
+- G. R. Johnson, T. J. Holmquist, *Response of boron carbide subjected to large strains, high strain rates, and high pressures*, J. Appl. Phys. 85 (1999)
+- D. S. Cronin, K. Bui, C. Kaufmann et al., *Implementation and validation of the Johnson-Holmquist ceramic material model in LS-DYNA*, 4th European LS-DYNA Users Conference (2003)
 - W. Odermatt, long-rod penetration calculator, longrods.ch (source of the Lanz-Odermatt coefficients used here)
 - W. Lanz, W. Odermatt, *Penetration limits of conventional large caliber anti tank guns/kinetic energy projectiles*, 13th Int. Symp. Ballistics (1992)
 

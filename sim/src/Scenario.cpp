@@ -95,6 +95,7 @@ Particles buildParticles(const Scenario& scenario, std::span<const Material> mat
                 P.failed.push_back(kIntact);
                 P.spallTime.push_back(0.0);
                 P.porosity.push_back(0.0);
+                P.bulking.push_back(0.0);
                 P.material.push_back(static_cast<std::uint16_t>(part.material));
                 // "part" is really the contact body id: bonded parts share one.
                 P.part.push_back(bodyId(scenario, partIndex));
