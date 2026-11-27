@@ -386,11 +386,24 @@ energy never grows (final 0.998).
 | 23.7 mm aluminium | 682 m/s |
 | 8.2 mm steel armour | 641 m/s |
 
-Real ceramic composites beat equal-weight metal clearly. Suspects: the residual
-speed is measured at a fixed 120 µs and ignores how much of the rod is eroded (where
-ceramics win); the rubble strength cap may be too low; the break-up of the rod's tip
-on the hard face is under-resolved. Until this is resolved, treat ceramic results as
-qualitative. Rerun with `armor_tests -tc="DIAG equal-weight*" --no-skip -s`.
+Real ceramic composites beat equal-weight metal clearly. Follow-up checks (rod mass
+that got through and its speed, at 250 µs, with leftover energy relative to target A):
+
+| Variant of target A | Rod mass through | Speed | Relative energy |
+|---|---|---|---|
+| as built | 85% | 769 m/s | 1.00 |
+| no cap on alumina rubble strength | 84% | 760 m/s | 0.96 |
+| alumina that never cracks (reference) | 51% | 460 m/s | 0.22 |
+
+Plain aluminium came out at 0.96 and steel at 0.78. So the rubble strength is not
+the problem: **the tile cracks too early**, before it can erode the rod. The likely
+cause is that tile and backing were separate bodies that can only push on each other.
+That joint reflects the impact wave as tension, and alumina withstands only 0.2 GPa,
+so the tile cracked from the back within microseconds. Real composite armour is
+**glued**, so the builder now glues ceramic layers to the layer behind them by default
+(one bonded body, `contact_group` in files), with a checkbox to turn it off. How much
+this closes the gap has not been measured: that needs long runs, left for when the
+machine is free. Until then, treat ceramic results as qualitative.
 
 ## Validation against experiments (Stage E)
 

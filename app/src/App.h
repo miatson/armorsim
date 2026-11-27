@@ -112,6 +112,7 @@ private:
         int material = 0;
         float thicknessMm = 10.0f;
         float gapMm = 0.0f; // in front of this layer (not used for the first)
+        bool glued = false; // glued to the next layer (ceramics: on by default)
     };
     int projItem_ = 0;
     int projMaterial_ = 0;

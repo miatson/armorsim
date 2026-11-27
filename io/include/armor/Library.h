@@ -66,6 +66,11 @@ struct ArmorLayer {
     int material = 0;
     double thickness = 0.0; // m (starts as the item's)
     double gapBefore = 0.0; // m, empty space in front of this layer (0 for the first)
+    // Glued to the next layer (only if that one has no gap): the two act as one
+    // bonded body, carrying tension and shear across the joint. Real ceramic
+    // armour is glued to its backing; loose, the joint reflects the impact wave
+    // as tension and the tile cracks from the back almost at once.
+    bool bondedToNext = false;
 };
 
 struct BuildSpec {

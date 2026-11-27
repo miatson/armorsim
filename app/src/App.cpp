@@ -80,6 +80,8 @@ void App::resetBuilderLayer(std::size_t k, int item) {
     layers_[k].item = item;
     layers_[k].material = lib.armor[static_cast<std::size_t>(item)].material;
     layers_[k].thicknessMm = static_cast<float>(lib.armor[static_cast<std::size_t>(item)].thickness * 1e3);
+    // Ceramic tiles are glued to their backing in real armour.
+    layers_[k].glued = materials_[static_cast<std::size_t>(layers_[k].material)].isCeramic();
 }
 
 armor::BuildSpec App::builderSpec() const {
@@ -95,6 +97,7 @@ armor::BuildSpec App::builderSpec() const {
         layer.material = l.material;
         layer.thickness = l.thicknessMm * 1e-3;
         layer.gapBefore = l.gapMm * 1e-3;
+        layer.bondedToNext = l.glued;
         spec.layers.push_back(layer);
     }
     spec.obliquity = obliquityDeg_ * 3.14159265358979323846 / 180.0;
@@ -165,6 +168,11 @@ std::string App::builderSummary() const {
             t += buf;
         }
     }
+    bool ceramic = false;
+    for (const armor::ArmorLayer& l : spec.layers) ceramic = ceramic || materials_[static_cast<std::size_t>(l.material)].isCeramic();
+    if (ceramic)
+        t += "\nCeramic armour: results are qualitative. The ceramic model is checked for consistency, but at equal "
+             "weight ceramic-faced armour does not yet beat plain metal as clearly as real armour does (see README).";
     if (spec.obliquity != 0.0)
         t += "\nAngled shot: simulated as a 2D slice (plane strain) - the projectile is really an infinitely "
              "wide slab, so treat depths as qualitative.";
@@ -816,6 +824,12 @@ void App::drawBuilder() {
         if (k > 0) {
             ImGui::SliderFloat("Gap before (mm)", &l.gapMm, 0.0f, 100.0f, "%.1f");
             helpMarker("Empty space in front of this layer: spaced armour.");
+        }
+        if (k + 1 < layers_.size() && layers_[k + 1].gapMm <= 0.0f) {
+            ImGui::Checkbox("Glued to the next layer", &l.glued);
+            helpMarker("Glued layers act as one piece and can pull on each other. Real ceramic armour is glued to its "
+                       "metal backing: loose, the joint reflects the impact wave as tension and the tile cracks from "
+                       "the back almost at once. On by default for ceramic layers.");
         }
         ImGui::EndChild();
         ImGui::PopID();

@@ -420,3 +420,24 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   residual MASS and run longer; check rubble strength sensitivity; find a
   published ceramic DOP experiment to validate against.
 - 706 assertions pass.
+
+## 2026-11-27 — session 14: ceramic gap investigated; NO more long runs
+
+- **User request: no more long tests/simulation runs on their PC** (they eat
+  its resources). Reason things out; ask before anything heavy. (Memory saved.)
+- Equal-weight gap is real, not a measurement artifact (250 us, rod mass
+  through + speed): A (alumina10+Al10) 85% @ 769 m/s, B (Al 23.7) 88.5% @ 742,
+  C (RHA 8.2) 75% @ 725 -> relative residual energy A 1.00, B 0.96, C 0.78.
+- Variants of A: no cap on alumina rubble strength 0.956 (not the cause);
+  alumina that never cracks 0.215 (huge). => the tile cracks too early.
+- Fix applied (by reasoning, NOT measured): tile and backing were separate
+  push-only bodies; that joint reflects the wave as tension and alumina
+  (T = 0.2 GPa) cracks from the back at once. Real armour is glued:
+  ArmorLayer::bondedToNext (shared contact group), builder checkbox "Glued to
+  the next layer", on by default for ceramic layers; builder theory text says
+  ceramic results are qualitative. A bonded-tile run was stopped after ~30 min
+  by the user, so its effect is unknown.
+- Other suspect left: JH-2 cracks instantly in tension (eps_pf floor 1e-6 when
+  P* + T* <= 0); LS-DYNA has a minimum fracture strain (EFMIN) but no sourced
+  value - not changed.
+- Built only; tests not run this session at the user's request.

@@ -179,8 +179,13 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
     // line a plate tilted by theta is T / cos(theta) thick.
     double x = 0.0;
     double firstCentre = 0.0, lastBack = 0.0;
+    int group = -1, nextGroup = 0;
+    bool gluedToPrevious = false;
     for (std::size_t k = 0; k < spec.layers.size(); ++k) {
         const ArmorLayer& l = spec.layers[k];
+        // Glued layers share a contact group (one bonded body).
+        const bool gluedToNext = l.bondedToNext && k + 1 < spec.layers.size() && spec.layers[k + 1].gapBefore <= 0.0;
+        if (!gluedToPrevious) group = gluedToNext ? nextGroup++ : -1;
         if (k > 0) x += l.gapBefore / c;
         const double alongLine = l.thickness / c;
         const double cx = x + 0.5 * alongLine;
@@ -188,6 +193,8 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
         Part part;
         part.name = "Layer " + std::to_string(k + 1) + ": " + l.item.name;
         part.material = l.material;
+        part.contactGroup = group;
+        gluedToPrevious = gluedToNext;
         if (axi) part.shape = RectShape{{cx, 0.25 * l.item.width}, {0.5 * l.thickness, 0.25 * l.item.width}, 0.0};
         else part.shape = RectShape{{cx, 0.0}, {0.5 * l.thickness, 0.5 * l.item.width}, theta};
         s.parts.push_back(part);
