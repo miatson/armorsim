@@ -1,0 +1,3 @@
+{ "name": "Steel cylinder, 10 x 10 mm (fragment simulator)", "category": "projectile",
+  "description": "A right circular cylinder as long as it is wide - the shape used to simulate shell fragments in armour tests.",
+  "material": "steel_rha", "shape": { "type": "rod", "length_mm": 10, "diameter_mm": 10 }, "speed_mps": 1000 }

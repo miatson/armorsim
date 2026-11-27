@@ -269,3 +269,59 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   debris; ball 500 m/s throws 0.2 g debris up to 569 m/s (jetting).
 - Stage C remaining: sourced / rate-dependent spall strengths; fragment
   readout in the app; full-fracture validation (plugging, with Stage E).
+
+## 2026-11-27 — session 8: repo published, Stage D started
+
+- GitHub: https://github.com/miatson/armorsim (public since this session;
+  scanned for personal data first - none). Commits: ddf49b4, 060d814,
+  8962f1b (Stage D start).
+- **Scenario files** (io/, library armor_io, nlohmann/json 3.11.3 via
+  FetchContent; the solver stays dependency-free): JSON in mm/us/m/s,
+  materials by key (Material::key: steel_rha, aluminium_6061, copper_ofhc,
+  tungsten_wha, titanium_6al4v), shapes rect/disc/cylinder/sphere, optional
+  settings. Strict: unknown keys and bad values fail with "$.path: why".
+  Format in scenarios/README.md. Examples: spall_copper, taylor_bar_copper,
+  long_rod_wha_rha.
+- **Probes** (io/Probes.h): Lagrangian gauges (nearest particle at t = 0),
+  15 quantities, fixed interval, CSV with units in headers.
+- **Headless:** --file x.json [--csv out.csv]. **App:** files appear as
+  "[file]" presets (from $ARMORSIM_SCENARIOS, ./scenarios, or the repo dir);
+  the speed slider scales all moving parts; probes are recorded on the worker
+  thread and plotted live in a floating "Probes (gauges)" window (bottom
+  right) with the value at the playback time and Save CSV.
+- Checked in the app (window-only capture with PrintWindow): spall file shows
+  back face -100 -> +96.5 m/s then pullback; spall-plane pressure +3.65 GPa
+  then -1.76 GPa then snaps to ~0 when voids open; porosity -> 0.17.
+- Tests: test_stage_d.cpp (all shipped files load; units/shapes exact; error
+  messages; spall probe peak +96.5 m/s vs +100). 247 assertions pass.
+- **Stage D next:** projectile/armour LIBRARY with sourced data (e.g. real
+  rod/plate geometries, impact conditions from published tests); a builder
+  panel in the app (pick projectile + armour + speed + spacing, save as a
+  scenario file); probe placement in the app (click to add a gauge).
+- Stage C still open: sourced / rate-dependent spall strengths; full-
+  fracture validation (plugging, with Stage E).
+
+## 2026-11-27 — session 9: library, builder, new UI, loading screen, rename
+
+- **Renamed to MiataPhySim** (miataphysim): CMake project, executable
+  (build/msvc/bin/Release/miataphysim.exe), window title, docs, env vars
+  MIATAPHYSIM_SCENARIOS / MIATAPHYSIM_LIBRARY. The local folder is still
+  C:/Users/pawel/armorsim; internal C++ namespace is still `armor`.
+- **Library** (library/projectiles, library/armor; io/Library.h): items =
+  shape (sphere / rod / plate) + default material; 7 projectiles, 9 armour
+  items. Format in library/README.md. buildScenario() turns projectile +
+  material + speed + layers (thickness, gap) + angle into a scenario with two
+  probes; angle > 0 = plane strain with rotated plates, projectile placed clear
+  of the tilted face. suggestSpacing (1/20 projectile dia, 1/8 thinnest layer,
+  ~40k particle cap) and suggestEndTime. scenarioToJson() saves any scenario.
+- **UI**: Simulate tab (1 what to simulate: ready-made / build your own, 2 run
+  with time-left bar, 3 watch with time slider, 4 colours) and Details tab
+  (Results, Theory & checks, Resolution & duration, Display, Solver settings
+  (advanced, only applied once edited), Materials table, Controls, About).
+  New style (rounded, blue accent). Loading screen with real steps.
+  --builder / --details start options. Builder default: steel ball 10 mm ->
+  RHA 10 mm at 500 m/s (ball flattens and rebounds at ~-42 m/s).
+- **Ceramics**: deliberately NOT added - they need JH-2 (Stage F); stated in
+  the material dropdown, Details > Materials, library/README.md, README.
+- Tests: library loads, all 63 projectile x armour pairs build, oblique
+  0/30/60 deg projectile clear of plates, JSON round trip. 534 assertions.

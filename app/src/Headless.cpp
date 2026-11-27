@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // Headless.cpp - run a scenario without a window and print a summary.
-//   armorsim --headless --scenario N                 built-in preset N
-//   armorsim --headless --file x.json [--csv out.csv] scenario file, probes to CSV
+//   miataphysim --headless --scenario N                 built-in preset N
+//   miataphysim --headless --file x.json [--csv out.csv] scenario file, probes to CSV
 // Used to check scenarios from scripts (does it finish? energy? final sizes?).
 // -----------------------------------------------------------------------------
 #include "Headless.h"

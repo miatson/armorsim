@@ -1,0 +1,3 @@
+{ "name": "Tungsten long rod, L/D 10 (100 x 10 mm)", "category": "projectile",
+  "description": "A kinetic-energy penetrator scaled down: tungsten heavy alloy, length 10 diameters, flat nose. Real tank rounds fly at ~1500-1700 m/s; Lanz & Odermatt collected the depth such rods reach in steel.",
+  "material": "tungsten_wha", "shape": { "type": "rod", "length_mm": 100, "diameter_mm": 10 }, "speed_mps": 1500 }

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 
+#include <armor/Library.h>
 #include <armor/ScenarioFile.h>
 #include <armor/Solver.h>
 
@@ -128,4 +129,79 @@ TEST_CASE("probe on the spall target's back face records the free-surface veloci
     const std::string text = csv.str();
     CHECK(text.rfind("\"time [s]\",\"back face: velocity_x [m/s]\",\"spall plane: pressure [Pa]\"", 0) == 0);
     CHECK(std::count(text.begin(), text.end(), '\n') == static_cast<long>(rec.times().size()) + 1);
+}
+
+// -----------------------------------------------------------------------------
+// Library and builder
+// -----------------------------------------------------------------------------
+TEST_CASE("library: every item loads, and every projectile/armour pair builds a valid scenario") {
+    const auto mats = defaultMaterials();
+    const Library lib = loadLibrary(ARMOR_LIBRARY_DIR, mats);
+    for (const auto& e : lib.errors) MESSAGE(e);
+    CHECK(lib.errors.empty());
+    CHECK(lib.projectiles.size() >= 5);
+    CHECK(lib.armor.size() >= 5);
+    for (const LibraryItem& p : lib.projectiles) {
+        for (const LibraryItem& a : lib.armor) {
+            CAPTURE(p.name);
+            CAPTURE(a.name);
+            BuildSpec spec;
+            spec.projectile = p;
+            spec.projectileMaterial = p.material;
+            spec.speed = p.speed;
+            spec.layers.push_back({a, a.material, a.thickness, 0.0});
+            spec.spacing = suggestSpacing(spec);
+            spec.endTime = suggestEndTime(spec);
+            CHECK(spec.spacing >= 0.05e-3);
+            CHECK(spec.endTime >= 5e-6);
+            const ScenarioFile f = buildScenario(spec, mats);
+            const Particles P = buildParticles(f.scenario, mats);
+            CHECK(P.size() > 50);
+            CHECK(P.size() < 60000); // suggested spacing keeps runs reasonable
+        }
+    }
+}
+
+TEST_CASE("builder: projectile starts clear of the armour, straight and oblique; JSON round trip") {
+    const auto mats = defaultMaterials();
+    const Library lib = loadLibrary(ARMOR_LIBRARY_DIR, mats);
+    REQUIRE(!lib.projectiles.empty());
+    REQUIRE(lib.armor.size() >= 2);
+    for (double angleDeg : {0.0, 30.0, 60.0}) {
+        CAPTURE(angleDeg);
+        BuildSpec spec;
+        spec.projectile = lib.projectiles[0];
+        spec.projectileMaterial = spec.projectile.material;
+        spec.speed = 800.0;
+        spec.layers.push_back({lib.armor[0], lib.armor[0].material, lib.armor[0].thickness, 0.0});
+        spec.layers.push_back({lib.armor[1], lib.armor[1].material, lib.armor[1].thickness, 5e-3});
+        spec.obliquity = angleDeg * 3.14159265358979323846 / 180.0;
+        spec.spacing = 0.5e-3;
+        spec.endTime = 20e-6;
+        const ScenarioFile f = buildScenario(spec, mats);
+        CHECK((f.scenario.mode == GeometryMode::Axisymmetric) == (angleDeg == 0.0));
+        REQUIRE(f.scenario.parts.size() == 3);
+        CHECK(f.scenario.parts[0].velocity.x == Approx(800.0));
+        // Every part got its particles, and the projectile is at least half a
+        // spacing away from all armour at t = 0.
+        const Particles P = buildParticles(f.scenario, mats);
+        std::size_t count[3] = {};
+        double nearest = 1e9;
+        for (std::size_t i = 0; i < P.size(); ++i) {
+            ++count[P.part[i]];
+            if (P.part[i] != 0) continue;
+            for (std::size_t j = 0; j < P.size(); ++j)
+                if (P.part[j] != 0) nearest = std::min(nearest, length(P.pos[i] - P.pos[j]));
+        }
+        CHECK(count[0] > 20);
+        CHECK(count[1] > 20);
+        CHECK(count[2] > 20);
+        CHECK(nearest > 0.99 * spec.spacing);
+        // Save as a scenario file and load it back: same geometry.
+        const ScenarioFile g = parseScenarioJson(scenarioToJson(f, mats), mats, "roundtrip.json");
+        const Particles Q = buildParticles(g.scenario, mats);
+        CHECK(Q.size() == P.size());
+        CHECK(g.probes.size() == f.probes.size());
+        CHECK(g.scenario.parts[2].material == f.scenario.parts[2].material);
+    }
 }

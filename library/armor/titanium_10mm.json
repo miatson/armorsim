@@ -1,0 +1,3 @@
+{ "name": "Titanium plate, 10 mm", "category": "armor",
+  "description": "Ti-6Al-4V titanium alloy plate, 10 mm: lighter than steel, used in aircraft and vehicle armour.",
+  "material": "titanium_6al4v", "shape": { "type": "plate", "thickness_mm": 10, "width_mm": 60 } }

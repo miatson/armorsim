@@ -233,20 +233,24 @@ std::vector<Preset> builtInPresets() {
     };
 }
 
-// Where scenario files live: $ARMORSIM_SCENARIOS, else ./scenarios, else the
-// repository's scenarios folder (compiled in).
-std::filesystem::path scenarioDirectory() {
+// $<envName>, else ./<local>, else the folder in the source tree (compiled in).
+std::filesystem::path findDirectory(const char* envName, const char* local, const char* builtIn) {
     namespace fs = std::filesystem;
+    std::string env;
 #ifdef _MSC_VER
-#pragma warning(suppress : 4996) // getenv: read-only use, no threads modify the environment
+    char* buf = nullptr;
+    std::size_t len = 0;
+    if (_dupenv_s(&buf, &len, envName) == 0 && buf) {
+        env = buf;
+        std::free(buf);
+    }
+#else
+    if (const char* e = std::getenv(envName)) env = e;
 #endif
-    const char* env = std::getenv("ARMORSIM_SCENARIOS");
-    if (env && *env && fs::is_directory(env)) return env;
+    if (!env.empty() && fs::is_directory(env)) return env;
     std::error_code ec;
-    if (fs::is_directory("scenarios", ec)) return "scenarios";
-#ifdef ARMOR_SCENARIO_DIR
-    if (fs::is_directory(ARMOR_SCENARIO_DIR, ec)) return ARMOR_SCENARIO_DIR;
-#endif
+    if (fs::is_directory(local, ec)) return local;
+    if (builtIn && fs::is_directory(builtIn, ec)) return builtIn;
     return {};
 }
 
@@ -263,6 +267,8 @@ Preset presetFromFile(const armor::ScenarioFile& file, const std::string& fileNa
     preset.defaults = {static_cast<float>(fastest), static_cast<float>(file.scenario.dx * 1e3),
                        static_cast<float>(file.scenario.endTime * 1e6)};
     preset.maxVelocity = static_cast<float>(std::max(2.0 * fastest, 100.0));
+    preset.probes = file.probes;
+    preset.probeInterval = file.probeInterval;
     preset.build = [file, fastest](const PresetParams& p) {
         armor::Scenario s = file.scenario;
         s.dx = p.dxMm * 1e-3;
@@ -279,7 +285,7 @@ Preset presetFromFile(const armor::ScenarioFile& file, const std::string& fileNa
             t += "\nProbes in this file (time histories -> CSV):";
             for (const armor::ProbeSpec& pr : file.probes)
                 t += "\n  " + pr.name + format(" at (%.2f, %.2f) mm", pr.position.x * 1e3, pr.position.y * 1e3);
-            t += "\nRun: armorsim --headless --file <file> --csv out.csv";
+            t += "\nThey are plotted in the Probes window while the run goes; Save CSV there.";
         }
         return t;
     };
@@ -287,6 +293,32 @@ Preset presetFromFile(const armor::ScenarioFile& file, const std::string& fileNa
 }
 
 } // namespace
+
+std::filesystem::path scenarioDirectory() {
+#ifdef ARMOR_SCENARIO_DIR
+    return findDirectory("MIATAPHYSIM_SCENARIOS", "scenarios", ARMOR_SCENARIO_DIR);
+#else
+    return findDirectory("MIATAPHYSIM_SCENARIOS", "scenarios", nullptr);
+#endif
+}
+
+std::filesystem::path libraryDirectory() {
+#ifdef ARMOR_LIBRARY_DIR
+    return findDirectory("MIATAPHYSIM_LIBRARY", "library", ARMOR_LIBRARY_DIR);
+#else
+    return findDirectory("MIATAPHYSIM_LIBRARY", "library", nullptr);
+#endif
+}
+
+const armor::Library& appLibrary() {
+    static const armor::Library lib = [] {
+        const std::filesystem::path dir = libraryDirectory();
+        armor::Library l = dir.empty() ? armor::Library{} : armor::loadLibrary(dir, armor::defaultMaterials());
+        for (const std::string& e : l.errors) std::fprintf(stderr, "skipping library item: %s\n", e.c_str());
+        return l;
+    }();
+    return lib;
+}
 
 const std::vector<Preset>& presets() {
     static const std::vector<Preset> kPresets = [] {

@@ -4,10 +4,10 @@ Each `.json` file here describes one simulation. The app lists them in the
 scenario dropdown as **[file] ...**, and you can run one without a window:
 
 ```
-armorsim --headless --file scenarios/spall_copper.json --csv spall.csv
+miataphysim --headless --file scenarios/spall_copper.json --csv spall.csv
 ```
 
-The app looks for scenario files in `$ARMORSIM_SCENARIOS`, then in `./scenarios`,
+The app looks for scenario files in `$MIATAPHYSIM_SCENARIOS`, then in `./scenarios`,
 then in this folder of the source tree. Comments (`//`) are allowed. **Unknown keys
 are an error**, so a typo can't be silently ignored.
 

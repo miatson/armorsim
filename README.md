@@ -1,4 +1,7 @@
-# ArmorSim — 2D impact & material response simulator
+# MiataPhySim — 2D impact & armour physics simulator
+
+> **Work in progress.** Stages A–C are largely done; Stage D (scenario builder) is
+> under way. Expect changes and fixes.
 
 A learning project: a small **hydrocode** (the kind of program used to simulate
 armor penetration, explosions and hypervelocity impacts) written from scratch in
@@ -12,7 +15,7 @@ The solver itself has no dependencies.
 | A | SPH core, elastic solids, plane strain + axisymmetric, adaptive time step, threads, record & replay UI | ✅ |
 | B | Mie-Grüneisen shock EOS, Johnson-Cook plasticity, Taylor bar validation, energy-compatible forces | ✅ |
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
-| D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | ⏳ |
+| D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | 🔨 in progress (files, probes, graphs, CSV done) |
 | E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | ⏳ |
 | F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | ⏳ |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
@@ -33,31 +36,56 @@ doctest are downloaded automatically on the first configure.
 cmake --preset msvc                     # Windows / Visual Studio 2022
 cmake --build --preset msvc-release     # use Release: physics in Debug is ~10x slower
 ctest --preset msvc-release             # run the tests (~10 s)
-build\msvc\bin\Release\armorsim.exe
+build\msvc\bin\Release\miataphysim.exe
 ```
 
 MinGW: `mingw-release` presets. Linux: `linux-release` presets (install the X11/GL
 dev packages first, see raylib's docs). `-DARMOR_BUILD_APP=OFF` builds only the
 solver and tests.
 
-Command line (optional): `armorsim --scenario 4 --run --field 2` starts scenario 4,
+Command line (optional): `miataphysim --scenario 4 --run --field 2` starts scenario 4,
 runs it immediately and shows field 2 (von Mises stress).
-`armorsim --headless --scenario 5` runs scenario 5 without a window and prints a
-summary (energy balance, peak plastic strain / temperature / pressure, body sizes).
+`miataphysim --headless --scenario 5` runs scenario 5 without a window and prints a
+summary (energy balance, peak plastic strain / temperature / pressure, pieces and
+debris, body sizes). `miataphysim --headless --file scenarios/spall_copper.json --csv out.csv`
+runs a scenario file and writes its probe time histories to CSV.
+
+### Scenario files and probes (Stage D)
+
+Any setup can be described in a JSON file (mm, µs, m/s, materials by key) without
+touching the code. See [scenarios/README.md](scenarios/README.md) for the format.
+Files in `scenarios/` appear in the app's dropdown as **[file] ...**. A file can
+define **probes**: gauges that follow a material point and record pressure,
+velocity, porosity and more over time. In the app they are plotted live in the
+**Probes** window (bottom right), with **Save CSV**. The example
+`spall_copper.json` shows a VISAR-like back-face velocity trace with the spall
+pullback.
 
 ## Using the app
 
-1. **Scenario** — pick a preset and set impact speed, particle spacing (resolution)
-   and end time. Press **Simulate**. The run happens in the background, and frames
-   appear live.
-2. **Playback** — play, pause and scrub through the recorded frames
-   (`Space`, `←`/`→`).
-3. **View** — choose what the colours show: material, pressure, von Mises stress,
-   plastic strain, temperature, speed, density and stress components. Signed quantities use blue
-   (compression) / white (zero) / red (tension). The legend shows highest to lowest.
-   The colour range can be fixed over the whole run or per frame.
-4. **Probe** — hover any particle to see all its values.
-5. Mouse wheel zooms, right-drag pans, and `F` fits the view.
+A loading screen, then two tabs on the left.
+
+**Simulate** (the beginner path, top to bottom):
+1. **What to simulate.** Choose *Ready-made* (classic experiments and scenario files)
+   or *Build your own*. The builder lets you pick a projectile and armour from the
+   [library](library/README.md), set the material of each piece, stack up to 6 armour
+   layers with gaps (spaced armour), set the speed and the angle, and save the setup
+   as a scenario file.
+2. **Run.** Press **Simulate**. The run happens in the background, frames appear live,
+   and the bar shows the time left.
+3. **Watch.** Play, pause, and drag the timeline (`Space`, `←`/`→`).
+4. **Colours show.** Pressure, stress, plastic strain, temperature, damage, speed and
+   more. Hover any particle to read all its values. Mouse wheel zooms, right-drag pans,
+   `F` fits the view.
+
+Gauges (probes) are plotted live in the **Probes** window, bottom right, with
+**Save CSV**.
+
+**Details** (sorted, folded away): Results (energy, sizes), Theory & checks,
+Resolution & duration (automatic in the builder), Display, Solver settings
+(advanced), Materials (with sources), Controls, About.
+
+Start-up options: `--builder` opens the builder, `--details` opens the Details tab.
 
 In **axisymmetric** scenes the lower half is a mirror image. The simulation only
 computes the upper half (radius ≥ 0); the mirror shows the full cross-section.
@@ -76,7 +104,9 @@ sim/    the solver library "armor_sim"    no rendering, no UI
   ThreadPool.h    parallel loops; each particle written by one thread only
   Solver.h/cpp    the SPH equations and time stepping
   Recorder.h      frames for replay (lock-free hand-off to the UI thread)
-app/    raylib + Dear ImGui user interface, presets, colour maps
+io/     scenario files (JSON, nlohmann/json) and probes (CSV) - "armor_io"
+app/    raylib + Dear ImGui user interface, presets, colour maps, probe graphs
+scenarios/  example scenario files (JSON)
 tests/  doctest unit + validation tests
 ```
 
@@ -306,9 +336,10 @@ Not yet a validation, but a good sign: the tungsten long rod preset (L/D 10,
 
 ## Known limitations
 
+- **No ceramics yet**: they need the JH-2 brittle model (Stage F).
 - Spall strengths in the material data are approximate (see `Material.cpp`), and spall
   is a fixed threshold plus a minimum duration, not yet rate-dependent.
-- Fragments are counted (`armorsim --headless`), not yet shown in the app. A spall
+- Fragments are counted (`miataphysim --headless`), not yet shown in the app. A spall
   scab can stay attached at a plate's rim, where edge release keeps the tension
   low and ductile copper stretches instead of tearing.
 - Plastic impacts need fine spacing for converged numbers: the Taylor bar is

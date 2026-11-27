@@ -1,6 +1,6 @@
 #pragma once
 // -----------------------------------------------------------------------------
-// App.h - the ArmorSim user interface.
+// App.h - the MiataPhySim user interface.
 //
 // Workflow: pick a scenario -> Simulate (runs on a background thread while
 // frames appear live) -> replay, scrub, switch view modes, probe values.
@@ -8,6 +8,7 @@
 #include <array>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <utility>
@@ -15,6 +16,7 @@
 
 #include <raylib.h>
 
+#include <armor/Library.h>
 #include <armor/Material.h>
 #include <armor/Recorder.h>
 #include <armor/Scenario.h>
@@ -38,6 +40,14 @@ struct SimulationRun {
     std::atomic<std::size_t> particles{0};
     std::string error; // written before `failed` is set
 
+    // Probe time histories (written by the worker thread, read by the UI;
+    // both under probeMutex). probeSeries[column][sample], SI units.
+    std::mutex probeMutex;
+    std::vector<std::string> probeColumns;
+    std::vector<double> probeTimes;
+    std::vector<std::vector<double>> probeSeries;
+    std::string probeCsv; // full CSV text, filled when the run ends
+
     ~SimulationRun() {
         cancel = true;
         if (thread.joinable()) {
@@ -50,6 +60,8 @@ struct StartOptions {
     int scenario = 0;      // preset index
     int field = 1;         // view field index (1 = pressure)
     bool runAtStart = false;
+    bool builder = false;     // start in 'Build your own'
+    bool detailsTab = false;  // start on the Details tab
 };
 
 class App {
@@ -71,6 +83,13 @@ private:
     void drawPanel();
     void drawProbe();
     void drawBodySizes(const armor::Frame& f, const armor::Recording& rec) const;
+    void drawProbesPanel();
+    void drawSimulateTab();
+    void drawDetailsTab();
+    void drawBuilder();
+    armor::BuildSpec builderSpec() const;
+    void resetBuilderLayer(std::size_t k, int item);
+    std::string builderSummary() const;
 
     Rectangle viewArea() const;
     const armor::Recording* recording() const;
@@ -83,6 +102,32 @@ private:
     std::vector<armor::Material> materials_;
     bool runAtStart_ = false;
     int presetIndex_ = 0;
+    std::string probeStatus_; // last 'Save CSV' result
+
+    // What to simulate: 0 = ready-made (presets + scenario files), 1 = build your own.
+    int sourceMode_ = 0;
+    bool selectDetails_ = false; // switch to the Details tab on the first frame
+    struct BuilderLayer {
+        int item = 0;
+        int material = 0;
+        float thicknessMm = 10.0f;
+        float gapMm = 0.0f; // in front of this layer (not used for the first)
+    };
+    int projItem_ = 0;
+    int projMaterial_ = 0;
+    float projSpeed_ = 500.0f;
+    std::vector<BuilderLayer> layers_;
+    float obliquityDeg_ = 0.0f;
+    float spacingMm_ = 0.5f;
+    float endTimeUs_ = 50.0f;
+    bool autoResolution_ = true;
+    std::string builderStatus_;
+    std::string runName_ = "run";      // name of what is running (for file names)
+    std::string runTheory_;              // Details > Theory text of the current setup
+    // Advanced solver settings (Details tab); applied only once edited, so
+    // scenario files keep their own settings otherwise.
+    armor::SolverSettings advanced_;
+    bool advancedEdited_ = false;
     PresetParams params_;
     std::unique_ptr<SimulationRun> run_;
 

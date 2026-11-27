@@ -1,0 +1,3 @@
+{ "name": "Steel ball, 5 mm", "category": "projectile",
+  "description": "A small hard steel sphere, like a fragment or a ball bearing.",
+  "material": "steel_rha", "shape": { "type": "sphere", "diameter_mm": 5 }, "speed_mps": 800 }

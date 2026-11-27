@@ -11,7 +11,8 @@ add_executable(armor_tests
 )
 target_link_libraries(armor_tests PRIVATE armor_sim armor_io doctest_header)
 # Example scenario files are checked by the tests.
-target_compile_definitions(armor_tests PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios")
+target_compile_definitions(armor_tests PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios"
+    ARMOR_LIBRARY_DIR="${CMAKE_SOURCE_DIR}/library")
 armor_set_warnings(armor_tests)
 
 add_test(NAME armor_tests COMMAND armor_tests)

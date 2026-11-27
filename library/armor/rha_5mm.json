@@ -1,0 +1,3 @@
+{ "name": "Steel armour plate, 5 mm", "category": "armor",
+  "description": "Rolled homogeneous armour (RHA) steel plate, 5 mm thick. Pick another material to test the same plate in aluminium, titanium, copper or tungsten.",
+  "material": "steel_rha", "shape": { "type": "plate", "thickness_mm": 5, "width_mm": 60 } }

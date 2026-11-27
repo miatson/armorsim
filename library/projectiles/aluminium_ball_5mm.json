@@ -1,0 +1,3 @@
+{ "name": "Aluminium ball, 5 mm", "category": "projectile",
+  "description": "Light aluminium sphere, as used in hypervelocity tests of space-debris shields (Whipple shields). Real tests run at 2-7 km/s; keep particle spacing small at those speeds.",
+  "material": "aluminium_6061", "shape": { "type": "sphere", "diameter_mm": 5 }, "speed_mps": 2000 }

@@ -1,16 +1,17 @@
 # The user interface: raylib draws the particles, Dear ImGui draws the panels.
-add_executable(armorsim
+add_executable(miataphysim
     src/main.cpp
     src/App.cpp
     src/Presets.cpp
     src/Headless.cpp
 )
-target_include_directories(armorsim PRIVATE src)
+target_include_directories(miataphysim PRIVATE src)
 # Fallback location of the example scenario files (see Presets.cpp).
-target_compile_definitions(armorsim PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios")
-target_link_libraries(armorsim PRIVATE armor_sim armor_io imgui_rl raylib)
-armor_set_warnings(armorsim)
+target_compile_definitions(miataphysim PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios"
+    ARMOR_LIBRARY_DIR="${CMAKE_SOURCE_DIR}/library")
+target_link_libraries(miataphysim PRIVATE armor_sim armor_io imgui_rl raylib)
+armor_set_warnings(miataphysim)
 
 if(MSVC)
-    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT armorsim)
+    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT miataphysim)
 endif()

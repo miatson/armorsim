@@ -3,6 +3,7 @@
 add_library(armor_io STATIC
     src/ScenarioFile.cpp
     src/Probes.cpp
+    src/Library.cpp
 )
 target_include_directories(armor_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(armor_io PUBLIC armor_sim PRIVATE nlohmann_json::nlohmann_json)

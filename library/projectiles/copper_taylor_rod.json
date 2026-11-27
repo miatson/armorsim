@@ -1,0 +1,3 @@
+{ "name": "Copper Taylor rod (25.4 x 7.62 mm)", "category": "projectile",
+  "description": "The OFHC copper cylinder of the classic Taylor test (Johnson & Cook 1983). Fire it at a thick hard plate at ~190 m/s.",
+  "material": "copper_ofhc", "shape": { "type": "rod", "length_mm": 25.4, "diameter_mm": 7.62 }, "speed_mps": 190 }
