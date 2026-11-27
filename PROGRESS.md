@@ -207,3 +207,65 @@ The OPEN item from session 4 (Taylor spall) is resolved.
 AFATL-TR-90-81 / Addessio-Johnson-Maudlin 1993); fragment tracking and
 readout (count, sizes, speeds); erosion check on the long rod; a ductile-
 fracture validation (plate plugging / V50 overlaps Stage E).
+
+## 2026-11-27 — session 6: first commit, fragments, scab investigation
+
+- **First commit** `ddf49b4` (WIP, Stage C in progress; author miatson,
+  set for this repo only, GitHub no-reply email).
+- **Fragments** (sim/include/armor/Fragments.h, `Solver::fragments()`):
+  union-find over bonded particles (same body, not fully failed) closer
+  than 1.5 dx; fully failed particles = loose debris. Headless prints pieces
+  per body (mass, speed) and debris. Results: Taylor rod 1 piece 10.4 g
+  (= cylinder mass); ball 500 m/s: ball 4.11 g intact, plate 1 piece +
+  0.19 g debris (dented, not perforated); long rod: only 17 g of 138 g
+  rod still one piece, 121 g debris (erosion). Tests: synthetic split test,
+  Taylor rod stays 1 piece. 23/23 pass.
+- **Scab separation - NOT solved, coalescence OFF by default.**
+  Spalled particles stay bonded, so a copper target at +-200 m/s never
+  separates (the opening spreads over the 1.5 mm spall band). Tried:
+  1. void coalescence at porosity 0.25 (1 - rho/rho0, Tvergaard-Needleman
+     f_F): scab flies off correctly (5.9 g at +136 m/s, free-surface
+     physics), but the Taylor rod blows up (> 380 m/s by ~2 us): 720+ axis
+     particles reach 25% porosity within 1 us.
+  2. Carroll-Holt residual tension (2/3) Y ln(1/phi) for voids: scab no
+     longer separates, Taylor axis still coalesces. Reverted.
+  3. coalescence excluded within one kernel radius of the axis (ring volume
+     there follows tiny radial motions): scab OK, Taylor still blows up.
+  Setting `coalescencePorosity` kept (default 1.0 = never). Open questions:
+  where outside the axis zone the Taylor rod coalesces, and whether the
+  free (zero-resistance) void growth after spall is the real problem -
+  real void growth is rate-limited (inertia/viscosity: dynamic void growth
+  models, e.g. Johnson 1981; Addessio-Johnson-Maudlin 1993 for Taylor).
+- **Stage C remaining:** the scab/coalescence issue above; sourced,
+  rate-dependent spall strengths; a fragment readout in the app; a full-
+  fracture validation (plugging / V50 overlaps Stage E).
+- **Stage D not started yet.**
+
+## 2026-11-27 — session 7: scab / void coalescence fixed
+
+- **Root cause of the Taylor blow-ups with coalescence:** a fully failed
+  particle's pressure came from the EOS at its expanded density (-20 GPa).
+  Pair forces ignored it (contact = push only), but the axisymmetric HOOP
+  force -s_tt/(rho r) is not a pair term: near the axis it flung the
+  particle out at up to 1000 m/s. Fix: pEff = max(p, 0) for fully failed
+  particles (computeDerived), used in forces and work alike. The earlier
+  "axis porosity" explanation was wrong.
+- **Spall voids are now a P-alpha porosity model** (Solver::updatePorosity):
+  phi per particle, p = p_EOS(rho/(1-phi), e)(1-phi), return mapping: grow
+  while tension > min(spall, (2/3) Y ln(1/phi)) (Carroll-Holt), close in
+  compression, coalesce at phi = 0.25 (Tvergaard-Needleman, now ON by
+  default), initial phi 1e-3. Why: "no tension at all" let porosity ratchet
+  up from SPH noise (expansion free, compression resisted).
+- **The scab DOES separate** physically: at +-200 m/s the layer behind the
+  spall plane flies at +113 m/s while the front moves at -160 m/s, band fully
+  torn. The fragment finder reports one piece because an un-spalled rim ring
+  (edge release) still connects them, even at 15 mm radius - plausible for
+  ductile copper (spall cap). New validation instead, as experiments measure:
+  **free-surface pullback**: peak 198/401 m/s (2v = 200/400), pullback ->
+  spall strength 1.6/1.7 GPa vs 1.3 GPa input.
+- Taylor: voids at 3.40 mm (exp ~3), 19 fully failed, 1 piece, length
+  16.68 mm (+3.0%), foot 14.91 mm (better: 15.38 before). 24/24 tests.
+- Presets: energy 0.955-0.999; long rod 17.8 g of rod left intact, 120 g
+  debris; ball 500 m/s throws 0.2 g debris up to 569 m/s (jetting).
+- Stage C remaining: sourced / rate-dependent spall strengths; fragment
+  readout in the app; full-fracture validation (plugging, with Stage E).

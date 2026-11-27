@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <chrono>
+#include <string>
+#include <cmath>
 #include <cstdio>
 #include <vector>
 
@@ -57,6 +59,27 @@ int runHeadless(int scenarioIndex) {
                 d1.maxSpeed);
     std::printf("  max plastic strain %.3f, max temperature %.0f K, max pressure now %.2f GPa\n", maxEp, maxT,
                 maxP / 1e9);
+
+    // Fragments (Stage C): pieces of at least 3 particles, heaviest first.
+    {
+        const armor::FragmentStats fs = solver.fragments();
+        const auto names = armor::bodyNames(scenario);
+        for (const armor::BodyName& b : names) {
+            int count = 0;
+            std::string top;
+            for (const armor::Fragment& f : fs.pieces) {
+                if (f.body != b.id || f.particles < 3) continue;
+                if (++count <= 3) {
+                    char buf[96];
+                    std::snprintf(buf, sizeof buf, "%s%.3g g at %.0f m/s", top.empty() ? "" : ", ", f.mass * 1e3,
+                                  std::hypot(f.velocity.x, f.velocity.y));
+                    top += buf;
+                }
+            }
+            std::printf("  %-26s %d piece(s)%s%s\n", b.name.c_str(), count, count ? ": " : "", top.c_str());
+        }
+        std::printf("  loose debris (fully failed): %zu particles, %.3g g\n", fs.debrisParticles, fs.debrisMass * 1e3);
+    }
 
     // Body sizes, measured to the surface (centres sit dx/2 inside it).
     const bool axi = scenario.mode == armor::GeometryMode::Axisymmetric;

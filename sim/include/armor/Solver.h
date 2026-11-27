@@ -13,6 +13,7 @@
 #include <memory>
 #include <vector>
 
+#include "armor/Fragments.h"
 #include "armor/Kernel.h"
 #include "armor/Material.h"
 #include "armor/NeighborGrid.h"
@@ -52,6 +53,13 @@ public:
     const std::vector<Material>& materials() const { return materials_; }
 
     Diagnostics diagnostics() const;
+    // Pieces the bodies have broken into (see Fragments.h); link 1.5 dx.
+    FragmentStats fragments() const {
+        const std::size_t n = nReal_;
+        const Particles& P = particles_;
+        return findFragments({P.pos.data(), n}, {P.vel.data(), n}, {P.mass.data(), n}, {P.part.data(), n},
+                             {P.failed.data(), n}, 1.5 * scenario_.dx);
+    }
     std::unique_ptr<Frame> captureFrame() const;
 
 private:
@@ -61,6 +69,7 @@ private:
     double stableTimeStep() const;
     void computeStrainRates(std::size_t i);
     void computeForces(std::size_t i);
+    void updatePorosity(std::size_t i);
     void kick(std::size_t i);
     void integrate(std::size_t i);
 
@@ -80,6 +89,7 @@ private:
     std::vector<double> planarMass_;    // mass per unit depth / per radian (see Solver.cpp)
     std::vector<double> soundSpeed_;
     std::vector<SymTensor> artStress_;
+    std::vector<double> pEff_;          // pressure used in forces and work (void-limited tension)
     std::vector<double> balsara_;       // Balsara viscosity factor, from the previous step's ∇v
     std::vector<std::uint32_t> ghostSource_; // ghost k mirrors real particle ghostSource_[k]
     // Rates of change, computed every step.

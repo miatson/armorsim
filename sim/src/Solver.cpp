@@ -93,9 +93,10 @@
 // fracture) or the particle melts: it keeps no shear stress, and every pair
 // involving it interacts like CONTACT between separate bodies (push only).
 // Spall (tension beyond the spall strength, sustained) opens VOIDS instead:
-// the particle stays bonded and keeps its shear strength but its pressure
-// counts as max(p, 0) everywhere - forces and pressure work alike, so the
-// energy books still balance (see Particles.h, FailureKind).
+// the particle stays bonded and keeps its shear strength, its porosity is a
+// state variable (see SPALL VOIDS below), and the voids coalesce into a full
+// crack at the critical porosity. Forces and pressure work use the same
+// (porous) pressure, so the energy books still balance.
 // So cracks open where particles fail, and fragments fly apart on their own.
 // The energy-compatible rules carry over unchanged: such pairs are simply on
 // the "other body" side of every sum.
@@ -160,6 +161,7 @@ void Solver::step() {
     planarMass_.resize(n);
     soundSpeed_.resize(n);
     artStress_.resize(n);
+    pEff_.resize(n);
     balsara_.resize(n, 1.0); // first step: full viscosity; ghosts appended later are dropped here
     pool_.parallelFor(n, [&](std::size_t b, std::size_t e) {
         for (std::size_t i = b; i < e; ++i) computeDerived(i);
@@ -220,11 +222,84 @@ void Solver::step() {
     ++steps_;
 }
 
+// -----------------------------------------------------------------------------
+// SPALL VOIDS: porosity as a state variable (P-alpha family, Herrmann 1969).
+//
+// A spalled particle is metal (the "matrix") plus voids of volume fraction φ.
+// The matrix has density ρ_s = ρ/(1 − φ) and obeys the material's EOS; the
+// particle's pressure is the matrix pressure carried by the remaining area,
+//     p = p_EOS(ρ_s, e) · (1 − φ).
+// After each step, a RETURN MAPPING (like the plastic radial return, but for
+// volume) decides how much of the volume change was voids:
+//  - tension beyond the void-growth threshold -> voids grow until it holds,
+//      p_grow(φ) = min(spall strength, (2/3) σ_y ln(1/φ))   (Carroll & Holt
+//      1972: tension needed to keep voids in a plastic metal growing; large
+//      for small voids, small for large ones);
+//  - compression -> voids close (at zero matrix pressure) until fully dense;
+//  - otherwise the matrix responds elastically and φ stays.
+// WHY: first tried "spalled = no tension at all" (p = max(p, 0)). Then every
+// noisy SPH step that said "expand" was accepted for free while "compress"
+// was resisted - porosity ratcheted up from noise alone in the shearing flow
+// at a Taylor rod's face (0 -> 25% in 1 us) and the rod blew up once voids
+// coalesced. Here the matrix pushes back elastically on noise, and voids grow
+// only under real, sustained tension.
+// -----------------------------------------------------------------------------
+namespace {
+double porousPressure(const Material& mat, double rho, double e, double phi) {
+    return mat.pressure(rho / (1.0 - phi), e) * (1.0 - phi);
+}
+} // namespace
+
+void Solver::updatePorosity(std::size_t i) {
+    Particles& P = particles_;
+    const Material& mat = materials_[P.material[i]];
+    const double rho = P.rho[i], e = P.energy[i];
+    const double phi0 = scenario_.settings.initialPorosity;
+    const double yield = mat.yieldStress(P.plasticStrain[i], P.plasticRate[i], P.temperature[i]);
+    auto grow = [&](double phi) {
+        return std::min(mat.spallStrength, 2.0 / 3.0 * yield * std::log(1.0 / std::max(phi, phi0)));
+    };
+    double phi = P.porosity[i];
+    double p = porousPressure(mat, rho, e, phi);
+    if (p < -grow(phi)) {
+        // Voids grow: find φ' ≥ φ with p(φ') = −p_grow(φ'). Raising φ makes the
+        // matrix denser (less tension) and lowers the threshold - one root.
+        double lo = phi, hi = 0.99;
+        for (int it = 0; it < 60; ++it) {
+            const double mid = 0.5 * (lo + hi);
+            if (porousPressure(mat, rho, e, mid) + grow(mid) < 0.0) lo = mid;
+            else hi = mid;
+        }
+        phi = hi;
+    } else if (p > 0.0 && phi > 0.0) {
+        // Voids close under compression, at zero matrix pressure, until dense.
+        if (mat.pressure(rho, e) >= 0.0) {
+            phi = 0.0;
+        } else {
+            double lo = 0.0, hi = phi;
+            for (int it = 0; it < 60; ++it) {
+                const double mid = 0.5 * (lo + hi);
+                if (porousPressure(mat, rho, e, mid) < 0.0) lo = mid;
+                else hi = mid;
+            }
+            phi = hi;
+        }
+    }
+    P.porosity[i] = phi;
+    P.pressure[i] = porousPressure(mat, rho, e, phi);
+}
+
 void Solver::computeDerived(std::size_t i) {
     const Particles& P = particles_;
     const Material& mat = materials_[P.material[i]];
     planarMass_[i] = axisymmetric_ ? P.mass[i] / (2.0 * kPi * P.pos[i].y) : P.mass[i];
     soundSpeed_[i] = mat.soundSpeed(P.rho[i], P.energy[i]);
+    // Pressure used in forces and pressure work. Fully failed material carries
+    // no tension at all - including in the HOOP force −σθθ/(ρr), which is not
+    // a pair term. Without this, a particle that had just failed (density 5%
+    // low -> EOS says −20 GPa) got a hoop push of σθθ/(ρr) near the axis and
+    // flew off at 1000 m/s. (Spalled: porous pressure from updatePorosity.)
+    pEff_[i] = fullyFailed(P.failed[i]) ? std::max(P.pressure[i], 0.0) : P.pressure[i];
 
     // Artificial stress: only for tensile (positive) principal stresses.
     const Principal2D pr = principal(totalStress(P.S[i], P.pressure[i]));
@@ -252,6 +327,7 @@ void Solver::addAxisGhosts() {
         particles_.S[g].xy = -particles_.S[g].xy;
         planarMass_.push_back(planarMass_[i]);
         soundSpeed_.push_back(soundSpeed_[i]);
+        pEff_.push_back(pEff_[i]);
         balsara_.push_back(balsara_[i]);
         SymTensor r = artStress_[i];
         r.xy = -r.xy;
@@ -456,7 +532,7 @@ void Solver::computeStrainRates(std::size_t i) {
     // (Added to the viscous heating already stored by computeForces.)
     const double wxx = rawSame.m00, wyy = rawSame.m11, wxyRate = 0.5 * (rawSame.m01 + rawSame.m10);
     const double sDotEps = S.xx * wxx + S.yy * wyy + S.zz * ezz + 2.0 * S.xy * wxyRate;
-    const double pWork = effectivePressure(P.pressure[i], P.failed[i]); // must match the force (sigmaI)
+    const double pWork = pEff_[i]; // must match the force (sigmaI)
     eDot_[i] += (-pWork * rawDivSame - std::max(P.pressure[i], 0.0) * rawDivOther + sDotEps) / P.rho[i];
 }
 
@@ -470,7 +546,7 @@ void Solver::computeForces(std::size_t i) {
     const Vec2 vi = P.vel[i];
     const double rhoI = P.rho[i];
     const std::uint16_t partI = P.part[i];
-    const SymTensor sigmaI = totalStress(P.S[i], effectivePressure(P.pressure[i], P.failed[i]));
+    const SymTensor sigmaI = totalStress(P.S[i], pEff_[i]);
     const double contactI = -std::max(P.pressure[i], 0.0);
     const double h = kernel_.h();
     // Ring radius (axisymmetric) or 1 (plane strain). See ENERGY-COMPATIBLE FORCES.
@@ -496,7 +572,7 @@ void Solver::computeForces(std::size_t i) {
         // Stress part, already divided by ρ_i ρ_j and weighted (see header).
         SymTensor T;
         if (samePart) {
-            T = (sigmaI + totalStress(P.S[j], effectivePressure(P.pressure[j], P.failed[j])) * ringRatio) *
+            T = (sigmaI + totalStress(P.S[j], pEff_[j]) * ringRatio) *
                 (1.0 / (rhoI * rhoJ));
         } else {
             const double c = (contactI - std::max(P.pressure[j], 0.0) * ringRatio) / (rhoI * rhoJ);
@@ -594,15 +670,17 @@ void Solver::integrate(std::size_t i) {
         P.temperature[i] += mat.taylorQuinney * yield * dEp / (P.rho[i] * mat.specificHeat);
     }
     P.S[i] = S;
-    P.pressure[i] = mat.pressure(P.rho[i], P.energy[i]);
+    if (P.failed[i] == kSpall) {
+        updatePorosity(i); // sets pressure from matrix EOS + voids
+    } else {
+        P.pressure[i] = mat.pressure(P.rho[i], P.energy[i]);
+    }
 
     // ---- Failure (Stage C) ----
     if (scenario_.settings.failure && !fullyFailed(P.failed[i])) {
         if (dEp > 0.0 && mat.failure) {
             // Triaxiality σ* = −p/σ_vm with the returned stress (σ_vm = σ_y).
-            // Effective pressure: around spall voids the metal no longer feels
-            // the hydrostatic tension.
-            const double triax = -effectivePressure(P.pressure[i], P.failed[i]) / std::max(vonMises(S), 1.0);
+            const double triax = -P.pressure[i] / std::max(vonMises(S), 1.0);
             P.damage[i] += dEp / mat.fractureStrain(triax, P.plasticRate[i], P.temperature[i]);
         }
         // Spall needs SUSTAINED tension: at least the time a sound wave takes
@@ -620,7 +698,14 @@ void Solver::integrate(std::size_t i) {
         } else if (P.temperature[i] >= mat.meltTemperature()) {
             P.failed[i] = kMelted;
         } else if (P.failed[i] == kIntact && P.spallTime[i] >= resolvable) {
-            P.failed[i] = kSpall; // voids: keeps shear strength, loses tension
+            // Voids nucleate; relax the tension onto the growth threshold now.
+            P.failed[i] = kSpall;
+            P.porosity[i] = scenario_.settings.initialPorosity;
+            updatePorosity(i);
+        } else if (P.failed[i] == kSpall && P.porosity[i] >= scenario_.settings.coalescencePorosity) {
+            // Voids COALESCE: the ligaments between them tear and the
+            // material separates completely.
+            P.failed[i] = kDuctile;
         }
     }
     if (fullyFailed(P.failed[i])) {
@@ -674,9 +759,11 @@ std::unique_ptr<Frame> Solver::captureFrame() const {
         put(Field::VonMises, i, vonMises(S));
         put(Field::PlasticStrain, i, P.plasticStrain[i]);
         put(Field::Temperature, i, P.temperature[i]);
-        // Fully failed = 1; spalled (voids) shown at least 0.5.
+        // Fully failed = 1; spalled shown from 0.5 (just nucleated) to 1
+        // (porosity at coalescence).
         const double shown = fullyFailed(P.failed[i]) ? 1.0 : std::min(P.damage[i], 1.0);
-        put(Field::Damage, i, P.failed[i] == kSpall ? std::max(shown, 0.5) : shown);
+        const double voids = 0.5 + 0.5 * std::min(P.porosity[i] / scenario_.settings.coalescencePorosity, 1.0);
+        put(Field::Damage, i, P.failed[i] == kSpall ? std::max(shown, voids) : shown);
         put(Field::Speed, i, length(P.vel[i]));
         put(Field::Density, i, P.rho[i]);
         put(Field::StressXX, i, S.xx - p);

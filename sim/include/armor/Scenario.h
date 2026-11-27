@@ -104,6 +104,12 @@ struct SolverSettings {
     // Spall fails a particle only after its tension has exceeded the spall
     // strength for this long (at least h/c, the shortest resolvable pulse).
     double spallIncubationTime = 0.0;
+    // Spall voids coalesce into a full crack at this porosity: the final-
+    // failure void fraction of the Tvergaard-Needleman ductile fracture
+    // model, f_F ≈ 0.25 (Tvergaard & Needleman 1984).
+    double coalescencePorosity = 0.25;
+    // Porosity a spall void starts with (sets the first growth threshold).
+    double initialPorosity = 1e-3;
     unsigned threads = 0;       // 0 = all CPU cores
 };
 

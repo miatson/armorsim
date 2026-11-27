@@ -8,6 +8,7 @@
 #include <string>
 #include <tuple>
 
+#include <armor/Fragments.h>
 #include <armor/Solver.h>
 
 using namespace armor;
@@ -199,6 +200,11 @@ TEST_CASE("Taylor bar test: OFHC copper at 190 m/s shortens to the measured leng
         CHECK(sumX / nVoid < 4.5e-3);     //    behind the impact face (Gray et al.: ~3 mm)
         CHECK(sumR / nVoid < 1.5e-3);     //    near the axis
         CHECK(nFull < nVoid / 10);        // and the rod does not break apart
+        int rodPieces = 0;
+        for (const Fragment& f : solver.fragments().pieces)
+            if (f.body == 1 && f.particles >= 3) ++rodPieces;
+        MESSAGE("Taylor rod pieces: ", rodPieces);
+        CHECK(rodPieces == 1);            // voids inside, but still one rod
     }
     double maxX = -1.0, minX = 1.0, maxR = 0.0, maxEp = 0.0, maxT = 0.0;
     for (std::size_t i = 0; i < solver.particleCount(); ++i) {
@@ -305,3 +311,90 @@ TEST_CASE("spall: copper plate cracks one flyer thickness from the back face, on
     CHECK(xHigh == Approx(4.0e-3).epsilon(0.1).scale(0));
 }
 
+
+// -----------------------------------------------------------------------------
+// Fragment finder: two blocks of one body joined by an intact strip are one
+// piece; when the strip has failed they are two pieces plus loose debris.
+// -----------------------------------------------------------------------------
+TEST_CASE("fragments: a failed strip splits a body into two pieces") {
+    const double dx = 1e-3;
+    std::vector<Vec2> pos, vel;
+    std::vector<double> mass;
+    std::vector<std::uint16_t> body;
+    for (int ix = 0; ix < 21; ++ix)
+        for (int iy = 0; iy < 5; ++iy) {
+            pos.push_back({ix * dx, iy * dx});
+            vel.push_back({ix < 10 ? -1.0 : 1.0, 0.0});
+            mass.push_back(1.0);
+            body.push_back(0);
+        }
+    std::vector<std::uint8_t> failed(pos.size(), kIntact);
+    const FragmentStats whole = findFragments(pos, vel, mass, body, failed, 1.5 * dx);
+    CHECK(whole.pieces.size() == 1);
+    CHECK(whole.debrisParticles == 0);
+    for (std::size_t i = 0; i < pos.size(); ++i)
+        if (std::abs(pos[i].x - 10 * dx) < 0.1 * dx) failed[i] = kDuctile; // crack at x = 10
+    const FragmentStats split = findFragments(pos, vel, mass, body, failed, 1.5 * dx);
+    REQUIRE(split.pieces.size() == 2);
+    CHECK(split.debrisParticles == 5);
+    CHECK(split.pieces[0].mass == Approx(50.0));
+    CHECK(split.pieces[1].mass == Approx(50.0));
+    CHECK(std::abs(split.pieces[0].velocity.x) == Approx(1.0));
+    // Spall voids do NOT split a body by themselves (they stay bonded).
+    for (auto& f : failed) if (f == kDuctile) f = kSpall;
+    CHECK(findFragments(pos, vel, mass, body, failed, 1.5 * dx).pieces.size() == 1);
+}
+
+// -----------------------------------------------------------------------------
+// VALIDATION 4 - SPALL SIGNAL (free-surface velocity "pullback"). This is what
+// plate-impact experiments actually measure (VISAR on the target's back face).
+// When the shock reaches the free back face, the face jumps to twice the
+// particle velocity, 2v (relative to the target). Release waves then pull the
+// inside apart; once it spalls, the layer behind the spall plane (the scab)
+// keeps flying, and the face velocity drops by the "pullback" Δu and stays.
+// The standard estimate of spall strength is σ ≈ ½ ρ0 c0 Δu; it should come
+// back near the material's spall strength (copper: 1.3 GPa input).
+// (The scab can stay attached at the plate's rim, where edge release keeps the
+// tension below the spall threshold and ductile copper stretches instead of
+// tearing - so this checks the signal, not a fragment count.)
+// -----------------------------------------------------------------------------
+TEST_CASE("spall: free-surface pullback recovers the copper spall strength") {
+    for (double v : {100.0, 200.0}) {
+        CAPTURE(v);
+        Scenario t;
+        t.mode = GeometryMode::Axisymmetric;
+        t.dx = 0.1e-3;
+        t.endTime = 6e-6;
+        t.parts.push_back({"flyer", RectShape{{-0.001, 0.0075}, {0.001, 0.0075}}, kCopperOFHC, {v, 0.0}});
+        t.parts.push_back({"target", RectShape{{0.003, 0.0075}, {0.003, 0.0075}}, kCopperOFHC, {-v, 0.0}});
+        Solver solver(t, defaultMaterials());
+        std::vector<std::size_t> rear; // back face, central 2 mm
+        for (std::size_t i = 0; i < solver.particleCount(); ++i) {
+            const Particles& P = solver.particles();
+            if (P.part[i] == 1 && P.pos[i].x > 6e-3 - t.dx && P.pos[i].y < 2e-3) rear.push_back(i);
+        }
+        REQUIRE(!rear.empty());
+        std::vector<std::pair<double, double>> hist; // (t, u relative to the target's start)
+        while (!solver.finished() && solver.diagnostics().maxSpeed < 10 * v) {
+            solver.step();
+            double u = 0;
+            for (std::size_t i : rear) u += solver.particles().vel[i].x;
+            hist.push_back({solver.time(), u / static_cast<double>(rear.size()) + v});
+        }
+        REQUIRE(solver.finished());
+        std::size_t peak = 0;
+        for (std::size_t k = 0; k < hist.size(); ++k)
+            if (hist[k].second > hist[peak].second) peak = k;
+        double low = hist[peak].second;
+        for (std::size_t k = peak; k < hist.size() && hist[k].first < hist[peak].first + 2e-6; ++k)
+            low = std::min(low, hist[k].second);
+        const double pullback = hist[peak].second - low;
+        const double spall = 0.5 * 8960.0 * 3940.0 * pullback;
+        MESSAGE("+-", v, " m/s: free-surface peak ", hist[peak].second, " m/s (2v = ", 2 * v, "), pullback ", pullback,
+                " m/s -> spall strength ", spall / 1e9, " GPa (input 1.3)");
+        CHECK(hist[peak].second == Approx(2 * v).epsilon(0.07));
+        CHECK(spall > 1.0e9);
+        CHECK(spall < 2.2e9);
+        CHECK(hist.back().second > 0.3 * v); // the scab keeps flying
+    }
+}

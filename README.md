@@ -243,12 +243,17 @@ the yield surface (Wilkins 1964). The excess becomes plastic strain
   fragments separate on their own. Melting fails a particle the same way.
 - **Spall.** Tension beyond the spall strength, **sustained** for at least the time
   a sound wave takes to cross one smoothing length (the shortest pulse the particles
-  resolve), opens **voids**. A spalled particle stays bonded and keeps its shear
-  strength, but can no longer carry hydrostatic tension: its pressure counts as
-  max(p, 0) in forces and pressure work alike. This is how ductile metals behave
-  (incipient spall barely weakens them in compression). Treating spalled copper as
-  strengthless instead made the Taylor rod's core squirt out and inflated its foot to
-  16.8 mm.
+  resolve), nucleates **voids**. A spalled particle stays bonded and keeps its shear
+  strength; its **porosity φ is a state variable** (P-α family, Herrmann 1969). The
+  metal between the voids obeys the EOS (`p = p_EOS(ρ/(1−φ), e)·(1−φ)`), and a
+  return mapping lets voids grow only while tension exceeds the Carroll-Holt
+  threshold `min(spall strength, (2/3) σ_y ln(1/φ))`, close under compression, and
+  **coalesce** into a full crack at φ = 0.25 (Tvergaard-Needleman). Two simpler
+  versions failed: strengthless spalled copper made the Taylor core squirt out (foot
+  16.8 mm), and "no tension at all" let porosity ratchet up from SPH noise.
+- **Fully failed material carries no tension anywhere**, including in the axisymmetric
+  hoop force −σθθ/(ρr), which is not a pair term. Missing that flung freshly failed
+  particles off the axis at up to 1000 m/s.
 - Both plug into the energy-compatible scheme exactly: a fully failed pair is simply
   on the "other body" side of every sum.
 
@@ -256,7 +261,7 @@ the yield surface (Wilkins 1964). The excess becomes plastic strain
 
 In the Taylor bar, release waves from the side surface converge on the axis and pull
 the core to about −4.4 GPa for ~0.7 µs (the same at two resolutions). The model opens
-spall voids there, centred 2.9 mm behind the impact face. Sectioned OFHC copper rods
+spall voids there, centred 3.4 mm behind the impact face, and the rod stays one piece. Sectioned OFHC copper rods
 show "ductile void damage within the central region … approximately 3 mm from the
 impact interface" at 175 m/s (Gray, Maudlin & Chen, Los Alamos LA-UR-01-5614).
 
@@ -283,7 +288,9 @@ impact interface" at 175 m/s (Gray, Maudlin & Chen, Los Alamos LA-UR-01-5614).
 | **Stage C** | | |
 | Spall: 2 mm Cu flyer on 6 mm Cu target, ±20 m/s | no spall (0.7 GPa < 1.3 GPa) | none ✓ |
 | Spall: same at ±100 m/s, spall plane | 4.0 mm (one flyer thickness from the back face) | 3.85 mm |
-| Taylor bar: internal spall voids | ~3 mm behind the impact face, central (sectioned rod, Gray et al.) | mean 2.94 mm, r 0.77 mm |
+| Taylor bar: internal spall voids | ~3 mm behind the impact face, central (sectioned rod, Gray et al.) | mean 3.4 mm, r 0.95 mm, rod in one piece |
+| Spall signal: back-face velocity peak, ±100 / ±200 m/s | 2v = 200 / 400 m/s | 198 / 401 m/s |
+| Spall strength from pullback, σ ≈ ½ρ0c0Δu | input 1.3 GPa | 1.6 / 1.7 GPa |
 
 (*) Rod/strip wave speed: this is real physics, not error. A wave in a bar of finite width **disperses**
 (Pochhammer–Chree): its front spreads as it travels, so the half-amplitude point
@@ -301,7 +308,9 @@ Not yet a validation, but a good sign: the tungsten long rod preset (L/D 10,
 
 - Spall strengths in the material data are approximate (see `Material.cpp`), and spall
   is a fixed threshold plus a minimum duration, not yet rate-dependent.
-- Fragments are not tracked or counted yet.
+- Fragments are counted (`armorsim --headless`), not yet shown in the app. A spall
+  scab can stay attached at a plate's rim, where edge release keeps the tension
+  low and ductile copper stretches instead of tearing.
 - Plastic impacts need fine spacing for converged numbers: the Taylor bar is
   ~17.2 mm at 0.254 mm spacing and 16.75 mm at 0.127 mm.
 - Total energy drops by 1–5% over violent runs. The time integrator always dissipates
@@ -330,5 +339,8 @@ Not yet a validation, but a good sign: the tungsten long rod preset (L/D 10,
 - A. Colagrossi, M. Landrini, *Numerical simulation of interfacial flows by SPH*, J. Comput. Phys. 191 (2003)
 - G. R. Johnson, W. H. Cook, *Fracture characteristics of three metals subjected to various strains, strain rates, temperatures and pressures*, Eng. Fract. Mech. 21 (1985)
 - G. T. Gray III, P. J. Maudlin, S. R. Chen, *The assessment of damage evolution in metals as a function of microstructure using Taylor impact testing*, LANL LA-UR-01-5614 (2001)
+- M. M. Carroll, A. C. Holt, *Static and dynamic pore-collapse relations for ductile porous materials*, J. Appl. Phys. 43 (1972)
+- W. Herrmann, *Constitutive equation for the dynamic compaction of ductile porous materials*, J. Appl. Phys. 40 (1969)
+- V. Tvergaard, A. Needleman, *Analysis of the cup-cone fracture in a round tensile bar*, Acta Metall. 32 (1984)
 - F. L. Addessio, J. N. Johnson, P. J. Maudlin, *The effect of void growth on Taylor cylinder impact experiments*, J. Appl. Phys. 73 (1993)
 - W. Lanz, W. Odermatt, *Penetration limits of conventional large caliber anti tank guns/kinetic energy projectiles*, 13th Int. Symp. Ballistics (1992)

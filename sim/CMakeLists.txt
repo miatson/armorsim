@@ -4,6 +4,7 @@ add_library(armor_sim STATIC
     src/Scenario.cpp
     src/NeighborGrid.cpp
     src/Solver.cpp
+    src/Fragments.cpp
 )
 target_include_directories(armor_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(armor_sim PUBLIC armor_core Threads::Threads)
