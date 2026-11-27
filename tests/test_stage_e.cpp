@@ -90,7 +90,7 @@ TEST_CASE("fireShot: a slow ball stops on a plate, a fast one goes through a thi
     CHECK(fast.residualVelocity < 1500.0);
 }
 
-// Slow (several minutes): run with  armor_tests -tc="VALIDATION Borvik*" --no-skip -s
+// Slow (~20 min, 5 shots at 0.25 mm): run with  armor_tests -tc="VALIDATION Borvik*" --no-skip -s
 TEST_CASE("VALIDATION Borvik: ballistic limit of 12 mm Weldox 460 E vs blunt projectile (exp. 184.5 m/s)" * doctest::skip()) {
     const auto mats = defaultMaterials();
     const ScenarioFile f = loadScenarioFile(std::filesystem::path(ARMOR_SCENARIO_DIR) / "validation_borvik_blunt.json", mats);
@@ -101,13 +101,14 @@ TEST_CASE("VALIDATION Borvik: ballistic limit of 12 mm Weldox 460 E vs blunt pro
         (void)v0;
         return s;
     };
-    const BallisticLimitResult r = findBallisticLimit(make, 150.0, 250.0, 5, mats, [](const ShotResult& s) {
+    const BallisticLimitResult r = findBallisticLimit(make, 170.0, 215.0, 3, mats, [](const ShotResult& s) {
         MESSAGE(s.speed, " m/s: ", std::string(s.blewUp ? "BLEW UP" : (s.perforated ? "perforated" : "stopped")), ", residual ",
                 s.residualVelocity, " m/s, plate ", s.plateVelocity, " m/s, ", s.timeSimulated * 1e6, " us, ", s.wallSeconds, " s");
     });
     REQUIRE(r.bracketed());
     MESSAGE("V50 = ", r.v50(), " m/s (", r.highestStopped, " .. ", r.lowestPerforated, "); experiment 184.5 m/s");
     if (r.hasFit) MESSAGE("Recht-Ipson fit: v_bl = ", r.fitLimit, " m/s, a = ", r.fitA);
-    // Measured (0.4 mm spacing): V50 207.8 m/s (+12.6%), Recht-Ipson 203.1 m/s (+10%) - see README.
-    CHECK(r.v50() == Approx(184.5).epsilon(0.15).scale(0));
+    // Measured: 0.4 mm spacing V50 207.8 m/s (+12.6%); 0.25 mm (the file's default) 184.1 m/s (-0.2%),
+    // Recht-Ipson 182.6 m/s. Plugging needs ~48 particles across the plate - see README.
+    CHECK(r.v50() == Approx(184.5).epsilon(0.05).scale(0));
 }

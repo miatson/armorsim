@@ -151,6 +151,20 @@ std::string App::builderSummary() const {
     std::snprintf(buf, sizeof buf, "Resolution: %.2f mm particle spacing, %.0f us simulated%s.",
                   spec.spacing * 1e3, spec.endTime * 1e6, autoResolution_ ? " (automatic)" : "");
     t += buf;
+    {
+        double thinnest = 1e9;
+        for (const armor::ArmorLayer& l : spec.layers) thinnest = std::min(thinnest, l.thickness);
+        if (spec.spacing > thinnest / 40.0) {
+            std::snprintf(buf, sizeof buf,
+                          "\nAccuracy: plates fail by punching out a plug along a narrow shear band, which needs about "
+                          "45-50 particles across the plate (here %.0f). Coarser runs make plates too hard to get "
+                          "through: in the Borvik steel-plate test the ballistic limit came out 13%% high at 30 "
+                          "particles and within 1%% at 48. For numbers you trust, set the spacing to %.2f mm or less "
+                          "(Details > Resolution & duration).",
+                          thinnest / spec.spacing, thinnest / 48.0 * 1e3);
+            t += buf;
+        }
+    }
     if (spec.obliquity != 0.0)
         t += "\nAngled shot: simulated as a 2D slice (plane strain) - the projectile is really an infinitely "
              "wide slab, so treat depths as qualitative.";

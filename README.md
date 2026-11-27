@@ -16,7 +16,7 @@ The solver itself has no dependencies.
 | B | Mie-Grüneisen shock EOS, Johnson-Cook plasticity, Taylor bar validation, energy-compatible forces | ✅ |
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
 | D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | 🔨 in progress (files, probes, graphs, CSV done) |
-| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation +10–13%) |
+| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation ✅ at fine spacing) |
 | F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | ⏳ |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
 | H | Optional: performance, 3D | ⏳ |
@@ -384,7 +384,7 @@ punched-out plug doesn't count) and moves faster than the plate. It also fits th
 Recht-Ipson curve `v_r = a·sqrt(v² − v_bl²)` to the residual velocities.
 
 ```
-miataphysim --headless --file scenarios/validation_borvik_blunt.json --v50 150 250
+miataphysim --headless --file scenarios/validation_borvik_blunt.json --v50 170 215 --iterations 3
 ```
 
 Benchmark: a flat-nosed hardened steel projectile (20 × 80 mm, 197 g) against a
@@ -392,17 +392,17 @@ Benchmark: a flat-nosed hardened steel projectile (20 × 80 mm, 197 g) against a
 shear plugging. Material data: Børvik et al. 2001 (Johnson-Cook strength and
 fracture for Weldox 460 E); projectile yield 1.9 GPa.
 
-| | Simulated (0.4 mm spacing) | Experiment | Difference |
+| Spacing (particles across the plate) | V50 (bisection) | Recht-Ipson fit | Experiment |
 |---|---|---|---|
-| V50 (bisection: 206.3 stopped, 209.4 perforated) | 207.8 m/s | 184.5 m/s | +12.6% |
-| Recht-Ipson fit to residual velocities | 203.1 m/s | 184.5 m/s | +10.1% |
+| 0.4 mm (30) | 207.8 m/s (+12.6%) | 203.1 m/s (+10.1%) | 184.5 m/s |
+| **0.25 mm (48)** | **184.1 m/s (−0.2%)** | **182.6 m/s (−1.0%)** | 184.5 m/s |
 
-**Only a partial match.** The plate comes out 10–13% too hard to perforate.
-Possible reasons, still open: the shear band that forms the plug is only a few
-particles wide at this spacing (coarse resolution is known to make plugging too
-hard); the real plate was clamped and 500 mm across, while here it is free and
-200 mm across; the fracture data's strain-rate reference. A resolution study is
-the next step.
+At 0.25 mm the shots bracket the limit between 181.2 m/s (stopped) and 186.9 m/s
+(perforated). The coarse run's 13% error was **resolution**: the plug is cut out
+along a narrow shear band, and with too few particles across the plate the band
+is too wide and the plate too hard to get through. Two resolutions show the
+trend but don't yet prove convergence; a 0.2 mm check would. The builder warns
+when a plate has fewer than about 40 particles across it.
 
 ## Known limitations
 

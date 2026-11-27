@@ -377,3 +377,18 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   the background, one or two speeds near 185-210 m/s); long-rod convergence
   rerun; then the hemispherical / conical nose cases need nose shapes in the
   library (Stage F overlap). Stage D leftover: click-to-place gauges.
+
+## 2026-11-27 — session 12: Borvik resolution study
+
+- 0.25 mm (48 particles across the 12 mm plate), bracket 170-215, 3 bisections:
+  170 stopped, 215 perf (v_r 79.8), 192.5 perf (38.3), 181.2 stopped,
+  186.9 perf (32.7). **V50 184.1 m/s (-0.2% vs 184.5)**, Recht-Ipson 182.6
+  (a = 0.70). At 0.4 mm it was 207.8 (+12.6%): the gap was resolution of
+  the plugging shear band. Shots took 1.5-6 min each (~20 min total).
+- Not proven converged (2 resolutions); a 0.2 mm check would confirm.
+- validation_borvik_blunt.json now defaults to 0.25 mm; slow test uses the
+  same bracket and +-5%.
+- Builder (Theory & checks) warns when a plate has < 40 particles across it
+  and suggests spacing = thinnest / 48. The automatic spacing stays coarse
+  for speed - consider an "accurate" option later.
+- Long-rod convergence rerun (0.25 mm) still pending.
