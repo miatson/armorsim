@@ -84,6 +84,7 @@ private:
     void drawProbe();
     void drawBodySizes(const armor::Frame& f, const armor::Recording& rec) const;
     void drawProbesPanel();
+    void drawClickGauges();
     void drawSimulateTab();
     void drawDetailsTab();
     void drawBuilder();
@@ -103,6 +104,9 @@ private:
     bool runAtStart_ = false;
     int presetIndex_ = 0;
     std::string probeStatus_; // last 'Save CSV' result
+    // Gauges placed by clicking a particle (indices into the recorded frames).
+    std::vector<int> clickGauges_;
+    bool placingGauge_ = false;
 
     // What to simulate: 0 = ready-made (presets + scenario files), 1 = build your own.
     int sourceMode_ = 0;

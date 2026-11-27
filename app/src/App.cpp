@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include <imgui.h>
 #include <rlImGui.h>
@@ -226,6 +227,8 @@ void App::startSimulation() {
                                                         armor::bodyNames(scenario), static_cast<std::size_t>(scenario.frameCount) + 2);
     run->endTime = scenario.endTime;
     ranges_.clear();
+    clickGauges_.clear();
+    placingGauge_ = false;
     cursor_ = 0.0f;
     playing_ = false;
     followLive_ = true;
@@ -421,6 +424,7 @@ void App::frame() {
     rlImGuiBegin();
     drawPanel();
     drawProbesPanel(); // floating window over the view, bottom right
+    drawClickGauges();
     drawProbe();
     rlImGuiEnd();
 }
@@ -438,6 +442,7 @@ void App::handleInput() {
         if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedRepeat(KEY_RIGHT)) { cursor_ += 1.0f; playing_ = false; followLive_ = false; }
         if (IsKeyPressed(KEY_LEFT) || IsKeyPressedRepeat(KEY_LEFT)) { cursor_ = std::max(0.0f, cursor_ - 1.0f); playing_ = false; followLive_ = false; }
         if (IsKeyPressed(KEY_F)) fitView();
+        if (IsKeyPressed(KEY_ESCAPE)) placingGauge_ = false;
     }
     if (io.WantCaptureMouse || !CheckCollisionPointRec(mouse, viewArea())) return;
 
@@ -465,6 +470,12 @@ void App::handleInput() {
             best = d2;
             hovered_ = static_cast<int>(i);
         }
+    }
+    // Placing a gauge: the clicked particle becomes one (it moves with the material).
+    if (placingGauge_ && hovered_ >= 0 && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (std::find(clickGauges_.begin(), clickGauges_.end(), hovered_) == clickGauges_.end())
+            clickGauges_.push_back(hovered_);
+        placingGauge_ = false;
     }
 }
 
@@ -516,7 +527,15 @@ void App::drawParticles() {
     }
     if (hovered_ >= 0 && static_cast<std::size_t>(hovered_) < f->x.size()) {
         const Vector2 p = view_.toScreen(f->x[static_cast<std::size_t>(hovered_)], f->y[static_cast<std::size_t>(hovered_)]);
-        DrawRectangleLinesEx({p.x - size, p.y - size, 2 * size, 2 * size}, 2.0f, YELLOW);
+        DrawRectangleLinesEx({p.x - size, p.y - size, 2 * size, 2 * size}, 2.0f, placingGauge_ ? GREEN : YELLOW);
+    }
+    // Placed gauges: numbered rings that move with the material.
+    for (std::size_t k = 0; k < clickGauges_.size(); ++k) {
+        const std::size_t i = static_cast<std::size_t>(clickGauges_[k]);
+        if (i >= f->x.size()) continue;
+        const Vector2 p = view_.toScreen(f->x[i], f->y[i]);
+        DrawCircleLinesV(p, std::max(size * 1.6f, 7.0f), Color{90, 255, 140, 255});
+        DrawText(std::to_string(k + 1).c_str(), static_cast<int>(p.x + 9), static_cast<int>(p.y - 18), 16, Color{90, 255, 140, 255});
     }
     EndScissorMode();
 }
@@ -524,6 +543,9 @@ void App::drawParticles() {
 void App::drawOverlay() {
     const Rectangle area = viewArea();
     const armor::Recording* rec = recording();
+    if (placingGauge_)
+        DrawText("Click a particle to place a gauge   (Esc: cancel)", static_cast<int>(area.x) + 20,
+                 static_cast<int>(area.height) - 60, 20, Color{90, 255, 140, 255});
     if (!rec || !currentFrame()) {
         DrawText("Choose a scenario on the left and press Simulate.", static_cast<int>(area.x) + 40,
                  static_cast<int>(area.height / 2), 24, LIGHTGRAY);
@@ -739,6 +761,11 @@ void App::drawSimulateTab() {
         if (ImGui::Button(">|", {32, 0})) { cursor_ = static_cast<float>(rec->size() - 1); followLive_ = false; }
         ImGui::SameLine();
         ImGui::Checkbox("Loop", &loop_);
+        ImGui::SameLine();
+        if (ImGui::Button(placingGauge_ ? "Cancel gauge" : "Add gauge")) placingGauge_ = !placingGauge_;
+        if (ImGui::IsItemHovered())
+            ImGui::SetItemTooltip("Then click any particle: a graph of the selected colour quantity at that spot over "
+                                  "the whole run appears (from the recorded frames, no new simulation).");
         int frameIndex = currentFrameIndex();
         char label[48];
         std::snprintf(label, sizeof label, "t = %.2f us", currentFrame() ? currentFrame()->time * 1e6 : 0.0);
@@ -1111,6 +1138,45 @@ void App::drawProbesPanel() {
     } else {
         ImGui::TextDisabled("Save CSV becomes available when the run ends.");
     }
+    ImGui::End();
+}
+
+// Gauges placed by clicking: the selected colour quantity at each gauge's
+// particle over all recorded frames (no new simulation), with the value at the
+// playback time. The particle moves with the material (Lagrangian).
+void App::drawClickGauges() {
+    const armor::Recording* rec = recording();
+    if (clickGauges_.empty() || !rec || rec->size() == 0) return;
+    const std::size_t frames = rec->size();
+    const std::size_t at = static_cast<std::size_t>(std::max(currentFrameIndex(), 0));
+    ImGui::SetNextWindowPos({static_cast<float>(GetScreenWidth()) - 440.0f, 60.0f}, ImGuiCond_FirstUseEver);
+    if (!ImGui::Begin("Gauges", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::End();
+        return;
+    }
+    ImGui::TextDisabled("%s at each gauge, from the %zu recorded frames", armor::fieldInfo(field_).name, frames);
+    int removeAt = -1;
+    std::vector<float> series(frames);
+    for (std::size_t k = 0; k < clickGauges_.size(); ++k) {
+        const std::size_t i = static_cast<std::size_t>(clickGauges_[k]);
+        float lo = 1e30f, hi = -1e30f;
+        for (std::size_t n = 0; n < frames; ++n) {
+            const auto& v = rec->frame(n).values[static_cast<int>(field_)];
+            series[n] = i < v.size() ? v[i] : 0.0f;
+            lo = std::min(lo, series[n]);
+            hi = std::max(hi, series[n]);
+        }
+        if (hi - lo < 1e-20f) hi = lo + 1e-20f;
+        ImGui::PushID(static_cast<int>(k));
+        ImGui::Text("Gauge %zu: %s", k + 1, formatValue(field_, series[std::min(at, frames - 1)]).c_str());
+        ImGui::SameLine();
+        if (ImGui::SmallButton("remove")) removeAt = static_cast<int>(k);
+        const std::string overlay = formatValue(field_, lo) + " .. " + formatValue(field_, hi);
+        ImGui::PlotLines("##g", series.data(), static_cast<int>(frames), 0, overlay.c_str(), lo, hi, {400.0f, 55.0f});
+        ImGui::PopID();
+    }
+    if (removeAt >= 0) clickGauges_.erase(clickGauges_.begin() + removeAt);
+    ImGui::TextDisabled("Change \"Colours show\" to plot another quantity.");
     ImGui::End();
 }
 

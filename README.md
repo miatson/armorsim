@@ -15,7 +15,7 @@ The solver itself has no dependencies.
 | A | SPH core, elastic solids, plane strain + axisymmetric, adaptive time step, threads, record & replay UI | ✅ |
 | B | Mie-Grüneisen shock EOS, Johnson-Cook plasticity, Taylor bar validation, energy-compatible forces | ✅ |
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
-| D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | 🔨 in progress (files, probes, graphs, CSV done) |
+| D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | ✅ |
 | E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation ✅ at fine spacing) |
 | F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | 🔨 in progress (alumina & boron carbide ✅) |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
@@ -83,7 +83,11 @@ A loading screen, then two tabs on the left.
    as a scenario file.
 2. **Run.** Press **Simulate**. The run happens in the background, frames appear live,
    and the bar shows the time left.
-3. **Watch.** Play, pause, and drag the timeline (`Space`, `←`/`→`).
+3. **Watch.** Play, pause, and drag the timeline (`Space`, `←`/`→`). **Add gauge**,
+   then click any particle: a graph of what the colours show (pressure, damage,
+   temperature...) at that spot over the whole run appears in the **Gauges** window,
+   read from the recorded frames, so no new simulation is needed. The gauge follows
+   the material and is marked in the view. `Esc` cancels.
 4. **Colours show.** Pressure, stress, plastic strain, temperature, damage, speed and
    more. Hover any particle to read all its values. Mouse wheel zooms, right-drag pans,
    `F` fits the view.

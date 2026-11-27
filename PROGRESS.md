@@ -441,3 +441,13 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   P* + T* <= 0); LS-DYNA has a minimum fracture strain (EFMIN) but no sourced
   value - not changed.
 - Built only; tests not run this session at the user's request.
+
+## 2026-11-28 — session 15: click-to-place gauges (Stage D leftover done)
+
+- Simulate > Watch: "Add gauge", then click a particle. A "Gauges" window plots
+  the selected colour field at that particle over all recorded frames (no new
+  simulation), with the value at the playback time and "remove". Numbered green
+  rings mark gauges in the view (they move with the material). Esc cancels;
+  gauges clear on a new run (particle numbering changes).
+- Compiled cleanly; NOT tried in the app yet (no runs, per the user's request).
+- Stage D is now complete.
