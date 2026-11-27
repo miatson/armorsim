@@ -39,6 +39,16 @@ ctest --preset msvc-release             # run the tests (~10 s)
 build\msvc\bin\Release\miataphysim.exe
 ```
 
+**A build to give to others** (no machine paths inside, no Visual C++ runtime needed):
+
+```
+cmake -S . -B build/dist -G "Visual Studio 17 2022" -A x64 -DMIATAPHYSIM_SOURCE_PATHS=OFF -DARMOR_BUILD_TESTS=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+cmake --build build/dist --config Release --target miataphysim
+```
+
+Ship `miataphysim.exe` with the `scenarios/` and `library/` folders next to it.
+Ready-made Windows builds are on the [Releases](https://github.com/miatson/miataphysim/releases) page.
+
 MinGW: `mingw-release` presets. Linux: `linux-release` presets (install the X11/GL
 dev packages first, see raylib's docs). `-DARMOR_BUILD_APP=OFF` builds only the
 solver and tests.

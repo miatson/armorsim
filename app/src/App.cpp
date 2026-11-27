@@ -958,7 +958,11 @@ void App::drawDetailsTab() {
         ImGui::TextWrapped("MiataPhySim - a 2D impact and armour physics simulator (SPH hydrocode). "
                            "Work in progress: elastic solids, plasticity and shocks, and failure (spall, fracture, "
                            "melting) are in; the scenario builder is being built; ceramics, explosives and 3D come later.");
+#ifdef MIATAPHYSIM_VERSION
+        ImGui::TextDisabled("Version %s   github.com/miatson/miataphysim", MIATAPHYSIM_VERSION);
+#else
         ImGui::TextDisabled("github.com/miatson/miataphysim");
+#endif
     }
 }
 

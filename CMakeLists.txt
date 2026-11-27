@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 # C is enabled because raylib is written in C.
-project(miataphysim VERSION 0.1.0 LANGUAGES C CXX)
+project(miataphysim VERSION 0.4.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,6 +10,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(ARMOR_BUILD_APP "Build the raylib + Dear ImGui application" ON)
 option(ARMOR_BUILD_TESTS "Build the unit tests" ON)
 option(ARMOR_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+# Compile the source tree's scenarios/ and library/ folders into the app as a
+# fallback location. Handy while developing; switch OFF for builds you give to
+# others (it would embed this machine's folder path in the executable), and
+# ship the two folders next to the .exe instead.
+option(MIATAPHYSIM_SOURCE_PATHS "Embed source-tree scenario/library paths in the app" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 

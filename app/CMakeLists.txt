@@ -6,9 +6,12 @@ add_executable(miataphysim
     src/Headless.cpp
 )
 target_include_directories(miataphysim PRIVATE src)
-# Fallback location of the example scenario files (see Presets.cpp).
-target_compile_definitions(miataphysim PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios"
-    ARMOR_LIBRARY_DIR="${CMAKE_SOURCE_DIR}/library")
+# Fallback location of the example scenario files and library (see Presets.cpp).
+if(MIATAPHYSIM_SOURCE_PATHS)
+    target_compile_definitions(miataphysim PRIVATE ARMOR_SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios"
+        ARMOR_LIBRARY_DIR="${CMAKE_SOURCE_DIR}/library")
+endif()
+target_compile_definitions(miataphysim PRIVATE MIATAPHYSIM_VERSION="${PROJECT_VERSION}")
 target_link_libraries(miataphysim PRIVATE armor_sim armor_io imgui_rl raylib)
 armor_set_warnings(miataphysim)
 
