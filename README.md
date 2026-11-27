@@ -385,3 +385,8 @@ Not yet a validation, but a good sign: the tungsten long rod preset (L/D 10,
 - V. Tvergaard, A. Needleman, *Analysis of the cup-cone fracture in a round tensile bar*, Acta Metall. 32 (1984)
 - F. L. Addessio, J. N. Johnson, P. J. Maudlin, *The effect of void growth on Taylor cylinder impact experiments*, J. Appl. Phys. 73 (1993)
 - W. Lanz, W. Odermatt, *Penetration limits of conventional large caliber anti tank guns/kinetic energy projectiles*, 13th Int. Symp. Ballistics (1992)
+
+## License
+
+MIT, see [LICENSE](LICENSE). The bundled third-party libraries (raylib, Dear ImGui,
+rlImGui, nlohmann/json, doctest) are downloaded at build time under their own licenses.
