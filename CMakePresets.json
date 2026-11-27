@@ -1,0 +1,38 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    { "name": "base", "hidden": true, "binaryDir": "${sourceDir}/build/${presetName}" },
+    { "name": "windows-only", "hidden": true,
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" } },
+    { "name": "linux-only", "hidden": true,
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" } },
+    { "name": "msvc", "displayName": "Visual Studio 2022 (MSVC, Debug + Release)",
+      "inherits": ["base", "windows-only"], "generator": "Visual Studio 17 2022", "architecture": "x64" },
+    { "name": "mingw-debug", "displayName": "MinGW Debug", "inherits": ["base", "windows-only"],
+      "generator": "MinGW Makefiles",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "CMAKE_C_COMPILER": "gcc", "CMAKE_CXX_COMPILER": "g++" } },
+    { "name": "mingw-release", "displayName": "MinGW Release", "inherits": "mingw-debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "linux-debug", "displayName": "Linux Debug", "inherits": ["base", "linux-only"],
+      "generator": "Unix Makefiles", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "linux-release", "displayName": "Linux Release", "inherits": "linux-debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } }
+  ],
+  "buildPresets": [
+    { "name": "msvc-debug", "configurePreset": "msvc", "configuration": "Debug" },
+    { "name": "msvc-release", "configurePreset": "msvc", "configuration": "Release" },
+    { "name": "mingw-debug", "configurePreset": "mingw-debug" },
+    { "name": "mingw-release", "configurePreset": "mingw-release" },
+    { "name": "linux-debug", "configurePreset": "linux-debug" },
+    { "name": "linux-release", "configurePreset": "linux-release" }
+  ],
+  "testPresets": [
+    { "name": "msvc-debug", "configurePreset": "msvc", "configuration": "Debug", "output": { "outputOnFailure": true } },
+    { "name": "msvc-release", "configurePreset": "msvc", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "mingw-debug", "configurePreset": "mingw-debug", "output": { "outputOnFailure": true } },
+    { "name": "mingw-release", "configurePreset": "mingw-release", "output": { "outputOnFailure": true } },
+    { "name": "linux-debug", "configurePreset": "linux-debug", "output": { "outputOnFailure": true } },
+    { "name": "linux-release", "configurePreset": "linux-release", "output": { "outputOnFailure": true } }
+  ]
+}
