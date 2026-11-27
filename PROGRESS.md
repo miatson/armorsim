@@ -325,3 +325,26 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   the material dropdown, Details > Materials, library/README.md, README.
 - Tests: library loads, all 63 projectile x armour pairs build, oblique
   0/30/60 deg projectile clear of plates, JSON round trip. 534 assertions.
+
+## 2026-11-27 — session 10: MIT license, release, Stage E started
+
+- **Release** v0.4.0-alpha (GitHub pre-release, zip with exe + scenarios +
+  library). Build option MIATAPHYSIM_SOURCE_PATHS=OFF for shareable builds
+  (no machine paths in the exe; checked: no username/paths/email in the
+  binary), static MSVC runtime. Tag v0.4.0-alpha. MIT license added (58c0abd).
+- **Stage D**: core done (files, library, builder, probes, graphs, CSV).
+  Leftover: place gauges by clicking in the view.
+- **Stage E, long rods DONE**: io/include/armor/Validation.h has the
+  Lanz-Odermatt fit (coefficients from Odermatt's calculator via
+  xplicitmaterials.com, 148 tests, 3.9%; units kg/m3 + km/s inferred by
+  requiring P/L ~0.85 at 1.5 km/s for L/D 10). Simulated (0.5 mm spacing,
+  validation_long_rod_ld10.json, 200 mm block, 300 us): P/L 0.335 / 0.606 /
+  0.872 / 1.106 / 1.242 at 1000..2000 m/s vs 0.317 / 0.602 / 0.852 / 1.050 /
+  1.203: +0.7..+5.8%, mean +3.5%. Energy 0.998. Each run 3.5-5 min.
+- Headless overrides --speed, --spacing (mm), --end-time (us) for files.
+- Builder: Theory & checks shows the LO prediction for tungsten rods into steel.
+- Tests: test_stage_e.cpp (LO values/trends; slow skipped VALIDATION case).
+- **Stage E next**: convergence of the long-rod result at 0.25 mm (one speed;
+  ~8x cost, run in the background); V50 ballistic-limit tool (bisection on
+  speed with a perforation criterion, residual velocity, Lambert-Jonas fit)
+  and a published ballistic-limit case to compare against.

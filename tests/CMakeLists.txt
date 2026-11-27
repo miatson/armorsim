@@ -8,6 +8,7 @@ add_executable(armor_tests
     test_solver.cpp
     test_stage_b.cpp
     test_stage_d.cpp
+    test_stage_e.cpp
 )
 target_link_libraries(armor_tests PRIVATE armor_sim armor_io doctest_header)
 # Example scenario files are checked by the tests.

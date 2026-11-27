@@ -1,0 +1,19 @@
+{
+  // Stage E validation: long-rod penetration vs the Lanz-Odermatt fit.
+  "name": "Validation: tungsten L/D 10 into thick RHA (Lanz-Odermatt)",
+  "description": "A 100 x 10 mm tungsten heavy alloy rod into a 200 mm steel block (thick enough to count as semi-infinite). Compare the depth reached with the Lanz-Odermatt fit to 148 tests: P/L = 0.32 / 0.60 / 0.85 / 1.05 / 1.20 at 1000 / 1250 / 1500 / 1750 / 2000 m/s. Run other speeds with: miataphysim --headless --file scenarios/validation_long_rod_ld10.json --speed 1750",
+  "mode": "axisymmetric",
+  "spacing_mm": 0.5,
+  "end_time_us": 300,
+  "parts": [
+    { "name": "Tungsten rod", "material": "tungsten_wha",
+      "shape": { "type": "cylinder", "x_mm": [-100.5, -0.5], "radius_mm": 5 },
+      "velocity_mps": [1500, 0] },
+    { "name": "Steel block", "material": "steel_rha",
+      "shape": { "type": "cylinder", "x_mm": [0, 200], "radius_mm": 60 } }
+  ],
+  "probes": [
+    { "name": "rod tail", "at_mm": [-100.25, 0.25], "quantities": ["x", "velocity_x"] }
+  ],
+  "probe_interval_us": 1
+}

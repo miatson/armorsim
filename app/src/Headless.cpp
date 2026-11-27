@@ -129,10 +129,20 @@ int runHeadless(int scenarioIndex, const std::string& csvPath) {
     return runScenario(preset.name, preset.build(preset.defaults), {}, 0.0, csvPath);
 }
 
-int runHeadlessFile(const std::string& path, const std::string& csvPath) {
+int runHeadlessFile(const std::string& path, const std::string& csvPath, const HeadlessOverrides& o) {
     try {
-        const armor::ScenarioFile file = armor::loadScenarioFile(path, armor::defaultMaterials());
-        return runScenario(file.scenario.name, file.scenario, file.probes, file.probeInterval, csvPath);
+        armor::ScenarioFile file = armor::loadScenarioFile(path, armor::defaultMaterials());
+        armor::Scenario& s = file.scenario;
+        // Overrides, like the app's sliders: speed scales every moving part.
+        if (o.speed > 0) {
+            double fastest = 0.0;
+            for (const armor::Part& p : s.parts) fastest = std::max(fastest, std::hypot(p.velocity.x, p.velocity.y));
+            if (fastest > 0)
+                for (armor::Part& p : s.parts) p.velocity = p.velocity * (o.speed / fastest);
+        }
+        if (o.spacing > 0) s.dx = o.spacing;
+        if (o.endTime > 0) s.endTime = o.endTime;
+        return runScenario(s.name, s, file.probes, file.probeInterval, csvPath);
     } catch (const armor::ScenarioFileError& e) {
         std::fprintf(stderr, "%s\n", e.what());
         return 2;

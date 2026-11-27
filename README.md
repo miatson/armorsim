@@ -16,7 +16,7 @@ The solver itself has no dependencies.
 | B | Mie-Grüneisen shock EOS, Johnson-Cook plasticity, Taylor bar validation, energy-compatible forces | ✅ |
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
 | D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | 🔨 in progress (files, probes, graphs, CSV done) |
-| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | ⏳ |
+| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 next) |
 | F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | ⏳ |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
 | H | Optional: performance, 3D | ⏳ |
@@ -340,9 +340,39 @@ particle spacing; the non-dispersive plate impact is exact.
 (*) Taylor foot: the simulated wall is frictionless (a mirror-image rod). A real anvil
 grips the rod face and holds the foot back.
 
-Not yet a validation, but a good sign: the tungsten long rod preset (L/D 10,
-1500 m/s into steel) reaches 0.86 L, inside the 0.8–0.9 L that real tests give
-(Lanz & Odermatt). Proper validation comes in Stage E, after erosion (Stage C).
+## Validation against experiments (Stage E)
+
+### Long-rod penetration (Lanz-Odermatt)
+
+The standard benchmark for kinetic-energy penetrators: how deep a tungsten long
+rod gets into thick armour steel, as a function of speed. Lanz & Odermatt fitted
+
+```
+P/L = a · 1/tanh(b0 + b1·L/D) · sqrt(ρp/ρt) · exp(−s²/v²),   s² = (c0 + c1·BHN)·BHN/ρp
+a = 0.921, b0 = 0.283, b1 = 0.0656, c0 = 138, c1 = −0.10   (tungsten into RHA)
+```
+
+to 148 tests (standard deviation 3.9%). Coefficients are as used in Willi
+Odermatt's calculator. Units: kg/m³ and km/s; BHN = 286 for the simulator's
+4340-class steel. Simulated with `scenarios/validation_long_rod_ld10.json` (rod
+100 × 10 mm, 200 mm steel block, 0.5 mm spacing, 300 µs), depth = deepest rod
+material:
+
+| Speed | Simulated P/L | Lanz-Odermatt | Difference |
+|---|---|---|---|
+| 1000 m/s | 0.335 | 0.317 | +5.8% |
+| 1250 m/s | 0.606 | 0.602 | +0.7% |
+| 1500 m/s | 0.872 | 0.852 | +2.4% |
+| 1750 m/s | 1.106 | 1.050 | +5.3% |
+| 2000 m/s | 1.242 | 1.203 | +3.3% |
+
+All within 6%, on average 3.5% deep, against a fit scatter of ±3.9%. Total
+energy stayed within 0.2% in every run. Not yet checked: convergence at finer
+spacing (the rod is only 10 particles across). Rerun any speed with
+`miataphysim --headless --file scenarios/validation_long_rod_ld10.json --speed 1750`,
+or the slow test `armor_tests -tc="VALIDATION*" --no-skip`. The builder shows the
+Lanz-Odermatt prediction (Details → Theory) whenever you fire a tungsten rod at
+steel.
 
 ## Known limitations
 
@@ -384,6 +414,7 @@ Not yet a validation, but a good sign: the tungsten long rod preset (L/D 10,
 - W. Herrmann, *Constitutive equation for the dynamic compaction of ductile porous materials*, J. Appl. Phys. 40 (1969)
 - V. Tvergaard, A. Needleman, *Analysis of the cup-cone fracture in a round tensile bar*, Acta Metall. 32 (1984)
 - F. L. Addessio, J. N. Johnson, P. J. Maudlin, *The effect of void growth on Taylor cylinder impact experiments*, J. Appl. Phys. 73 (1993)
+- W. Odermatt, long-rod penetration calculator, longrods.ch (source of the Lanz-Odermatt coefficients used here)
 - W. Lanz, W. Odermatt, *Penetration limits of conventional large caliber anti tank guns/kinetic energy projectiles*, 13th Int. Symp. Ballistics (1992)
 
 ## License

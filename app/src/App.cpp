@@ -12,6 +12,7 @@
 #include <rlImGui.h>
 
 #include <armor/Probes.h>
+#include <armor/Validation.h>
 #include <armor/Solver.h>
 
 #include "Colormap.h"
@@ -129,7 +130,17 @@ std::string App::builderSummary() const {
     std::snprintf(buf, sizeof buf, "Armour: %zu layer(s), %.1f mm of material, %.0f kg per square metre.\n",
                   spec.layers.size(), total * 1e3, areal);
     t += buf;
-    if (rod) {
+    if (rod && pm.key == "tungsten_wha" && materials_[static_cast<std::size_t>(spec.layers[0].material)].key == "steel_rha") {
+        // Measured: Lanz-Odermatt fit to 148 tungsten-into-RHA tests (see Validation.h).
+        const double pl = armor::lanzOdermattTungstenRHA(spec.projectile.length / spec.projectile.diameter, pm.density0,
+                                                         materials_[static_cast<std::size_t>(spec.layers[0].material)].density0,
+                                                         armor::kSteelRHABrinell, spec.speed);
+        std::snprintf(buf, sizeof buf,
+                      "Experiments (Lanz-Odermatt fit, 148 tests, +-4%%): this rod should get about %.0f mm deep (P/L = %.2f) "
+                      "into thick steel armour. Compare with the rod's furthest point in Results.\n",
+                      pl * spec.projectile.length * 1e3, pl);
+        t += buf;
+    } else if (rod) {
         const double rt = materials_[static_cast<std::size_t>(spec.layers[0].material)].density0;
         std::snprintf(buf, sizeof buf,
                       "Long-rod rule of thumb (hydrodynamic limit): a rod can go about L*sqrt(rho_p/rho_t) = %.0f mm deep "
