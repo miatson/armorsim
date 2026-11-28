@@ -17,7 +17,7 @@ The solver itself has no dependencies.
 | C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
 | D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | ✅ |
 | E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation ✅ at fine spacing) |
-| F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | 🔨 in progress (alumina & boron carbide ✅) |
+| F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | 🔨 in progress (alumina, boron carbide, silicon carbide ✅) |
 | G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
 | H | Optional: performance, 3D | ⏳ |
 
@@ -373,7 +373,10 @@ the same stored value, so energy stays exact.
   0.2% for both (1.46 and 8.71 GPa); this is a test.
 - **Approximate (single source):** alumina's tensile strength (0.2 GPa) and its
   fractured-strength cap (0.2).
-- **Silicon carbide left out:** the sources conflict, and the check does not close.
+- **Silicon carbide (SiC-B):** two sources agree on K1/K2/K3 = 220/361/0 GPa, G 193 GPa,
+  HEL 11.7 GPa and the strength curve; PHEL (5.58 GPa) is derived from them. Its
+  tensile strength (0.37 GPa), damage constants (0.48/0.48) and rubble cap (0.8) are
+  approximate.
 
 **Tile test:** a 10 mm steel ball at 500 m/s into a 10 mm alumina tile gives a
 structured, physical damage pattern rather than noise: a fully crushed cone under
@@ -475,11 +478,12 @@ when a plate has fewer than about 40 particles across it.
 
 ## Known limitations
 
-- Ceramics: alumina and boron carbide only (silicon carbide constants conflict between
-  sources). The ceramic model is checked for consistency, not yet against a ceramic
-  penetration experiment.
-- Spall strengths in the material data are approximate (see `Material.cpp`), and spall
-  is a fixed threshold plus a minimum duration, not yet rate-dependent.
+- Ceramics (alumina, boron carbide, silicon carbide) are checked for consistency, not
+  yet against a ceramic penetration experiment; ceramic armour results are qualitative.
+- Spall strengths are checked against published plate-impact ranges (Al 0.8–2.3,
+  Ti-6Al-4V 3.3–4.9, tungsten alloy 1.7–2.6 GPa, copper ~1.3 GPa, steels ~1.6–3.5 GPa),
+  but spall is a fixed threshold plus a minimum duration, not rate-dependent; real
+  spall strength rises with loading rate.
 - Fragments are counted (`miataphysim --headless`), not yet shown in the app. A spall
   scab can stay attached at a plate's rim, where edge release keeps the tension
   low and ductile copper stretches instead of tearing.
@@ -489,8 +493,8 @@ when a plate has fewer than about 40 particles across it.
   a little, and contact can only push. It never grows.
 - Frictionless contact.
 - Constant smoothing length (fine for metals; very large expansions need variable h).
-- Replay frames are stored as float32 in memory. Large scenes (≥ 200k particles)
-  will need compressed frames (planned in Stage D).
+- Replay frames are kept in memory as float32. Big runs record fewer frames to stay
+  within ~1.5 GB (never fewer than 30); the physics is unaffected.
 - 2D only. Plane-strain penetration numbers are qualitative. Axisymmetric is
   exact, but only for 0° impacts.
 

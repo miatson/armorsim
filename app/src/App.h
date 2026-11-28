@@ -38,6 +38,7 @@ struct SimulationRun {
     std::atomic<double> wallSeconds{0.0};
     std::atomic<unsigned long long> steps{0};
     std::atomic<std::size_t> particles{0};
+    int framesRequested = 0, framesUsed = 0; // replay frames (fewer when memory is tight)
     std::string error; // written before `failed` is set
 
     // Probe time histories (written by the worker thread, read by the UI;
@@ -47,6 +48,8 @@ struct SimulationRun {
     std::vector<double> probeTimes;
     std::vector<std::vector<double>> probeSeries;
     std::string probeCsv; // full CSV text, filled when the run ends
+    // Pieces each body broke into, filled at the end of the run (before `done`).
+    std::vector<std::string> fragmentLines;
 
     ~SimulationRun() {
         cancel = true;

@@ -18,7 +18,7 @@ using doctest::Approx;
 TEST_CASE("JH-2 constants are self-consistent: K1..K3, G and HEL reproduce the published PHEL") {
     // In uniaxial strain at the Hugoniot elastic limit the total stress is
     // HEL = P(mu) + (4/3) G mu/(1+mu); solve for mu and compare P(mu) with PHEL.
-    for (int id : {kAluminaAD995, kBoronCarbide}) {
+    for (int id : {kAluminaAD995, kBoronCarbide, kSiliconCarbide}) {
         const Material m = defaultMaterials()[static_cast<std::size_t>(id)];
         CAPTURE(m.name);
         const auto& jh = std::get<JohnsonHolmquist2>(m.strength);

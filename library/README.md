@@ -33,7 +33,7 @@ the source tree. Unknown keys are an error, so typos can't slip through.
 | Key | Meaning |
 |---|---|
 | `category` | `"projectile"` (in `projectiles/`) or `"armor"` (in `armor/`) |
-| `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide` |
+| `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide`, `silicon_carbide` |
 | `shape` | Projectiles: `sphere` (`diameter_mm`) or `rod` (`length_mm`, `diameter_mm`, flat nose). Armour: `plate` (`thickness_mm`, `width_mm`) |
 | `speed_mps` | Suggested speed (projectiles) |
 
@@ -44,4 +44,4 @@ the plate in angled (2D slice) shots.
 model: very strong when squeezed, weak when pulled, and once cracked they turn
 into rubble that still resists in proportion to pressure. Unbacked tiles shatter
 widely, so put a metal layer directly behind them (gap 0), as in real composite
-armour. Silicon carbide is not included yet: the published constants conflict.
+armour. Silicon carbide (`silicon_carbide`) is included too; its damage and tension constants are approximate.

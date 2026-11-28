@@ -241,6 +241,7 @@ enum MaterialId : int {
     kToolSteelHRC53,
     kAluminaAD995,
     kBoronCarbide,
+    kSiliconCarbide,
 };
 
 std::vector<Material> defaultMaterials();

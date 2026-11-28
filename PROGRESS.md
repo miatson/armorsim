@@ -451,3 +451,22 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   gauges clear on a new run (particle numbering changes).
 - Compiled cleanly; NOT tried in the app yet (no runs, per the user's request).
 - Stage D is now complete.
+
+## 2026-11-28 — session 16: filling gaps in Stages C-F (no long runs)
+
+- **Spall strengths** checked against published plate-impact ranges: Al 6061-T6
+  1.1 (0.8-2.3), Ti-6Al-4V 4.0 (3.3-4.9), Cu 1.3 (~1.28), steels 3.0 (~1.6-3.5,
+  no 4340 value found) - kept. **Tungsten alloy 3.5 -> 2.0 GPa** (data
+  1.7-2.6; was ~75% high). The long-rod validation was run with 3.5; not re-run.
+- **Fragment readout in the app**: at the end of a run, Details > Results lists
+  pieces per body (largest piece mass and speed) and loose debris.
+- **Replay memory budget**: frames are reduced so playback fits ~1.5 GB (min
+  30), shown in Results. 200 frames x 200k particles would be ~2.2 GB.
+- **Silicon carbide (SiC-B)** added (material id 9, key silicon_carbide): K1/K2/K3
+  220/361/0 GPa, G 193, HEL 11.7, A 0.96 N 0.65 B 0.35 M 1 C 0.009 (two
+  sources agree); PHEL 5.58 derived (test); T 0.37, D1 = D2 = 0.48, cap 0.8
+  approximate. Library tile silicon_carbide_tile_8mm.
+- Only instant / non-simulating tests run (510 assertions pass).
+- **Still open (need long runs - ask first):** Stage E convergence (long rod at
+  0.25 mm, Borvik at 0.2 mm); Stage F: measure the glued-ceramic fix, validate
+  ricochet / oblique impact against an experiment.

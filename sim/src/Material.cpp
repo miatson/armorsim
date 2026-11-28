@@ -101,7 +101,7 @@ std::vector<Material> defaultMaterials() {
         m.strength = JohnsonCookStrength{792e6, 510e6, 0.26, 0.014, 1.03, 1793.0};
         m.failure = JohnsonCookFailure{0.05, 3.44, -2.12, 0.002, 0.61};
         m.spallStrength = 3.0e9;
-        m.source += " Fracture: JC 1985 (4340); spall ~3 GPa (approx., plate-impact data for 4340-class steels).";
+        m.source += " Fracture: JC 1985 (4340); spall 3 GPa (steels: ~1.6-3.5 GPa in plate impact; no 4340 value found).";
         list.push_back(m);
     }
     {
@@ -117,7 +117,7 @@ std::vector<Material> defaultMaterials() {
         m.strength = JohnsonCookStrength{324e6, 114e6, 0.42, 0.002, 1.34, 925.0};
         m.failure = JohnsonCookFailure{-0.77, 1.45, -0.47, 0.0, 1.6};
         m.spallStrength = 1.1e9;
-        m.source += " Fracture: Lesuer 2000 (6061-T6); spall ~1.1 GPa (approx.).";
+        m.source += " Fracture: Lesuer 2000 (6061-T6); spall 1.1 GPa (plate-impact data 0.8-2.3 GPa).";
         list.push_back(m);
     }
     {
@@ -133,7 +133,7 @@ std::vector<Material> defaultMaterials() {
         m.strength = JohnsonCookStrength{90e6, 292e6, 0.31, 0.025, 1.09, 1356.0};
         m.failure = JohnsonCookFailure{0.54, 4.89, -3.03, 0.014, 1.12};
         m.spallStrength = 1.3e9;
-        m.source += " Fracture: JC 1985 (OFHC copper); spall ~1.3 GPa (approx.).";
+        m.source += " Fracture: JC 1985 (OFHC copper); spall 1.3 GPa (copper ~1.28 GPa, square pulse).";
         list.push_back(m);
     }
     {
@@ -149,8 +149,12 @@ std::vector<Material> defaultMaterials() {
         m.specificHeat = 134.0;
         m.strength = JohnsonCookStrength{1506e6, 177e6, 0.12, 0.016, 1.0, 1723.0};
         m.failure = JohnsonCookFailure{0.0, 0.33, -1.5, 0.0, 0.0};
-        m.spallStrength = 3.5e9;
-        m.source += " Fracture: JC 1985 (tungsten alloy); spall ~3.5 GPa (approx.).";
+        // Spall: plate-impact measurements on tungsten heavy alloys give 1.7-2.6 GPa
+        // (was 3.5 GPa, ~75% high; changed 2026-11-28 - the long-rod validation
+        // in the README was run with 3.5 GPa; little effect expected, the rod is
+        // mostly in compression).
+        m.spallStrength = 2.0e9;
+        m.source += " Fracture: JC 1985 (tungsten alloy); spall 2.0 GPa (plate-impact data 1.7-2.6 GPa).";
         list.push_back(m);
     }
     {
@@ -166,7 +170,7 @@ std::vector<Material> defaultMaterials() {
         m.strength = JohnsonCookStrength{1098e6, 1092e6, 0.93, 0.014, 1.1, 1878.0};
         m.failure = JohnsonCookFailure{-0.09, 0.25, -0.5, 0.014, 3.87};
         m.spallStrength = 4.0e9;
-        m.source += " Fracture: Lesuer 2000 (Ti-6Al-4V); spall ~4 GPa (approx.).";
+        m.source += " Fracture: Lesuer 2000 (Ti-6Al-4V); spall 4 GPa (plate-impact data 3.3-4.9 GPa).";
         list.push_back(m);
     }
     {
@@ -244,6 +248,27 @@ std::vector<Material> defaultMaterials() {
         jh.A = 0.927; jh.B = 0.7; jh.C = 0.005; jh.M = 0.85; jh.N = 0.67;
         jh.T = 0.26e9; jh.HEL = 19e9; jh.PHEL = 8.71e9; jh.sigmaHEL = 1.5 * (19e9 - 8.71e9);
         jh.fracturedMax = 0.2; jh.D1 = 0.001; jh.D2 = 0.5; jh.beta = 1.0;
+        m.strength = jh;
+        list.push_back(m);
+    }
+    {
+        // Ceramic armour: silicon carbide (SiC-B, Holmquist & Johnson).
+        Material m;
+        m.name = "Silicon carbide ceramic (SiC)";
+        m.key = "silicon_carbide";
+        m.source = "JH-2 SiC-B (Holmquist & Johnson): rho 3215, G 193 GPa, K1 220, K2 361, K3 0 GPa, HEL 11.7 GPa, "
+                   "A 0.96, N 0.65, B 0.35, M 1.0, C 0.009 (two sources agree). PHEL 5.58 GPa derived from these "
+                   "(uniaxial strain), so the set is self-consistent. Tensile strength 0.37 GPa, D1 = D2 = 0.48 and "
+                   "rubble cap 0.8: single-source / approximate.";
+        m.density0 = 3215.0;
+        m.eos = PolynomialEos{220e9, 361e9, 0.0};
+        m.bulkModulus = 220e9;
+        m.shearModulus = 193e9;
+        m.specificHeat = 750.0;
+        JohnsonHolmquist2 jh;
+        jh.A = 0.96; jh.B = 0.35; jh.C = 0.009; jh.M = 1.0; jh.N = 0.65;
+        jh.T = 0.37e9; jh.HEL = 11.7e9; jh.PHEL = 5.58e9; jh.sigmaHEL = 1.5 * (11.7e9 - 5.58e9);
+        jh.fracturedMax = 0.8; jh.D1 = 0.48; jh.D2 = 0.48; jh.beta = 1.0;
         m.strength = jh;
         list.push_back(m);
     }

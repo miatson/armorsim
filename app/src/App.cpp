@@ -12,6 +12,7 @@
 #include <imgui.h>
 #include <rlImGui.h>
 
+#include <armor/Fragments.h>
 #include <armor/Probes.h>
 #include <armor/Validation.h>
 #include <armor/Solver.h>
@@ -222,7 +223,23 @@ void App::startSimulation() {
     std::vector<std::string> names;
     for (const auto& m : materials_) names.push_back(m.name);
 
+    // Replay memory: every frame stores ~54 bytes per particle (position, body,
+    // and all view fields as float32). 200 frames of a 200,000-particle run would
+    // be ~2.2 GB, so record fewer frames when they would not fit a ~1.5 GB budget
+    // (never fewer than 30). The physics is unaffected - only playback is coarser.
+    const int framesRequested = scenario.frameCount;
+    {
+        const double particles = static_cast<double>(armor::buildParticles(scenario, materials_).size());
+        const double bytesPerFrame = particles * (2.0 * sizeof(float) + sizeof(std::uint16_t) +
+                                                  armor::kFieldCount * sizeof(float));
+        const double budget = 1.5e9;
+        const int fit = static_cast<int>(budget / std::max(bytesPerFrame, 1.0));
+        scenario.frameCount = std::clamp(fit, std::min(30, framesRequested), framesRequested);
+    }
+
     auto run = std::make_unique<SimulationRun>();
+    run->framesRequested = framesRequested;
+    run->framesUsed = scenario.frameCount;
     run->recording = std::make_shared<armor::Recording>(scenario.mode, scenario.dx, names,
                                                         armor::bodyNames(scenario), static_cast<std::size_t>(scenario.frameCount) + 2);
     run->endTime = scenario.endTime;
@@ -285,6 +302,31 @@ void App::startSimulation() {
                 probeRec.writeCsv(csv);
                 std::lock_guard<std::mutex> lock(r->probeMutex);
                 r->probeCsv = csv.str();
+            }
+            // Fragments (Stage C): pieces of >= 3 particles per body, plus loose debris.
+            {
+                const armor::FragmentStats fs = solver.fragments();
+                const bool perMetre = solver.scenario().mode == armor::GeometryMode::PlaneStrain;
+                const char* unit = perMetre ? "g/m" : "g";
+                for (const armor::BodyName& b : armor::bodyNames(solver.scenario())) {
+                    int count = 0;
+                    double biggest = 0.0, biggestV = 0.0;
+                    for (const armor::Fragment& fr : fs.pieces) {
+                        if (fr.body != b.id || fr.particles < 3) continue;
+                        ++count;
+                        if (fr.mass > biggest) {
+                            biggest = fr.mass;
+                            biggestV = std::hypot(fr.velocity.x, fr.velocity.y);
+                        }
+                    }
+                    char line[256];
+                    std::snprintf(line, sizeof line, "%s: %d piece%s, largest %.3g %s at %.0f m/s", b.name.c_str(), count,
+                                  count == 1 ? "" : "s", biggest * 1e3, unit, biggestV);
+                    r->fragmentLines.push_back(line);
+                }
+                char line[160];
+                std::snprintf(line, sizeof line, "Loose debris (fully failed): %.3g %s", fs.debrisMass * 1e3, unit);
+                r->fragmentLines.push_back(line);
             }
         } catch (const std::exception& e) {
             r->error = e.what();
@@ -906,6 +948,12 @@ void App::drawDetailsTab() {
                         run_->simTime.load() * 1e6, run_->endTime.load() * 1e6);
             ImGui::Text("Computer time  %.1f s %s", run_->wallSeconds.load(),
                         run_->done ? (run_->cancel ? "(cancelled)" : "(finished)") : "(running)");
+            if (run_->framesUsed < run_->framesRequested) {
+                ImGui::TextColored({1.0f, 0.8f, 0.4f, 1.0f}, "Replay: %d frames instead of %d (to fit memory)",
+                                   run_->framesUsed, run_->framesRequested);
+                helpMarker("A big run would need gigabytes to keep every playback frame, so fewer frames are "
+                           "recorded. The physics is unaffected; only playback and frame-based gauges are coarser.");
+            }
         }
         if (f && rec) {
             const bool perMetre = rec->mode() == armor::GeometryMode::PlaneStrain;
@@ -918,6 +966,14 @@ void App::drawDetailsTab() {
             if (perMetre) ImGui::TextDisabled("(2D slice: per metre of depth)");
             ImGui::Separator();
             drawBodySizes(*f, *rec);
+            if (run_ && run_->done && !run_->fragmentLines.empty()) {
+                ImGui::Separator();
+                ImGui::TextUnformatted("Pieces at the end of the run:");
+                helpMarker("Connected pieces of each body (3+ particles; failed material is loose debris). In round "
+                           "(axisymmetric) runs a piece away from the axis is a ring, which in reality breaks up "
+                           "further, so counts are a lower bound.");
+                for (const std::string& l : run_->fragmentLines) ImGui::BulletText("%s", l.c_str());
+            }
         }
         if (!run_) ImGui::TextDisabled("Run a simulation to see results.");
     }
