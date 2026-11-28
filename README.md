@@ -1,7 +1,8 @@
 # MiataPhySim — 2D impact & armour physics simulator
 
-> **Work in progress.** Stages A–C are largely done; Stage D (scenario builder) is
-> under way. Expect changes and fixes.
+> **Work in progress — v0.5.0-alpha.** Stages A, B and D are done; C, E and F are mostly
+> done (failure, validation, ceramics, NERA, tank armour); Stage G (explosives) is next.
+> Expect changes and fixes. Windows builds: [Releases](https://github.com/miatson/miataphysim/releases).
 
 A learning project: a small **hydrocode** (the kind of program used to simulate
 armor penetration, explosions and hypervelocity impacts) written from scratch in
@@ -14,16 +15,27 @@ The solver itself has no dependencies.
 |---|---|---|
 | A | SPH core, elastic solids, plane strain + axisymmetric, adaptive time step, threads, record & replay UI | ✅ |
 | B | Mie-Grüneisen shock EOS, Johnson-Cook plasticity, Taylor bar validation, energy-compatible forces | ✅ |
-| C | Temperature, melting, damage, spall, fragmentation | 🔨 in progress |
+| C | Temperature, melting, damage, spall, fragmentation | ✅ mostly (rate-dependent spall open) |
 | D | Scenario builder: projectile/armor library (JSON, real data), probes, graphs, CSV | ✅ |
-| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | 🔨 in progress (long rods ✅, V50 tool ✅, plate perforation ✅ at fine spacing) |
-| F | Ceramics (JH-2), layered/spaced armor, obliquity & ricochet | 🔨 in progress (alumina, boron carbide, silicon carbide ✅) |
-| G | Explosives (JWL + programmed burn): HEAT jets, HESH | ⏳ |
+| E | Validation: Lanz-Odermatt long-rod penetration, V50 ballistic-limit tool | ✅ mostly (long rods within 0–5% in wide targets, Børvik plate within ~1%; ricochet check open) |
+| F | Ceramics (JH-2), layered/spaced armor, NERA, tank armour, obliquity & ricochet | ✅ mostly (ceramics, NERA rubber, 10 tank cross-sections, mounts, debris; ERA explosive needs G) |
+| G | Explosives (JWL + programmed burn): ERA, HEAT jets, HESH | ⏳ next |
 | H | Optional: performance, 3D | ⏳ |
 
 > **Metals yield, flow and heat up** (Johnson-Cook), shocks follow measured Hugoniots,
-> and **since Stage C (in progress) they fail**: Johnson-Cook ductile fracture, spall
-> under sustained tension, melting. Failed material can be pushed but not pulled.
+> and they **fail**: Johnson-Cook ductile fracture, spall under sustained tension,
+> melting. **Ceramics** crack and turn to rubble (JH-2), **rubber** makes NERA plates bulge
+> and break rods, and every material's data comes with its source.
+
+**Highlights**
+- **Modern tank rounds** (DM53, M829A3, 3BM60, 3BM59) and **ten tank armour
+  cross-sections** (turret cheeks and hull fronts of the T-90A, T-80U, M1A2 Abrams,
+  Leopard 2A6 and Challenger 2) with real slopes, Kontakt-5, NERA, ceramics and spacing,
+  from public estimates.
+- **Tank check:** an instant round-vs-tank verdict from Odermatt's perforation equation.
+- **Setup view:** drag and rotate the projectile and armour with the mouse before a run.
+- **Validated:** long-rod penetration (DM53 502 mm vs Lanz-Odermatt 502 mm), the Børvik
+  plate ballistic limit, the Taylor bar, Hugoniots, spall, and NERA against Fras 2021.
 
 ---
 
@@ -77,27 +89,44 @@ A loading screen, then two tabs on the left.
 
 **Simulate** (the beginner path, top to bottom):
 1. **What to simulate.** Choose *Ready-made* (classic experiments and scenario files)
-   or *Build your own*. The builder lets you pick a projectile and armour from the
-   [library](library/README.md), set the material of each piece, stack up to 6 armour
-   layers with gaps (spaced armour), set the speed and the angle, and save the setup
-   as a scenario file.
-2. **Run.** Press **Simulate**. The run happens in the background, frames appear live,
-   and the bar shows the time left.
-3. **Watch.** Play, pause, and drag the timeline (`Space`, `←`/`→`). **Add gauge**,
+   or *Build your own*.
+   - **Builder:** pick a projectile (including the tank rounds) and armour (including
+     the tank fronts and cross-sections) from the [library](library/README.md). Set the
+     material of each piece and stack up to 6 armour layers with gaps (spaced armour).
+     Set the speed and the angle, and save the setup as a scenario file.
+   - **Held by the tank** (per layer): the armour's edges far from the shot are held,
+     as if the vehicle continued there.
+2. **Set up.** Before a run the view shows the **setup**:
+   - Drag the projectile or any armour with the mouse; Q / E rotates the selected one.
+   - A dashed orange line shows where the projectile will fly, and a faint outline
+     shows where it started.
+   - Held bands are hatched. Warnings appear if the projectile overlaps something or a
+     target is too narrow.
+   - Ready-made round scenarios can slide along their axis. The panel's *Position*
+     section does the same with numbers.
+3. **Run.** Press **Simulate**. The run happens in the background, frames appear live,
+   and the bar shows the time left. **Back to setup** returns to the setup to adjust.
+4. **Watch.** Play, pause, and drag the timeline (`Space`, `←`/`→`). **Add gauge**,
    then click any particle: a graph of what the colours show (pressure, damage,
    temperature...) at that spot over the whole run appears in the **Gauges** window,
    read from the recorded frames, so no new simulation is needed. The gauge follows
    the material and is marked in the view. `Esc` cancels.
-4. **Colours show.** Pressure, stress, plastic strain, temperature, damage, speed and
+5. **Colours show.** Pressure, stress, plastic strain, temperature, damage, speed and
    more. Hover any particle to read all its values. Mouse wheel zooms, right-drag pans,
    `F` fits the view.
 
 Gauges (probes) are plotted live in the **Probes** window, bottom right, with
 **Save CSV**.
 
-**Details** (sorted, folded away): Results (energy, sizes), Theory & checks,
-Resolution & duration (automatic in the builder), Display, Solver settings
-(advanced), Materials (with sources), Controls, About.
+**Details** (sorted, folded away):
+- **Results:** energy (including energy absorbed by mounts), pieces and debris, sizes.
+- **Tank check:** the builder's round against every tank front, instantly, with a range
+  slider.
+- **Theory & checks:** formula predictions and warnings.
+- **Resolution & duration:** automatic in the builder.
+- **Display, Solver settings (advanced):** including flying debris and failure.
+- **Materials:** with sources.
+- **Controls, About.**
 
 Start-up options: `--builder` opens the builder, `--details` opens the Details tab.
 
@@ -118,9 +147,13 @@ sim/    the solver library "armor_sim"    no rendering, no UI
   ThreadPool.h    parallel loops; each particle written by one thread only
   Solver.h/cpp    the SPH equations and time stepping
   Recorder.h      frames for replay (lock-free hand-off to the UI thread)
-io/     scenario files (JSON, nlohmann/json) and probes (CSV) - "armor_io"
-app/    raylib + Dear ImGui user interface, presets, colour maps, probe graphs
+io/     scenario files (JSON, nlohmann/json), probes (CSV), the projectile/armour
+        library + builder, V50 tool, validation formulas - "armor_io"
+app/    raylib + Dear ImGui user interface, setup view, presets, colour maps, graphs
 scenarios/  example scenario files (JSON)
+library/    projectiles, armour, tank rounds and tank cross-sections (JSON)
+tools/      gen_tank_sections.py (builds the tank cross-sections), los.py (armour
+            amount along the shot line)
 tests/  doctest unit + validation tests
 ```
 
@@ -704,14 +737,17 @@ when a plate has fewer than about 40 particles across it.
   scale NERA works (Fras 2021 check), but a slab rod cannot yaw or shatter as a round rod
   does. Use the Tank check for verdicts.
 
-- Ceramics (alumina, boron carbide, silicon carbide) are checked for consistency, not
-  yet against a ceramic penetration experiment; ceramic armour results are qualitative.
+- Ceramics are checked for consistency, plus an equal-weight comparison: an alumina face
+  beats aluminium and roughly matches steel. They are not yet checked against a ceramic
+  penetration experiment, so ceramic results are approximate.
+- The explosive inside ERA (Kontakt-5) is not modelled yet; it is an empty gap until
+  Stage G. Tank armour make-up is secret, and all tank cross-sections are public
+  reconstructions and estimates.
 - Spall strengths are checked against published plate-impact ranges (Al 0.8–2.3,
   Ti-6Al-4V 3.3–4.9, tungsten alloy 1.7–2.6 GPa, copper ~1.3 GPa, steels ~1.6–3.5 GPa),
   but spall is a fixed threshold plus a minimum duration, not rate-dependent; real
   spall strength rises with loading rate.
-- Fragments are counted (`miataphysim --headless`), not yet shown in the app. A spall
-  scab can stay attached at a plate's rim, where edge release keeps the tension
+- A spall scab can stay attached at a plate's rim, where edge release keeps the tension
   low and ductile copper stretches instead of tearing.
 - Plastic impacts need fine spacing for converged numbers: the Taylor bar is
   ~17.2 mm at 0.254 mm spacing and 16.75 mm at 0.127 mm.
