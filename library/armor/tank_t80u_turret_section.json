@@ -1,0 +1,147 @@
+{
+ "name": "Tank cross-section: T-80U turret cheek",
+ "category": "armor",
+ "description": "Cast turret: Kontakt-5 in front (inert), cast steel walls and 'cellular' inserts - two 80 mm polymer-cell layers in alloy shells with 40 mm hollows (polymer stood in by aluminium). Inserts ~815 mm deep. Estimates vs long rods 630-860 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "material": "steel_rha",
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Kontakt-5 plate 1 (ERA, inert)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      190,
+      75.06
+     ],
+     [
+      0,
+      -34.64
+     ],
+     [
+      0,
+      -51.96
+     ],
+     [
+      190,
+      57.74
+     ]
+    ]
+   },
+   {
+    "name": "Kontakt-5 plate 2 (ERA, inert)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      190,
+      40.41
+     ],
+     [
+      0,
+      -69.28
+     ],
+     [
+      0,
+      -86.6
+     ],
+     [
+      190,
+      23.09
+     ]
+    ]
+   },
+   {
+    "name": "Cast outer wall 80 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      200,
+      -150.0
+     ],
+     [
+      280,
+      -150.0
+     ],
+     [
+      280,
+      150.0
+     ],
+     [
+      200,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Cell insert 1 (alloy shell; polymer cells as aluminium)",
+    "material": "aluminium_6061",
+    "points_mm": [
+     [
+      320,
+      -150.0
+     ],
+     [
+      400,
+      -150.0
+     ],
+     [
+      400,
+      150.0
+     ],
+     [
+      320,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Cell insert 2 (alloy shell; polymer cells as aluminium)",
+    "material": "aluminium_6061",
+    "points_mm": [
+     [
+      440,
+      -150.0
+     ],
+     [
+      520,
+      -150.0
+     ],
+     [
+      520,
+      150.0
+     ],
+     [
+      440,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Cast inner wall 300 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      560,
+      -150.0
+     ],
+     [
+      860,
+      -150.0
+     ],
+     [
+      860,
+      150.0
+     ],
+     [
+      560,
+      150.0
+     ]
+    ]
+   }
+  ]
+ },
+ "estimate_range_mm": [
+  630,
+  860
+ ]
+}

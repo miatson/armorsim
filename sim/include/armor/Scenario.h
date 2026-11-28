@@ -47,6 +47,14 @@ using Shape = std::variant<RectShape, DiscShape, PolygonShape>;
 
 bool contains(const Shape& shape, Vec2 p);
 
+struct ShapeBox {
+    Vec2 min, max;
+};
+ShapeBox shapeBounds(const Shape& shape);
+// The shape rotated by `angle` (rad, counter-clockwise) about `pivot`, then
+// moved by `offset`.
+Shape transformShape(const Shape& shape, Vec2 pivot, double angle, Vec2 offset);
+
 struct Part {
     std::string name;
     Shape shape;

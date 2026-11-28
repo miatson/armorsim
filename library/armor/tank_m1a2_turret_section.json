@@ -1,0 +1,239 @@
+{
+ "name": "Tank cross-section: M1A2 Abrams turret cheek",
+ "category": "armor",
+ "description": "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates tilted 60 deg (rubber not modelled; depleted-uranium layers of later versions not modelled) and a 120 mm back plate. Public estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "material": "steel_rha",
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Front plate 60 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      0,
+      -150.0
+     ],
+     [
+      60,
+      -150.0
+     ],
+     [
+      60,
+      150.0
+     ],
+     [
+      0,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 1 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      105.0,
+      -150.0
+     ],
+     [
+      60,
+      -124.02
+     ],
+     [
+      60,
+      -95.15
+     ],
+     [
+      155.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 2 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      245.0,
+      -150.0
+     ],
+     [
+      60,
+      -43.19
+     ],
+     [
+      60,
+      -14.32
+     ],
+     [
+      295.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 3 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      385.0,
+      -150.0
+     ],
+     [
+      60,
+      37.64
+     ],
+     [
+      60,
+      66.51
+     ],
+     [
+      435.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 4 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      525.0,
+      -150.0
+     ],
+     [
+      60,
+      118.47
+     ],
+     [
+      60,
+      147.34
+     ],
+     [
+      575.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 5 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      700.0,
+      -150.0
+     ],
+     [
+      665.0,
+      -150.0
+     ],
+     [
+      145.38,
+      150.0
+     ],
+     [
+      195.38,
+      150.0
+     ],
+     [
+      700,
+      -141.34
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 6 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      700,
+      -89.38
+     ],
+     [
+      285.38,
+      150.0
+     ],
+     [
+      335.38,
+      150.0
+     ],
+     [
+      700,
+      -60.51
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 7 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      700,
+      -8.55
+     ],
+     [
+      425.38,
+      150.0
+     ],
+     [
+      475.38,
+      150.0
+     ],
+     [
+      700,
+      20.32
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 8 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      700,
+      72.28
+     ],
+     [
+      565.38,
+      150.0
+     ],
+     [
+      615.38,
+      150.0
+     ],
+     [
+      700,
+      101.15
+     ]
+    ]
+   },
+   {
+    "name": "Back plate 120 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      700,
+      -150.0
+     ],
+     [
+      820,
+      -150.0
+     ],
+     [
+      820,
+      150.0
+     ],
+     [
+      700,
+      150.0
+     ]
+    ]
+   }
+  ]
+ },
+ "estimate_range_mm": [
+  700,
+  900
+ ]
+}

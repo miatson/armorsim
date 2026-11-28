@@ -34,7 +34,17 @@
 namespace armor {
 
 enum class ItemCategory { Projectile, Armor };
-enum class ItemShape { Sphere, Rod, Plate };
+enum class ItemShape { Sphere, Rod, Plate, Assembly };
+
+// One piece of an armour ASSEMBLY: a polygon (2D cross-section, metres; x
+// along the shot line with the front at x = 0, y across) with its own
+// material. Pieces with the same group (>= 0) are bonded (welded/glued).
+struct AssemblyPart {
+    std::string name;
+    int material = 0;
+    int group = -1;
+    std::vector<Vec2> points;
+};
 
 struct LibraryItem {
     std::string name;
@@ -56,6 +66,9 @@ struct LibraryItem {
     // protection against long rods, in mm of armour steel (RHA equivalent).
     double estimateLow = 0.0, estimateHigh = 0.0; // m; 0 = not a tank estimate
     bool isTankEstimate() const { return estimateHigh > 0.0; }
+    // Assembly: a cross-section made of several pieces (always simulated as a
+    // 2D slice). thickness/width are its bounding box.
+    std::vector<AssemblyPart> parts;
 };
 
 // Volume of a projectile item (m^3), counting a rod's conical nose.
@@ -88,6 +101,14 @@ struct ArmorLayer {
     bool bondedToNext = false;
 };
 
+// Where the user moved something in the setup view: an offset and a rotation
+// about the item's own centre. Index 0 = projectile, k + 1 = layer k.
+struct Placement {
+    double dx = 0.0, dy = 0.0; // m
+    double angle = 0.0;        // rad, counter-clockwise
+    bool moved() const { return dx != 0.0 || dy != 0.0 || angle != 0.0; }
+};
+
 struct BuildSpec {
     LibraryItem projectile;
     int projectileMaterial = 0;
@@ -96,7 +117,12 @@ struct BuildSpec {
     double obliquity = 0.0;        // rad; 0 = straight on (axisymmetric), else plane strain
     double spacing = 0.5e-3;       // m
     double endTime = 50e-6;        // s
+    std::vector<Placement> placements; // optional, see Placement
 };
+
+// True when the setup cannot be simulated as round bodies on an axis (angled
+// plates, moved/rotated items, or an assembly): it becomes a 2D slice.
+bool needsSlice(const BuildSpec& spec);
 
 // Sensible spacing and duration for a spec (see Library.cpp for the rules).
 double suggestSpacing(const BuildSpec& spec);

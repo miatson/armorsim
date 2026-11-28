@@ -89,6 +89,14 @@ private:
     void drawProbesPanel();
     void drawClickGauges();
     void drawTankCheck();
+    // Setup view (Build your own, before Simulate): the parts drawn as shapes;
+    // drag to move, Q/E to rotate.
+    bool inSetup() const;
+    void rebuildPreview();
+    void handleSetupInput();
+    void drawSetup();
+    void drawPlacementControls();
+    std::string itemName(int item) const;
     void drawSimulateTab();
     void drawDetailsTab();
     void drawBuilder();
@@ -127,6 +135,14 @@ private:
     float projSpeed_ = 500.0f;
     std::vector<BuilderLayer> layers_;
     float obliquityDeg_ = 0.0f;
+    std::vector<armor::Placement> placements_; // [0] projectile, [k + 1] layer k
+    bool editSetup_ = true;     // show the setup view instead of the last run
+    armor::ScenarioFile preview_;
+    std::vector<int> previewItem_; // per preview part: 0 = projectile, k + 1 = layer k
+    std::string previewError_;
+    std::string previewSignature_; // refit the view when the layout changes
+    int hoverItem_ = -1, dragItem_ = -1, selectedItem_ = 0;
+    bool previewOverlap_ = false;
     float tankRangeKm_ = 2.0f; // Details > Tank check
     float spacingMm_ = 0.5f;
     float endTimeUs_ = 50.0f;

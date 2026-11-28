@@ -530,3 +530,19 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   Sim misses about half of the experimental L/D penalty (tanh term).
   Recorded as a known limitation; app warns for Lw/D > 15. (A 0.25 mm L/D-30
   run hit the 5 min cap - 86k particles, too big; not repeated.)
+
+## 2026-11-28 — session 20: setup view (free placement) + tank cross-sections
+
+- Setup view (Build your own, before Simulate): parts drawn as shapes
+  (ear-clipped polygons), drag to move, Q/E / Ctrl+wheel rotate (Shift 1 deg),
+  R reset, flight arrow, overlap warning; panel "Position" with Move/Rotate/
+  Reset; "Back to setup" / "Show last result". BuildSpec.placements (index 0
+  projectile, k+1 layer k), applied about each item's centre; projectile
+  velocity rotates with it; any move -> plane strain (needsSlice()).
+- transformShape/shapeBounds in Scenario; ItemShape::Assembly (polygons with
+  own materials, optional bond groups), front normalised to x = 0.
+- tools/gen_tank_sections.py -> 5 turret sections (T-90A, T-80U, M1A2,
+  Leopard 2A6, Challenger 2; vertical slices, 300 mm high). Rubber/explosive
+  = gaps (materials step next: rubber for NERA, explosive for ERA).
+- Tank check lists only the steel stand-in blocks (sections are the same tanks).
+- Fast tests pass (1334 assertions). Setup view checked by a window capture.

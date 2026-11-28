@@ -79,6 +79,29 @@ bool contains(const Shape& shape, Vec2 p) {
     return lengthSquared(p - d.center) <= d.radius * d.radius;
 }
 
+ShapeBox shapeBounds(const Shape& shape) {
+    const Box b = boundsOf(shape);
+    return {b.min, b.max};
+}
+
+Shape transformShape(const Shape& shape, Vec2 pivot, double angle, Vec2 offset) {
+    auto move = [&](Vec2 p) { return pivot + rotate(p - pivot, angle) + offset; };
+    if (const auto* r = std::get_if<RectShape>(&shape)) {
+        RectShape out = *r;
+        out.center = move(r->center);
+        out.angle += angle;
+        return out;
+    }
+    if (const auto* poly = std::get_if<PolygonShape>(&shape)) {
+        PolygonShape out;
+        for (const Vec2& q : poly->points) out.points.push_back(move(q));
+        return out;
+    }
+    DiscShape out = std::get<DiscShape>(shape);
+    out.center = move(out.center);
+    return out;
+}
+
 Particles buildParticles(const Scenario& scenario, std::span<const Material> materials) {
     const double dx = scenario.dx;
     const bool axi = scenario.mode == GeometryMode::Axisymmetric;

@@ -37,6 +37,7 @@ the source tree. Unknown keys are an error, so typos can't slip through.
 | `shape` | Projectiles: `sphere` (`diameter_mm`) or `rod` (`length_mm`, `diameter_mm`, flat nose). Armour: `plate` (`thickness_mm`, `width_mm`) |
 | `speed_mps` | Suggested speed (projectiles) |
 | `nose_length_mm` | Rods only, optional: a pointed conical nose, part of `length_mm` |
+| `shape.type: "assembly"` | Armour only: `"parts": [{"name", "material", "points_mm": [[x, y], ...], "group"?}]`, a 2D cross-section (x along the shot, y up; pieces with the same `group` are bonded). Always simulated as a 2D slice |
 | `estimate_range_mm` | Armour only, optional: `[low, high]`. Marks a tank-front stand-in (published RHA-equivalent estimates); used by Details › Tank check |
 
 **Tank rounds and tank fronts.** `apfsds_*.json` are modern tank rounds (DM53, M829A3,

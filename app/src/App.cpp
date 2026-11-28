@@ -1,6 +1,7 @@
 #include "App.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <chrono>
 #include <cmath>
@@ -70,6 +71,7 @@ App::App(const StartOptions& options) : materials_(armor::defaultMaterials()) {
         layers_.push_back({});
         resetBuilderLayer(0, findItem(lib.armor, "rha_10mm.json"));
     }
+    placements_.assign(layers_.size() + 1, {});
 }
 
 // -----------------------------------------------------------------------------
@@ -97,12 +99,14 @@ armor::BuildSpec App::builderSpec() const {
         armor::ArmorLayer layer;
         layer.item = lib.armor[static_cast<std::size_t>(std::clamp(l.item, 0, static_cast<int>(lib.armor.size()) - 1))];
         layer.material = l.material;
-        layer.thickness = l.thicknessMm * 1e-3;
+        layer.thickness = layer.item.shape == armor::ItemShape::Assembly ? layer.item.thickness : l.thicknessMm * 1e-3;
         layer.gapBefore = l.gapMm * 1e-3;
         layer.bondedToNext = l.glued;
         spec.layers.push_back(layer);
     }
     spec.obliquity = obliquityDeg_ * 3.14159265358979323846 / 180.0;
+    spec.placements = placements_;
+    spec.placements.resize(spec.layers.size() + 1);
     if (autoResolution_) {
         spec.spacing = armor::suggestSpacing(spec);
         spec.endTime = armor::suggestEndTime(spec);
@@ -197,9 +201,9 @@ std::string App::builderSummary() const {
     if (ceramic)
         t += "\nCeramic armour: results are approximate. At equal weight a ceramic face now beats aluminium and "
              "roughly matches steel; real ceramic armour should do somewhat better than steel (see README).";
-    if (spec.obliquity != 0.0)
-        t += "\nAngled shot: simulated as a 2D slice (plane strain) - the projectile is really an infinitely "
-             "wide slab, so treat depths as qualitative.";
+    if (armor::needsSlice(spec))
+        t += "\n2D slice: angled, moved or rotated items and tank cross-sections are simulated as a slice (plane "
+             "strain) - the projectile is really an infinitely wide slab, so treat depths as qualitative.";
     return t;
 }
 
@@ -223,6 +227,7 @@ void App::startSimulation() {
         }
         runName_ = "custom";
         runTheory_ = builderSummary();
+        editSetup_ = false;
     } else {
         const Preset& preset = presets()[static_cast<std::size_t>(presetIndex_)];
         scenario = preset.build(params_);
@@ -476,14 +481,19 @@ void App::frame() {
         runAtStart_ = false;
         startSimulation();
     }
-    handleInput();
-    updateRanges();
-    updatePlayback();
-    if (!viewFitted_ && currentFrame()) fitView();
-
-    drawParticles();
-    drawOverlay();
-    drawLegend();
+    if (inSetup()) {
+        rebuildPreview();
+        handleSetupInput();
+        drawSetup();
+    } else {
+        handleInput();
+        updateRanges();
+        updatePlayback();
+        if (!viewFitted_ && currentFrame()) fitView();
+        drawParticles();
+        drawOverlay();
+        drawLegend();
+    }
 
     rlImGuiBegin();
     drawPanel();
@@ -809,6 +819,11 @@ void App::drawSimulateTab() {
     } else {
         ImGui::TextDisabled("Press Simulate. The result plays back as it is computed.");
     }
+    if (sourceMode_ == 1 && run_ && !editSetup_) {
+        if (ImGui::Button("Back to setup (move things)", {-1.0f, 0.0f})) editSetup_ = true;
+    } else if (sourceMode_ == 1 && run_ && editSetup_) {
+        if (ImGui::Button("Show last result", {-1.0f, 0.0f})) editSetup_ = false;
+    }
     if (!builderStatus_.empty() && sourceMode_ == 1) ImGui::TextColored({1, 0.75f, 0.4f, 1}, "%s", builderStatus_.c_str());
 
     // ---------------- 3. Watch ----------------
@@ -910,8 +925,20 @@ void App::drawBuilder() {
             }
             ImGui::EndCombo();
         }
-        materialCombo("Material", l.material, materials_);
-        ImGui::SliderFloat("Thickness (mm)", &l.thicknessMm, 0.5f, 1000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+        const armor::LibraryItem& li = lib.armor[static_cast<std::size_t>(l.item)];
+        if (li.shape == armor::ItemShape::Assembly) {
+            ImGui::TextDisabled("Shape and materials from the file: %zu pieces, %.0f mm deep.", li.parts.size(),
+                                li.thickness * 1e3);
+            if (ImGui::IsItemHovered()) {
+                std::string list;
+                for (const armor::AssemblyPart& ap : li.parts)
+                    list += ap.name + "  -  " + materials_[static_cast<std::size_t>(ap.material)].name + "\n";
+                ImGui::SetItemTooltip("%s", list.c_str());
+            }
+        } else {
+            materialCombo("Material", l.material, materials_);
+            ImGui::SliderFloat("Thickness (mm)", &l.thicknessMm, 0.5f, 1000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+        }
         if (k > 0) {
             ImGui::SliderFloat("Gap before (mm)", &l.gapMm, 0.0f, 100.0f, "%.1f");
             helpMarker("Empty space in front of this layer: spaced armour.");
@@ -925,9 +952,15 @@ void App::drawBuilder() {
         ImGui::EndChild();
         ImGui::PopID();
     }
-    if (removeAt >= 0) layers_.erase(layers_.begin() + removeAt);
+    placements_.resize(layers_.size() + 1);
+    if (removeAt >= 0) {
+        layers_.erase(layers_.begin() + removeAt);
+        placements_.erase(placements_.begin() + removeAt + 1);
+        selectedItem_ = 0;
+    }
     if (layers_.size() < 6 && ImGui::Button("+ Add layer", {-1.0f, 0.0f})) {
         layers_.push_back({});
+        placements_.push_back({});
         resetBuilderLayer(layers_.size() - 1, layers_.size() > 1 ? layers_[layers_.size() - 2].item : 0);
         layers_.back().gapMm = 10.0f;
     }
@@ -937,6 +970,7 @@ void App::drawBuilder() {
     ImGui::SliderFloat("Angle (deg)", &obliquityDeg_, 0.0f, 75.0f, obliquityDeg_ == 0.0f ? "straight on" : "%.0f");
     helpMarker("0 = straight on: simulated exactly as real round bodies (axisymmetric). Any angle uses a 2D slice "
                "instead (plane strain): good for seeing ricochet and deflection, but depths are only qualitative.");
+    drawPlacementControls();
 
     if (ImGui::Button("Save as scenario file")) {
         try {
@@ -1151,7 +1185,7 @@ void App::drawTankCheck() {
         ImGui::TableSetupColumn("Verdict");
         ImGui::TableHeadersRow();
         for (const armor::LibraryItem& a : lib.armor) {
-            if (!a.isTankEstimate()) continue;
+            if (!a.isTankEstimate() || a.shape == armor::ItemShape::Assembly) continue; // sections: same tanks
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted(a.name.c_str());
@@ -1172,6 +1206,262 @@ void App::drawTankCheck() {
                        "To watch one, pick a tank front as the armour layer in Build your own (big run: minutes). "
                        "A simulated block is thick, so it stops a rod sooner than this plate figure.");
     ImGui::PopStyleColor();
+}
+
+// -----------------------------------------------------------------------------
+// Setup view: what will be simulated, drawn as shapes, before pressing
+// Simulate. Drag a part to move it, Q/E (or Ctrl + wheel) to rotate it.
+// -----------------------------------------------------------------------------
+namespace {
+// Ear clipping: a simple polygon (either winding) into triangles.
+std::vector<std::array<armor::Vec2, 3>> triangulate(std::vector<armor::Vec2> p) {
+    std::vector<std::array<armor::Vec2, 3>> out;
+    const std::size_t n = p.size();
+    if (n < 3) return out;
+    double area = 0.0;
+    for (std::size_t i = 0; i < n; ++i) area += p[i].x * p[(i + 1) % n].y - p[(i + 1) % n].x * p[i].y;
+    if (area < 0.0) std::reverse(p.begin(), p.end());
+    auto cross = [](armor::Vec2 a, armor::Vec2 b, armor::Vec2 c) { return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); };
+    std::vector<std::size_t> idx(n);
+    for (std::size_t i = 0; i < n; ++i) idx[i] = i;
+    int guard = 0;
+    while (idx.size() > 3 && guard++ < 10000) {
+        bool found = false;
+        for (std::size_t k = 0; k < idx.size(); ++k) {
+            const armor::Vec2 a = p[idx[(k + idx.size() - 1) % idx.size()]], b = p[idx[k]], c = p[idx[(k + 1) % idx.size()]];
+            if (cross(a, b, c) <= 0.0) continue; // reflex corner
+            bool inside = false;
+            for (std::size_t j : idx) {
+                const armor::Vec2 q = p[j];
+                if (j == idx[k] || (q.x == a.x && q.y == a.y) || (q.x == c.x && q.y == c.y)) continue;
+                if (cross(a, b, q) >= 0 && cross(b, c, q) >= 0 && cross(c, a, q) >= 0) { inside = true; break; }
+            }
+            if (inside) continue;
+            out.push_back({a, b, c});
+            idx.erase(idx.begin() + static_cast<std::ptrdiff_t>(k));
+            found = true;
+            break;
+        }
+        if (!found) break;
+    }
+    if (idx.size() == 3) out.push_back({p[idx[0]], p[idx[1]], p[idx[2]]});
+    return out;
+}
+
+std::vector<armor::Vec2> outlineOf(const armor::Shape& shape) {
+    std::vector<armor::Vec2> pts;
+    if (const auto* r = std::get_if<armor::RectShape>(&shape)) {
+        for (auto [sx, sy] : {std::pair{-1, -1}, {1, -1}, {1, 1}, {-1, 1}})
+            pts.push_back(r->center + armor::rotate({sx * r->halfSize.x, sy * r->halfSize.y}, r->angle));
+    } else if (const auto* poly = std::get_if<armor::PolygonShape>(&shape)) {
+        pts = poly->points;
+    } else {
+        const auto& d = std::get<armor::DiscShape>(shape);
+        for (int k = 0; k < 48; ++k) {
+            const double a = 2.0 * 3.14159265358979323846 * k / 48.0;
+            pts.push_back(d.center + armor::Vec2{d.radius * std::cos(a), d.radius * std::sin(a)});
+        }
+    }
+    return pts;
+}
+} // namespace
+
+bool App::inSetup() const { return sourceMode_ == 1 && (!run_ || editSetup_); }
+
+std::string App::itemName(int item) const {
+    const armor::BuildSpec spec = builderSpec();
+    if (item == 0) return "Projectile: " + spec.projectile.name;
+    if (item > 0 && static_cast<std::size_t>(item) <= spec.layers.size())
+        return "Layer " + std::to_string(item) + ": " + spec.layers[static_cast<std::size_t>(item - 1)].item.name;
+    return "";
+}
+
+void App::rebuildPreview() {
+    const armor::BuildSpec spec = builderSpec();
+    previewError_.clear();
+    try {
+        preview_ = armor::buildScenario(spec, materials_);
+    } catch (const armor::ScenarioFileError& e) {
+        previewError_ = e.what();
+        preview_ = {};
+        return;
+    }
+    previewItem_.assign(preview_.scenario.parts.size(), 0);
+    std::size_t at = 1;
+    for (std::size_t k = 0; k < spec.layers.size(); ++k) {
+        const std::size_t n = spec.layers[k].item.shape == armor::ItemShape::Assembly ? spec.layers[k].item.parts.size() : 1;
+        for (std::size_t j = 0; j < n && at < previewItem_.size(); ++j) previewItem_[at++] = static_cast<int>(k + 1);
+    }
+    // Projectile overlapping armour? (sample its bounding box)
+    previewOverlap_ = false;
+    const auto& parts = preview_.scenario.parts;
+    if (!parts.empty()) {
+        const armor::ShapeBox b = armor::shapeBounds(parts[0].shape);
+        for (int i = 0; i <= 16 && !previewOverlap_; ++i)
+            for (int j = 0; j <= 16 && !previewOverlap_; ++j) {
+                const armor::Vec2 q{b.min.x + (b.max.x - b.min.x) * i / 16.0, b.min.y + (b.max.y - b.min.y) * j / 16.0};
+                if (!armor::contains(parts[0].shape, q)) continue;
+                for (std::size_t k = 1; k < parts.size(); ++k)
+                    if (armor::contains(parts[k].shape, q)) { previewOverlap_ = true; break; }
+            }
+    }
+    // Refit the view when the layout (not the placement) changes.
+    std::string sig = spec.projectile.name;
+    for (const armor::ArmorLayer& l : spec.layers) sig += "|" + l.item.name + std::to_string(l.thickness) + std::to_string(l.gapBefore);
+    sig += std::to_string(spec.obliquity) + (armor::needsSlice(spec) ? "s" : "a");
+    if (sig != previewSignature_) {
+        previewSignature_ = sig;
+        armor::Vec2 lo{1e300, 1e300}, hi{-1e300, -1e300};
+        for (const armor::Part& p : parts) {
+            const armor::ShapeBox pb = armor::shapeBounds(p.shape);
+            lo = {std::min(lo.x, pb.min.x), std::min(lo.y, pb.min.y)};
+            hi = {std::max(hi.x, pb.max.x), std::max(hi.y, pb.max.y)};
+        }
+        if (preview_.scenario.mode == armor::GeometryMode::Axisymmetric) lo.y = -hi.y;
+        if (!parts.empty()) view_.fit(lo.x, lo.y, hi.x, hi.y, viewArea());
+    }
+}
+
+void App::handleSetupInput() {
+    const ImGuiIO& io = ImGui::GetIO();
+    const Vector2 mouse = GetMousePosition();
+    const auto& parts = preview_.scenario.parts;
+    const bool axi = preview_.scenario.mode == armor::GeometryMode::Axisymmetric;
+    hoverItem_ = -1;
+    const bool overView = !io.WantCaptureMouse && CheckCollisionPointRec(mouse, viewArea());
+    if (overView) {
+        armor::Vec2 w{view_.toWorldX(mouse.x), view_.toWorldY(mouse.y)};
+        if (axi) w.y = std::abs(w.y);
+        for (std::size_t i = 0; i < parts.size(); ++i) // projectile (part 0) first: it sits on top
+            if (armor::contains(parts[i].shape, w)) { hoverItem_ = previewItem_[i]; break; }
+        const float wheel = GetMouseWheelMove();
+        const bool ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+        if (wheel != 0.0f && ctrl && selectedItem_ >= 0 && static_cast<std::size_t>(selectedItem_) < placements_.size())
+            placements_[static_cast<std::size_t>(selectedItem_)].angle += wheel * 5.0 * 3.14159265358979323846 / 180.0;
+        else if (wheel != 0.0f) view_.zoomAt(mouse, std::pow(1.15, wheel));
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) || IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+            const Vector2 d = GetMouseDelta();
+            view_.origin.x += d.x;
+            view_.origin.y += d.y;
+        }
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            dragItem_ = hoverItem_;
+            if (hoverItem_ >= 0) selectedItem_ = hoverItem_;
+        }
+    }
+    if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) dragItem_ = -1;
+    if (dragItem_ >= 0 && static_cast<std::size_t>(dragItem_) < placements_.size()) {
+        const Vector2 d = GetMouseDelta();
+        placements_[static_cast<std::size_t>(dragItem_)].dx += d.x / view_.pixelsPerMetre;
+        placements_[static_cast<std::size_t>(dragItem_)].dy -= d.y / view_.pixelsPerMetre;
+    }
+    if (!io.WantCaptureKeyboard && selectedItem_ >= 0 && static_cast<std::size_t>(selectedItem_) < placements_.size()) {
+        armor::Placement& pl = placements_[static_cast<std::size_t>(selectedItem_)];
+        const double step = (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? 1.0 : 5.0) * 3.14159265358979323846 / 180.0;
+        if (IsKeyPressed(KEY_Q) || IsKeyPressedRepeat(KEY_Q)) pl.angle += step;
+        if (IsKeyPressed(KEY_E) || IsKeyPressedRepeat(KEY_E)) pl.angle -= step;
+        if (IsKeyPressed(KEY_R)) pl = {};
+    }
+    if (!io.WantCaptureKeyboard && IsKeyPressed(KEY_F)) previewSignature_.clear(); // refit next frame
+}
+
+void App::drawSetup() {
+    const Rectangle area = viewArea();
+    const auto& parts = preview_.scenario.parts;
+    const bool axi = preview_.scenario.mode == armor::GeometryMode::Axisymmetric;
+    BeginScissorMode(static_cast<int>(area.x), 0, static_cast<int>(area.width), static_cast<int>(area.height));
+    auto drawPoly = [&](const std::vector<armor::Vec2>& pts, Color fill, Color line, float width, bool mirrorY) {
+        auto scr = [&](armor::Vec2 v) { return view_.toScreen(v.x, mirrorY ? -v.y : v.y); };
+        for (const auto& t : triangulate(pts)) {
+            const Vector2 a = scr(t[0]), b = scr(t[1]), c = scr(t[2]);
+            DrawTriangle(a, b, c, fill); // one of the two windings is culled
+            DrawTriangle(a, c, b, fill);
+        }
+        for (std::size_t k = 0; k < pts.size(); ++k) DrawLineEx(scr(pts[k]), scr(pts[(k + 1) % pts.size()]), width, line);
+    };
+    // Draw armour first, the projectile last (on top).
+    for (std::size_t n = 0; n < parts.size(); ++n) {
+        const std::size_t i = (n + 1) % parts.size();
+        const int item = previewItem_[i];
+        Color fill = colormap::category(parts[i].material);
+        fill.a = 170;
+        const bool hot = item == hoverItem_ || item == dragItem_;
+        const bool sel = item == selectedItem_;
+        const Color line = hot ? YELLOW : sel ? Color{90, 255, 140, 255} : Fade(WHITE, 0.7f);
+        const auto pts = outlineOf(parts[i].shape);
+        drawPoly(pts, fill, line, hot || sel ? 2.5f : 1.2f, false);
+        if (axi) {
+            Color dim = fill;
+            dim.a = 90;
+            drawPoly(pts, dim, Fade(line, 0.4f), 1.0f, true);
+        }
+    }
+    // Flight direction of the projectile.
+    if (!parts.empty()) {
+        const armor::ShapeBox b = armor::shapeBounds(parts[0].shape);
+        const armor::Vec2 c = (b.min + b.max) * 0.5;
+        const armor::Vec2 v = parts[0].velocity;
+        const double sp = std::sqrt(v.x * v.x + v.y * v.y);
+        if (sp > 0) {
+            const armor::Vec2 dir = v * (1.0 / sp);
+            const double reach = 0.5 * std::max(b.max.x - b.min.x, b.max.y - b.min.y) + 60.0 / view_.pixelsPerMetre;
+            const Vector2 p0 = view_.toScreen(c.x, c.y), p1 = view_.toScreen(c.x + dir.x * reach, c.y + dir.y * reach);
+            DrawLineEx(p0, p1, 3.0f, ORANGE);
+            const armor::Vec2 back = dir * (-14.0 / view_.pixelsPerMetre), side{-dir.y * 8.0 / view_.pixelsPerMetre, dir.x * 8.0 / view_.pixelsPerMetre};
+            const armor::Vec2 tip{c.x + dir.x * reach, c.y + dir.y * reach};
+            DrawTriangle(p1, view_.toScreen(tip.x + back.x + side.x, tip.y + back.y + side.y),
+                         view_.toScreen(tip.x + back.x - side.x, tip.y + back.y - side.y), ORANGE);
+            DrawTriangle(p1, view_.toScreen(tip.x + back.x - side.x, tip.y + back.y - side.y),
+                         view_.toScreen(tip.x + back.x + side.x, tip.y + back.y + side.y), ORANGE);
+        }
+    }
+    if (axi) {
+        const float y = view_.toScreen(0, 0).y;
+        for (float x = area.x; x < area.x + area.width; x += 16.0f) DrawLineEx({x, y}, {x + 8.0f, y}, 1.0f, Fade(WHITE, 0.4f));
+    }
+    EndScissorMode();
+    const int x0 = static_cast<int>(area.x) + 20;
+    DrawText("SETUP", x0, 16, 22, WHITE);
+    DrawText("Drag a part to move it.  Q / E (or Ctrl + wheel): rotate the selected part (Shift: 1 deg).  R: reset it.",
+             x0, 46, 16, LIGHTGRAY);
+    DrawText("Wheel: zoom   Right-drag: pan   F: fit.   Then press Simulate.", x0, 66, 16, LIGHTGRAY);
+    if (hoverItem_ >= 0) DrawText(itemName(hoverItem_).c_str(), x0, 92, 18, YELLOW);
+    int y = static_cast<int>(area.height) - 70;
+    if (!previewError_.empty()) DrawText(previewError_.c_str(), x0, y, 18, Color{255, 120, 120, 255});
+    if (previewOverlap_) DrawText("The projectile overlaps the armour - drag it clear before simulating.", x0, y, 18,
+                                  Color{255, 120, 120, 255});
+    y += 26;
+    DrawText(axi ? "Straight on: simulated as round bodies (axisymmetric). Moving or rotating anything switches to a 2D slice."
+                 : "2D slice (plane strain): free positions and angles; depths are qualitative.",
+             x0, y, 16, Fade(WHITE, 0.7f));
+}
+
+void App::drawPlacementControls() {
+    ImGui::Spacing();
+    ImGui::TextUnformatted("Position (drag in the view)");
+    helpMarker("Before pressing Simulate the view shows the setup. Drag the projectile or any armour layer to move "
+               "it; Q / E rotate the selected one (the projectile flies the way it points). Anything moved or "
+               "rotated makes the run a 2D slice.");
+    if (placements_.empty()) return;
+    selectedItem_ = std::clamp(selectedItem_, 0, static_cast<int>(placements_.size()) - 1);
+    ImGui::SetNextItemWidth(-1.0f);
+    if (ImGui::BeginCombo("##selitem", itemName(selectedItem_).c_str())) {
+        for (int k = 0; k < static_cast<int>(placements_.size()); ++k)
+            if (ImGui::Selectable(itemName(k).c_str(), k == selectedItem_)) selectedItem_ = k;
+        ImGui::EndCombo();
+    }
+    armor::Placement& pl = placements_[static_cast<std::size_t>(selectedItem_)];
+    float xy[2] = {static_cast<float>(pl.dx * 1e3), static_cast<float>(pl.dy * 1e3)};
+    if (ImGui::DragFloat2("Move (mm)", xy, 0.5f, -2000.0f, 2000.0f, "%.1f")) {
+        pl.dx = xy[0] * 1e-3;
+        pl.dy = xy[1] * 1e-3;
+    }
+    float deg = static_cast<float>(pl.angle * 180.0 / 3.14159265358979323846);
+    if (ImGui::SliderFloat("Rotate (deg)", &deg, -180.0f, 180.0f, "%.0f")) pl.angle = deg * 3.14159265358979323846 / 180.0;
+    if (ImGui::Button("Reset this")) pl = {};
+    ImGui::SameLine();
+    if (ImGui::Button("Reset all")) for (auto& p : placements_) p = {};
+    if (sourceMode_ == 1 && run_ && !editSetup_) ImGui::TextDisabled("Press 'Back to setup' to see and drag the parts.");
 }
 
 void App::drawBodySizes(const armor::Frame& f, const armor::Recording& rec) const {

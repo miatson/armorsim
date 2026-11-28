@@ -1,0 +1,331 @@
+{
+ "name": "Tank cross-section: T-90A turret cheek",
+ "category": "armor",
+ "description": "Welded turret: Kontakt-5 explosive reactive armour in front (two 15 mm plates at 60 deg; explosive not modelled), a 65 mm outer wall, a ~500 mm cavity of 'reflecting sheet' packets (steel-rubber-steel, tilted 55 deg) and a 150 mm inner wall. Estimates vs long rods ~780-830 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "material": "steel_rha",
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Kontakt-5 plate 1 (ERA, inert)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      190,
+      75.06
+     ],
+     [
+      0,
+      -34.64
+     ],
+     [
+      0,
+      -51.96
+     ],
+     [
+      190,
+      57.74
+     ]
+    ]
+   },
+   {
+    "name": "Kontakt-5 plate 2 (ERA, inert)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      190,
+      40.41
+     ],
+     [
+      0,
+      -69.28
+     ],
+     [
+      0,
+      -86.6
+     ],
+     [
+      190,
+      23.09
+     ]
+    ]
+   },
+   {
+    "name": "Outer wall 65 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      200,
+      -150.0
+     ],
+     [
+      265,
+      -150.0
+     ],
+     [
+      265,
+      150.0
+     ],
+     [
+      200,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 1 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      289.41,
+      -150.0
+     ],
+     [
+      265,
+      -132.91
+     ],
+     [
+      265,
+      -103.61
+     ],
+     [
+      331.25,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 2 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      380.07,
+      -150.0
+     ],
+     [
+      265,
+      -69.43
+     ],
+     [
+      265,
+      -40.13
+     ],
+     [
+      421.91,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 3 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      470.73,
+      -150.0
+     ],
+     [
+      265,
+      -5.95
+     ],
+     [
+      265,
+      23.35
+     ],
+     [
+      512.57,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 4 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      561.39,
+      -150.0
+     ],
+     [
+      265,
+      57.53
+     ],
+     [
+      265,
+      86.83
+     ],
+     [
+      603.23,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 5 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      652.05,
+      -150.0
+     ],
+     [
+      265,
+      121.01
+     ],
+     [
+      265.0,
+      150.0
+     ],
+     [
+      265.44,
+      150.0
+     ],
+     [
+      693.89,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 6 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      765.0,
+      -150.0
+     ],
+     [
+      742.7,
+      -150.0
+     ],
+     [
+      314.26,
+      150.0
+     ],
+     [
+      356.1,
+      150.0
+     ],
+     [
+      765,
+      -136.31
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 7 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      765,
+      -102.13
+     ],
+     [
+      404.92,
+      150.0
+     ],
+     [
+      446.76,
+      150.0
+     ],
+     [
+      765,
+      -72.83
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 8 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      765,
+      -38.65
+     ],
+     [
+      495.58,
+      150.0
+     ],
+     [
+      537.42,
+      150.0
+     ],
+     [
+      765,
+      -9.35
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 9 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      765,
+      24.83
+     ],
+     [
+      586.24,
+      150.0
+     ],
+     [
+      628.08,
+      150.0
+     ],
+     [
+      765,
+      54.13
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 10 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      765,
+      88.31
+     ],
+     [
+      676.9,
+      150.0
+     ],
+     [
+      718.74,
+      150.0
+     ],
+     [
+      765,
+      117.61
+     ]
+    ]
+   },
+   {
+    "name": "Inner wall 150 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      765,
+      -150.0
+     ],
+     [
+      915,
+      -150.0
+     ],
+     [
+      915,
+      150.0
+     ],
+     [
+      765,
+      150.0
+     ]
+    ]
+   }
+  ]
+ },
+ "estimate_range_mm": [
+  700,
+  850
+ ]
+}

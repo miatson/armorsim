@@ -114,13 +114,49 @@ LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> 
         item.shape = ItemShape::Plate;
         item.thickness = rd.positive(rd.need(s, "$.shape", "thickness_mm"), "$.shape.thickness_mm") * kMm;
         item.width = rd.positive(rd.need(s, "$.shape", "width_mm"), "$.shape.width_mm") * kMm;
+    } else if (type == "assembly") {
+        rd.onlyKeys(s, "$.shape", {"type", "parts"});
+        item.shape = ItemShape::Assembly;
+        const json& parts = rd.need(s, "$.shape", "parts");
+        if (!parts.is_array() || parts.empty()) rd.fail("$.shape.parts", "expected a list of pieces");
+        double x0 = 1e300, x1 = -1e300, y0 = 1e300, y1 = -1e300;
+        for (std::size_t k = 0; k < parts.size(); ++k) {
+            const std::string path = "$.shape.parts[" + std::to_string(k) + "]";
+            const json& pj = parts[k];
+            rd.onlyKeys(pj, path, {"name", "material", "points_mm", "group"});
+            AssemblyPart part;
+            part.name = rd.text(rd.need(pj, path, "name"), path + ".name");
+            const std::string pm = rd.text(rd.need(pj, path, "material"), path + ".material");
+            part.material = findMaterial(materials, pm);
+            if (part.material < 0) rd.fail(path + ".material", "unknown material \"" + pm + "\"");
+            if (pj.contains("group")) {
+                if (!pj["group"].is_number_integer()) rd.fail(path + ".group", "expected a whole number");
+                part.group = pj["group"].get<int>();
+            }
+            const json& pts = rd.need(pj, path, "points_mm");
+            if (!pts.is_array() || pts.size() < 3) rd.fail(path + ".points_mm", "expected at least 3 [x, y] points");
+            for (std::size_t q = 0; q < pts.size(); ++q) {
+                const json& pt = pts[q];
+                if (!pt.is_array() || pt.size() != 2 || !pt[0].is_number() || !pt[1].is_number())
+                    rd.fail(path + ".points_mm", "expected [x, y] pairs");
+                const Vec2 v{pt[0].get<double>() * kMm, pt[1].get<double>() * kMm};
+                x0 = std::min(x0, v.x); x1 = std::max(x1, v.x);
+                y0 = std::min(y0, v.y); y1 = std::max(y1, v.y);
+                part.points.push_back(v);
+            }
+            item.parts.push_back(std::move(part));
+        }
+        for (AssemblyPart& part : item.parts)
+            for (Vec2& v : part.points) v.x -= x0; // front at x = 0
+        item.thickness = x1 - x0;
+        item.width = y1 - y0;
     } else {
-        rd.fail("$.shape.type", "unknown shape \"" + type + "\" (sphere, rod, plate)");
+        rd.fail("$.shape.type", "unknown shape \"" + type + "\" (sphere, rod, plate, assembly)");
     }
-    if (item.category == ItemCategory::Projectile && item.shape == ItemShape::Plate)
+    if (item.category == ItemCategory::Projectile && (item.shape == ItemShape::Plate || item.shape == ItemShape::Assembly))
         rd.fail("$.shape.type", "a projectile must be a sphere or a rod");
-    if (item.category == ItemCategory::Armor && item.shape != ItemShape::Plate)
-        rd.fail("$.shape.type", "armour must be a plate");
+    if (item.category == ItemCategory::Armor && item.shape != ItemShape::Plate && item.shape != ItemShape::Assembly)
+        rd.fail("$.shape.type", "armour must be a plate or an assembly");
     if (root.contains("speed_mps")) item.speed = rd.positive(root["speed_mps"], "$.speed_mps");
     if (root.contains("depleted_uranium")) {
         if (!root["depleted_uranium"].is_boolean()) rd.fail("$.depleted_uranium", "expected true or false");
@@ -188,11 +224,20 @@ double suggestEndTime(const BuildSpec& spec) {
     return std::round(std::clamp(t, 5e-6, 1500e-6) / 1e-6) * 1e-6;
 }
 
+bool needsSlice(const BuildSpec& spec) {
+    if (spec.obliquity != 0.0) return true;
+    for (const Placement& p : spec.placements)
+        if (p.moved()) return true;
+    for (const ArmorLayer& l : spec.layers)
+        if (l.item.shape == ItemShape::Assembly) return true;
+    return false;
+}
+
 ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> materials) {
     if (spec.layers.empty()) throw ScenarioFileError("builder: add at least one armour layer");
     ScenarioFile out;
     Scenario& s = out.scenario;
-    const bool axi = spec.obliquity == 0.0;
+    const bool axi = !needsSlice(spec);
     const double theta = spec.obliquity;
     const double c = std::cos(theta), tn = std::tan(theta);
     s.mode = axi ? GeometryMode::Axisymmetric : GeometryMode::PlaneStrain;
@@ -206,10 +251,43 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
     double firstCentre = 0.0, lastBack = 0.0;
     int group = -1, nextGroup = 0;
     bool gluedToPrevious = false;
+    std::vector<std::pair<std::size_t, std::size_t>> layerParts; // [first, end) in s.parts (before the projectile)
     for (std::size_t k = 0; k < spec.layers.size(); ++k) {
         const ArmorLayer& l = spec.layers[k];
+        const std::size_t firstPart = s.parts.size();
+        if (l.item.shape == ItemShape::Assembly) {
+            // A cross-section of several pieces: placed with its front at x,
+            // tilted by the plate angle about its centre on the shot line.
+            if (k > 0) x += l.gapBefore / c;
+            const double cx = x + 0.5 * l.item.thickness;
+            if (k == 0) firstCentre = cx;
+            std::vector<std::pair<int, int>> groupMap;
+            for (const AssemblyPart& ap : l.item.parts) {
+                Part part;
+                part.name = "Layer " + std::to_string(k + 1) + ": " + ap.name;
+                part.material = ap.material;
+                if (ap.group >= 0) {
+                    auto it = std::find_if(groupMap.begin(), groupMap.end(), [&](auto& g) { return g.first == ap.group; });
+                    if (it == groupMap.end()) {
+                        groupMap.push_back({ap.group, nextGroup++});
+                        it = groupMap.end() - 1;
+                    }
+                    part.contactGroup = it->second;
+                }
+                PolygonShape poly;
+                for (const Vec2& v : ap.points) poly.points.push_back({x + v.x, v.y});
+                part.shape = theta != 0.0 ? transformShape(poly, {cx, 0.0}, theta, {0.0, 0.0}) : Shape{poly};
+                s.parts.push_back(part);
+            }
+            x += l.item.thickness;
+            lastBack = x;
+            gluedToPrevious = false;
+            layerParts.push_back({firstPart, s.parts.size()});
+            continue;
+        }
         // Glued layers share a contact group (one bonded body).
-        const bool gluedToNext = l.bondedToNext && k + 1 < spec.layers.size() && spec.layers[k + 1].gapBefore <= 0.0;
+        const bool gluedToNext = l.bondedToNext && k + 1 < spec.layers.size() && spec.layers[k + 1].gapBefore <= 0.0 &&
+                                 spec.layers[k + 1].item.shape != ItemShape::Assembly;
         if (!gluedToPrevious) group = gluedToNext ? nextGroup++ : -1;
         if (k > 0) x += l.gapBefore / c;
         const double alongLine = l.thickness / c;
@@ -225,6 +303,7 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
         s.parts.push_back(part);
         x += alongLine;
         lastBack = x;
+        layerParts.push_back({firstPart, s.parts.size()});
     }
 
     // Projectile: its nose just clear of the first plate's front face where it
@@ -264,8 +343,32 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
     out.description = std::string("Built in the app: ") + p.name + " at " + buf;
 
     const double py = axi ? 0.5 * spec.spacing : 0.0;
-    out.probes.push_back({"projectile tail", {tail + 0.5 * spec.spacing, py}, {ProbeQuantity::PositionX, ProbeQuantity::VelocityX}});
-    out.probes.push_back({"back of last layer", {lastBack - 0.5 * spec.spacing, py}, {ProbeQuantity::VelocityX, ProbeQuantity::Damage}});
+    Vec2 tailProbe{tail + 0.5 * spec.spacing, py}, backProbe{lastBack - 0.5 * spec.spacing, py};
+
+    // Free placement (setup view): move/rotate each item about its own centre.
+    auto place = [&](std::size_t first, std::size_t end, const Placement& pl, Vec2* probe, bool projectile) {
+        if (!pl.moved() || first >= end) return;
+        Vec2 lo{1e300, 1e300}, hi{-1e300, -1e300};
+        for (std::size_t i = first; i < end; ++i) {
+            const ShapeBox b = shapeBounds(s.parts[i].shape);
+            lo = {std::min(lo.x, b.min.x), std::min(lo.y, b.min.y)};
+            hi = {std::max(hi.x, b.max.x), std::max(hi.y, b.max.y)};
+        }
+        const Vec2 pivot = (lo + hi) * 0.5;
+        const Vec2 offset{pl.dx, pl.dy};
+        for (std::size_t i = first; i < end; ++i) {
+            s.parts[i].shape = transformShape(s.parts[i].shape, pivot, pl.angle, offset);
+            if (projectile) s.parts[i].velocity = rotate(s.parts[i].velocity, pl.angle);
+        }
+        if (probe) *probe = pivot + rotate(*probe - pivot, pl.angle) + offset;
+    };
+    if (!spec.placements.empty()) place(0, 1, spec.placements[0], &tailProbe, true);
+    for (std::size_t k = 0; k < layerParts.size() && k + 1 < spec.placements.size(); ++k)
+        place(layerParts[k].first + 1, layerParts[k].second + 1, spec.placements[k + 1],
+              k + 1 == layerParts.size() ? &backProbe : nullptr, false);
+
+    out.probes.push_back({"projectile tail", tailProbe, {ProbeQuantity::PositionX, ProbeQuantity::VelocityX}});
+    out.probes.push_back({"back of last layer", backProbe, {ProbeQuantity::VelocityX, ProbeQuantity::Damage}});
     out.probeInterval = spec.endTime / 600.0;
     (void)materials;
     return out;

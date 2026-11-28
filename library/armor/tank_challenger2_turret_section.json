@@ -1,0 +1,323 @@
+{
+ "name": "Tank cross-section: Challenger 2 turret front",
+ "category": "armor",
+ "description": "Dorchester (Chobham-family) armour is the least public of all: here a generic array of steel plates, rubber interlayers (gaps) and ceramic tiles between an 80 mm front plate and a 120 mm back plate, ~870 mm deep near the gun. SPECULATIVE layout. Estimates vs long rods vary widely. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "material": "steel_rha",
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Front plate 80 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      0,
+      -150.0
+     ],
+     [
+      80,
+      -150.0
+     ],
+     [
+      80,
+      150.0
+     ],
+     [
+      0,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel plate 1 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      80,
+      -150.0
+     ],
+     [
+      100,
+      -150.0
+     ],
+     [
+      100,
+      150.0
+     ],
+     [
+      80,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array ceramic tile 1 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      115,
+      -150.0
+     ],
+     [
+      140,
+      -150.0
+     ],
+     [
+      140,
+      150.0
+     ],
+     [
+      115,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel plate 2 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      180,
+      -150.0
+     ],
+     [
+      200,
+      -150.0
+     ],
+     [
+      200,
+      150.0
+     ],
+     [
+      180,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array ceramic tile 2 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      215,
+      -150.0
+     ],
+     [
+      240,
+      -150.0
+     ],
+     [
+      240,
+      150.0
+     ],
+     [
+      215,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel plate 3 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      280,
+      -150.0
+     ],
+     [
+      300,
+      -150.0
+     ],
+     [
+      300,
+      150.0
+     ],
+     [
+      280,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array ceramic tile 3 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      315,
+      -150.0
+     ],
+     [
+      340,
+      -150.0
+     ],
+     [
+      340,
+      150.0
+     ],
+     [
+      315,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel plate 4 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      380,
+      -150.0
+     ],
+     [
+      400,
+      -150.0
+     ],
+     [
+      400,
+      150.0
+     ],
+     [
+      380,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array ceramic tile 4 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      415,
+      -150.0
+     ],
+     [
+      440,
+      -150.0
+     ],
+     [
+      440,
+      150.0
+     ],
+     [
+      415,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel plate 5 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      480,
+      -150.0
+     ],
+     [
+      500,
+      -150.0
+     ],
+     [
+      500,
+      150.0
+     ],
+     [
+      480,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array ceramic tile 5 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      515,
+      -150.0
+     ],
+     [
+      540,
+      -150.0
+     ],
+     [
+      540,
+      150.0
+     ],
+     [
+      515,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel plate 6 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      580,
+      -150.0
+     ],
+     [
+      600,
+      -150.0
+     ],
+     [
+      600,
+      150.0
+     ],
+     [
+      580,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array ceramic tile 6 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      615,
+      -150.0
+     ],
+     [
+      640,
+      -150.0
+     ],
+     [
+      640,
+      150.0
+     ],
+     [
+      615,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Back plate 120 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      680,
+      -150.0
+     ],
+     [
+      800,
+      -150.0
+     ],
+     [
+      800,
+      150.0
+     ],
+     [
+      680,
+      150.0
+     ]
+    ]
+   }
+  ]
+ },
+ "estimate_range_mm": [
+  400,
+  750
+ ]
+}

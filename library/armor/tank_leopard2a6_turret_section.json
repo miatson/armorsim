@@ -1,0 +1,349 @@
+{
+ "name": "Tank cross-section: Leopard 2A6 turret cheek",
+ "category": "armor",
+ "description": "Spaced add-on wedge (two 45 mm hard-steel plates at ~60 deg, with interlayers) a few hundred mm in front of the turret front, then a NERA array tilted 45 deg and a 100 mm back plate; cheek ~760 mm deep without the wedge. Estimates vs long rods ~800-850 mm. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "material": "steel_rha",
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Wedge plate 1 (45 mm hard steel)",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      0,
+      -23.09
+     ],
+     [
+      0,
+      -75.06
+     ],
+     [
+      320,
+      109.7
+     ],
+     [
+      320,
+      150.0
+     ],
+     [
+      299.81,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Wedge plate 2 (45 mm hard steel)",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      320,
+      86.6
+     ],
+     [
+      0,
+      -98.15
+     ],
+     [
+      0,
+      -150.0
+     ],
+     [
+      0.19,
+      -150.0
+     ],
+     [
+      320,
+      34.64
+     ]
+    ]
+   },
+   {
+    "name": "Turret front plate 50 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      330,
+      -150.0
+     ],
+     [
+      380,
+      -150.0
+     ],
+     [
+      380,
+      150.0
+     ],
+     [
+      330,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 1 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      404.75,
+      -150.0
+     ],
+     [
+      380,
+      -125.25
+     ],
+     [
+      380,
+      -96.97
+     ],
+     [
+      433.03,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 2 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      482.53,
+      -150.0
+     ],
+     [
+      380,
+      -47.47
+     ],
+     [
+      380,
+      -19.19
+     ],
+     [
+      510.81,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 3 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      560.31,
+      -150.0
+     ],
+     [
+      380,
+      30.31
+     ],
+     [
+      380,
+      58.6
+     ],
+     [
+      588.6,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 4 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      638.09,
+      -150.0
+     ],
+     [
+      380,
+      108.09
+     ],
+     [
+      380,
+      136.38
+     ],
+     [
+      666.38,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 5 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      715.88,
+      -150.0
+     ],
+     [
+      415.88,
+      150.0
+     ],
+     [
+      444.16,
+      150.0
+     ],
+     [
+      744.16,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 6 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      793.66,
+      -150.0
+     ],
+     [
+      493.66,
+      150.0
+     ],
+     [
+      521.94,
+      150.0
+     ],
+     [
+      821.94,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 7 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      871.44,
+      -150.0
+     ],
+     [
+      571.44,
+      150.0
+     ],
+     [
+      599.72,
+      150.0
+     ],
+     [
+      899.72,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 8 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      900,
+      -100.78
+     ],
+     [
+      649.22,
+      150.0
+     ],
+     [
+      677.51,
+      150.0
+     ],
+     [
+      900,
+      -72.49
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 9 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      900,
+      -23.0
+     ],
+     [
+      727.0,
+      150.0
+     ],
+     [
+      755.29,
+      150.0
+     ],
+     [
+      900,
+      5.29
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 10 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      900,
+      54.78
+     ],
+     [
+      804.78,
+      150.0
+     ],
+     [
+      833.07,
+      150.0
+     ],
+     [
+      900,
+      83.07
+     ]
+    ]
+   },
+   {
+    "name": "NERA plate 11 (steel; rubber = gap)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      900.0,
+      150.0
+     ],
+     [
+      900,
+      132.57
+     ],
+     [
+      882.57,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Back plate 100 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      900,
+      -150.0
+     ],
+     [
+      1000,
+      -150.0
+     ],
+     [
+      1000,
+      150.0
+     ],
+     [
+      900,
+      150.0
+     ]
+    ]
+   }
+  ]
+ },
+ "estimate_range_mm": [
+  800,
+  850
+ ]
+}

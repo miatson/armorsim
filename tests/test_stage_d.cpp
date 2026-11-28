@@ -257,7 +257,7 @@ TEST_CASE("tank rounds vs tank-front estimates: data present, Lanz-Odermatt dept
     const Library lib = loadLibrary(ARMOR_LIBRARY_DIR, mats);
     int rounds = 0, tanks = 0;
     for (const LibraryItem& a : lib.armor)
-        if (a.isTankEstimate()) {
+        if (a.isTankEstimate() && a.shape == ItemShape::Plate) { // steel stand-in blocks
             ++tanks;
             CHECK(a.estimateLow <= a.thickness);
             CHECK(a.thickness <= a.estimateHigh);
@@ -287,4 +287,58 @@ TEST_CASE("tank rounds vs tank-front estimates: data present, Lanz-Odermatt dept
     }
     CHECK(rounds >= 4);
     CHECK(tanks >= 5);
+}
+
+TEST_CASE("armour assemblies (tank cross-sections) and free placement") {
+    const auto mats = defaultMaterials();
+    const Library lib = loadLibrary(ARMOR_LIBRARY_DIR, mats);
+    int sections = 0;
+    for (const LibraryItem& a : lib.armor) {
+        if (a.shape != ItemShape::Assembly) continue;
+        ++sections;
+        CAPTURE(a.name);
+        CHECK(a.parts.size() >= 3);
+        double x0 = 1e9;
+        for (const AssemblyPart& p : a.parts)
+            for (const Vec2& v : p.points) x0 = std::min(x0, v.x);
+        CHECK(x0 == Approx(0.0).epsilon(1e-9)); // front at x = 0
+        BuildSpec spec;
+        spec.projectile = lib.projectiles[0];
+        spec.projectileMaterial = spec.projectile.material;
+        spec.speed = 1000.0;
+        spec.layers.push_back({a, a.material, a.thickness, 0.0});
+        CHECK(needsSlice(spec));
+        spec.spacing = suggestSpacing(spec);
+        const ScenarioFile f = buildScenario(spec, mats);
+        CHECK(f.scenario.mode == GeometryMode::PlaneStrain);
+        CHECK(f.scenario.parts.size() == a.parts.size() + 1);
+        const Particles P = buildParticles(f.scenario, mats);
+        CHECK(P.size() > 1000);
+        CHECK(P.size() < 60000);
+    }
+    CHECK(sections >= 5);
+
+    // Placement: projectile moved up 5 mm and turned 30 deg: shape and velocity follow.
+    BuildSpec spec;
+    spec.projectile = lib.projectiles[0];
+    spec.projectileMaterial = spec.projectile.material;
+    spec.speed = 800.0;
+    spec.layers.push_back({lib.armor[0], lib.armor[0].material, lib.armor[0].thickness, 0.0});
+    spec.spacing = 0.5e-3;
+    const ScenarioFile base = buildScenario(spec, mats);
+    CHECK(!needsSlice(spec));
+    spec.placements.resize(2);
+    spec.placements[0] = {0.0, 5e-3, 30.0 * 3.14159265358979323846 / 180.0};
+    CHECK(needsSlice(spec));
+    const ScenarioFile moved = buildScenario(spec, mats);
+    const Vec2 v = moved.scenario.parts[0].velocity;
+    CHECK(v.x == Approx(800.0 * std::cos(30.0 * 3.14159265358979323846 / 180.0)));
+    CHECK(v.y == Approx(800.0 * std::sin(30.0 * 3.14159265358979323846 / 180.0)));
+    const ShapeBox b0 = shapeBounds(base.scenario.parts[0].shape);
+    const ShapeBox b1 = shapeBounds(moved.scenario.parts[0].shape);
+    CHECK(0.5 * (b1.min.y + b1.max.y) == Approx(5e-3).epsilon(0.02));
+    (void)b0;
+    // The JSON round trip keeps moved geometry.
+    const ScenarioFile g = parseScenarioJson(scenarioToJson(moved, mats), mats, "roundtrip.json");
+    CHECK(buildParticles(g.scenario, mats).size() == buildParticles(moved.scenario, mats).size());
 }
