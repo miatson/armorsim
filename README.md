@@ -408,9 +408,16 @@ cause is that tile and backing were separate bodies that can only push on each o
 That joint reflects the impact wave as tension, and alumina withstands only 0.2 GPa,
 so the tile cracked from the back within microseconds. Real composite armour is
 **glued**, so the builder now glues ceramic layers to the layer behind them by default
-(one bonded body, `contact_group` in files), with a checkbox to turn it off. How much
-this closes the gap has not been measured: that needs long runs, left for when the
-machine is free. Until then, treat ceramic results as qualitative.
+(one bonded body, `contact_group` in files), with a checkbox to turn it off.
+
+Measured afterwards (short run, 0.25 mm, 150 µs; same rod, 10 mm alumina + 10 mm
+aluminium): **loose tile 12.7 g at 767 m/s, glued tile 12.5 g at 760 m/s**. So gluing
+is more realistic but **does not close the gap**. A second idea was also tried and
+discarded: limiting how fast a ceramic particle can crack to a physical crack speed
+(0.4 × shear wave speed) gave 761 m/s, no change. The cause is still unknown; the
+next suspects are how JH-2 handles tension (it fails at almost zero strain once
+pulled) and SPH tension noise at the tile's back face. **Treat ceramic results as
+qualitative** until this is fixed.
 
 ## Validation against experiments (Stage E)
 

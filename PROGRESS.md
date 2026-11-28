@@ -470,3 +470,14 @@ fracture validation (plate plugging / V50 overlaps Stage E).
 - **Still open (need long runs - ask first):** Stage E convergence (long rod at
   0.25 mm, Borvik at 0.2 mm); Stage F: measure the glued-ceramic fix, validate
   ricochet / oblique impact against an experiment.
+
+## 2026-11-28 — session 17: glued ceramic measured (short capped runs)
+
+- User allowed short runs only (each capped at 5 min; these took ~2 min each).
+- W rod 30x6 mm, 900 m/s, vs alumina 10 + Al 10 mm, 0.25 mm, 150 us:
+  loose 12.7 g at 767 m/s, glued 12.5 g at 760 m/s. **Gluing does not close
+  the ceramic gap** (kept as the default anyway: real tiles are bonded).
+- Tried a crack-speed limit on JH-2 damage (dD/dt <= 0.4 c_s / dx): 761 m/s,
+  no effect -> reverted, not committed.
+- Next suspects: JH-2 tension (eps_f floor 1e-6 when P*+T* <= 0) and SPH
+  tensile noise at the tile back face. Needs runs; ask the user first.
