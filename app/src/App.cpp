@@ -144,6 +144,10 @@ std::string App::builderSummary() const {
                       "into thick steel armour. Compare with the rod's furthest point in Results.\n",
                       pl * lw * 1e3, pl);
         t += buf;
+        if (lw / spec.projectile.diameter > 15.0)
+            t += "Very long rod: the simulation goes too deep with rods this slender (a DM53-like rod, length 28 "
+                 "diameters, went ~30% deeper than the fit; a 10-diameter rod ~5-13%). Trust the formula figures "
+                 "for numbers, the simulation for how it looks.\n";
         const armor::LibraryItem& target = spec.layers[0].item;
         if (target.isTankEstimate()) {
             const bool du = spec.projectile.depletedUranium;

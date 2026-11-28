@@ -524,3 +524,9 @@ fracture validation (plate plugging / V50 overlaps Stage E).
 - Sim gap: DM53 to 300 us, 1.5 mm -> tip 247 mm (36 s), 1.0 mm -> 257 mm
   (231 s). NOT resolution. Full run 660 mm vs LO DoP 502 (+31%); the L/D 10
   at 1500 m/s check was within 6%. Next: L/D 10 at 1720 m/s (speed vs L/D).
+- Speed vs slenderness: L/D 10 at 1750 m/s was already in the validation
+  (+5.3%), so not speed. Same 1.5 mm spacing, 1720 m/s: L/D 10 full size
+  (230x23) 266 mm vs LO 236 (+13%, 55 s); DM53 L/D 28 660 vs 499 (+32%).
+  Sim misses about half of the experimental L/D penalty (tanh term).
+  Recorded as a known limitation; app warns for Lw/D > 15. (A 0.25 mm L/D-30
+  run hit the 5 min cap - 86k particles, too big; not repeated.)

@@ -506,10 +506,21 @@ verdict is "gets through", "stopped" or "too close to call" against each estimat
 block stopped at **~660 mm**. The thick-block fit (Lanz-Odermatt) says 502 mm, so the
 simulation goes about 30% too deep. It isn't resolution: two short runs to 300 µs
 reached 247 mm at 1.5 mm spacing and 257 mm at 1.0 mm, so finer is slightly deeper,
-not shallower. The L/D-10 rod at 1500 m/s above was within 6%, so the error grows
-with this very long rod and/or the higher speed. **Open.** A next check would be the
-L/D-10 rod at 1720 m/s, to separate speed from length. The verdict against the Abrams
-estimate is the same either way: stopped.
+not shallower. **It is rod slenderness, not speed.** The L/D-10 validation already covers 1750 m/s
+(+5.3%). At the same 1.5 mm spacing, a full-size L/D-10 rod (230 × 23 mm, 1720 m/s,
+55 s) went 266 mm against a fit of 236 mm (+13%). DM53 (L/D 28) went 660 mm against
+499 mm (+32%).
+
+Experiments show long, thin rods penetrating about 25% less per unit length than
+L/D-10 rods (the `tanh` term). The simulation shows only about 12%, so it misses half
+of that loss. Possible reasons:
+- Real long rods bend and yaw slightly.
+- The perfectly straight axisymmetric model can't do either.
+- How the eroding rod's head behaves over a long penetration.
+
+**Open (known limitation):** full simulations of very slender rods (L/D above ~15) go
+too deep. The app says so, and the Tank check uses the formula, not the simulation.
+The verdict against the Abrams estimate is the same either way: stopped.
 
 ### Ballistic limit (V50) of a steel plate (Børvik et al.)
 
@@ -542,6 +553,10 @@ trend but don't yet prove convergence; a 0.2 mm check would. The builder warns
 when a plate has fewer than about 40 particles across it.
 
 ## Known limitations
+
+- Very slender rods (L/D above ~15, like real tank rounds) penetrate ~30% too deep in a
+  full simulation; short rods are within ~5-13%. Use the Tank check's formula figures for
+  numbers (see "Tank rounds against tank fronts").
 
 - Ceramics (alumina, boron carbide, silicon carbide) are checked for consistency, not
   yet against a ceramic penetration experiment; ceramic armour results are qualitative.
