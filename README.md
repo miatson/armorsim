@@ -469,17 +469,28 @@ steel.
 The library has four modern APFSDS rounds and seven tank-front stand-ins. All figures
 are **public estimates**, not official data:
 
-| Round | Rod (modelled) | Speed | Lanz-Odermatt depth at the muzzle |
-|---|---|---|---|
-| DM53 (Germany, 120 mm) | tungsten, 685 × 23 mm, 60 mm nose | 1720 m/s (L/55) | 502 mm |
-| M829A3 (USA, 120 mm) | DU*, 670 × 25 mm, 50 mm nose | 1555 m/s | 438 mm |
-| 3BM60 Svinets-2 (Russia, 125 mm) | tungsten, 735 × 21 mm, 60 mm nose | 1660 m/s | 510 mm |
-| 3BM59 Svinets-1 (Russia, 125 mm) | DU*, 735 × 21 mm, 60 mm nose | 1650 m/s | 506 mm |
+| Round | Rod (modelled) | Speed | Plate perforated, muzzle / 2 km | Published claims |
+|---|---|---|---|---|
+| DM53 (Germany, 120 mm) | tungsten, 685 × 23 mm, 60 mm nose | 1720 m/s (L/55) | 612 / 568 mm | 630–660 (Polish industry), 652 (War Thunder), up to 760–810 (forums) |
+| M829A3 (USA, 120 mm) | DU, 670 × 25 mm main rod | 1555 m/s | 594 / 555 mm | 633–680 (game, calculator), 800–960 (forums) |
+| 3BM60 Svinets-2 (Russia, 125 mm) | tungsten, 735 × 21 mm, 60 mm nose | 1660 m/s | 627 / 577 mm | ~650–700 (hobby estimates) |
+| 3BM59 Svinets-1 (Russia, 125 mm) | DU, 735 × 21 mm, 60 mm nose | 1650 m/s | 632 / 597 mm | – |
 
-\*Depleted uranium isn't in the simulator yet. No sourced Johnson-Cook set was found,
-so DU rods are modelled as tungsten alloy, which is 6% lighter and gives a few % less depth.
-Fins, sabots and M829A3's steel tip are not modelled. Sources disagree on DM53's diameter
-(23 or 26 mm); 23 mm matches the stated 5 kg rod.
+"Plate perforated" uses **Odermatt's perforation equation** (longrods.ch, 2022). It is
+fitted to 99 tungsten and 42 depleted-uranium firings against steel plates, with a
+standard deviation of 3.3–3.5%. Plates are taken as 260 BHN, typical of thick armour
+plate, and range assumes a 60 m/s per km loss. This is the measure that published
+penetration figures and RHA-equivalent armour estimates refer to.
+
+The first version of the tank check used the Lanz-Odermatt *depth into a thick block*
+fit instead. That gave 440–510 mm, about 20% low against plates; fixed.
+
+Depleted uranium: the tank check uses DU density (18.6 g/cm³) and Odermatt's DU
+constants. A *simulation* still runs DU rods as tungsten alloy, because no sourced
+Johnson-Cook set for DU was found. Fins, sabots and M829A3's 100 mm steel tip (in front
+of the DU rod) are not modelled. Sources disagree on DM53's diameter (23 or 26 mm);
+23 mm matches the stated 5 kg rod. M829A3's length is uncertain too: 670 mm main rod
+used; estimates of ~800 mm give the ~680 mm calculator figures.
 
 Tank fronts are blocks of armour steel as thick as the estimated protection against long
 rods (RHA equivalent): M1A2 Abrams turret 700–900 mm (770 used), hull 470–600 (550);
@@ -488,16 +499,17 @@ hull 400–660 (530); Leopard 2A6 turret 800–850 (825). Real armour is secret 
 so treat these as a rough guide.
 
 **Details › Tank check** compares the builder's round with every tank front instantly,
-using Lanz-Odermatt. A range slider takes off an assumed 60 m/s per km of flight. The
+using Odermatt's perforation equation. A range slider takes off an assumed 60 m/s per km of flight. The
 verdict is "gets through", "stopped" or "too close to call" against each estimate range.
 
-**Full simulation check (one run, 1.5 mm spacing, 262 s):** DM53 at 1720 m/s into a
-770 mm block stopped at **~660 mm**. That is about 30% deeper than Lanz-Odermatt's
-502 mm. It lands nearer the 600–700 mm often claimed for DM53, but those claims are
-estimates and usually refer to angled plates. The L/D-10 validation above, at finer
-resolution, was within 6%. So this gap is open: likely resolution (only ~8 particles
-across the rod's radius) and the very long L/D 30 rod. A convergence check needs longer
-runs. The verdict against the Abrams estimate is the same either way: stopped.
+**Full simulation check (1.5 mm spacing, 262 s):** DM53 at 1720 m/s into a 770 mm
+block stopped at **~660 mm**. The thick-block fit (Lanz-Odermatt) says 502 mm, so the
+simulation goes about 30% too deep. It isn't resolution: two short runs to 300 µs
+reached 247 mm at 1.5 mm spacing and 257 mm at 1.0 mm, so finer is slightly deeper,
+not shallower. The L/D-10 rod at 1500 m/s above was within 6%, so the error grows
+with this very long rod and/or the higher speed. **Open.** A next check would be the
+L/D-10 rod at 1720 m/s, to separate speed from length. The verdict against the Abrams
+estimate is the same either way: stopped.
 
 ### Ballistic limit (V50) of a steel plate (Børvik et al.)
 

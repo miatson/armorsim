@@ -1,7 +1,7 @@
 {
   "name": "APFSDS 3BM59 Svinets-1 (Russia, 125 mm)",
   "category": "projectile",
-  "description": "Depleted-uranium twin of Svinets-2: about 735 x 21 mm, ~1650 m/s (dimensions assumed equal to 3BM60; public estimates). Depleted uranium is modelled as tungsten alloy (6% lighter).",
+  "description": "Depleted-uranium twin of Svinets-2: about 735 x 21 mm, ~1650 m/s (dimensions assumed equal to 3BM60; public estimates). The Tank check uses depleted-uranium density and constants; a simulation runs it as tungsten alloy (DU strength data not in the simulator yet).",
   "material": "tungsten_wha",
   "shape": {
     "type": "rod",
@@ -9,5 +9,6 @@
     "diameter_mm": 21,
     "nose_length_mm": 60
   },
-  "speed_mps": 1650
+  "speed_mps": 1650,
+  "depleted_uranium": true
 }

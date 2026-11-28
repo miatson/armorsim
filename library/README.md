@@ -40,7 +40,7 @@ the source tree. Unknown keys are an error, so typos can't slip through.
 | `estimate_range_mm` | Armour only, optional: `[low, high]`. Marks a tank-front stand-in (published RHA-equivalent estimates); used by Details › Tank check |
 
 **Tank rounds and tank fronts.** `apfsds_*.json` are modern tank rounds (DM53, M829A3,
-3BM60, 3BM59) and `tank_*.json` are armour-steel blocks as thick as public estimates of
+3BM60, 3BM59; `depleted_uranium: true` marks DU rounds for the tank check) and `tank_*.json` are armour-steel blocks as thick as public estimates of
 tank fronts (Abrams, T-90A, T-80U, Challenger 2, Leopard 2A6). All are estimates; see
 the main README.
 

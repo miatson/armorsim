@@ -510,3 +510,17 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   1000 us, 262 s -> stopped at ~660 mm (LO 502, +31%). Open: convergence
   (resolution ~8 particles per rod radius, L/D 30); needs longer runs.
 - Fast tests pass (1040 assertions: library, builder, tank data, JH-2).
+
+## 2026-11-28 — session 19: perforation equation; sim depth gap checked
+
+- Tank check switched from Lanz-Odermatt semi-infinite DoP to Odermatt's
+  perforation equation (longrods.ch 2022, read from the site's image):
+  b0 0.283 b1 0.0656 m -0.224; W a 0.994 c0 134.5 c1 -0.148 (99 tests,
+  3.3%); DU a 0.825 c0 90 c1 -0.0849 (42 tests, 3.5%). Plate BHN 260. DU
+  rounds flagged (`depleted_uranium`), density 18600 in the formula only.
+- Muzzle / 2 km: DM53 612/568, M829A3 594/555 (nose removed: 670 mm is
+  the DU main rod behind a 100 mm steel tip), 3BM60 627/577, 3BM59
+  632/597. Published claims mostly 630-700 (DM53 652 in War Thunder).
+- Sim gap: DM53 to 300 us, 1.5 mm -> tip 247 mm (36 s), 1.0 mm -> 257 mm
+  (231 s). NOT resolution. Full run 660 mm vs LO DoP 502 (+31%); the L/D 10
+  at 1500 m/s check was within 6%. Next: L/D 10 at 1720 m/s (speed vs L/D).

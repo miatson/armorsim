@@ -146,10 +146,17 @@ std::string App::builderSummary() const {
         t += buf;
         const armor::LibraryItem& target = spec.layers[0].item;
         if (target.isTankEstimate()) {
-            const double depth = pl * lw;
+            const bool du = spec.projectile.depletedUranium;
+            const double depth = armor::odermattPerforation(lw / spec.projectile.diameter,
+                                                            du ? armor::kDepletedUraniumDensity : pm.density0,
+                                                            materials_[armor::kSteelRHA].density0, armor::kThickRHABrinell,
+                                                            spec.speed, 0.0,
+                                                            du ? armor::PenetratorKind::DepletedUranium
+                                                               : armor::PenetratorKind::Tungsten) * lw;
             std::snprintf(buf, sizeof buf,
-                          "Tank front: published estimates for this armour are %.0f-%.0f mm of armour steel. The rod's "
-                          "predicted %.0f mm is %s. (Estimates, not measurements - see Details > Tank check.)\n",
+                          "Tank front: published estimates for this armour are %.0f-%.0f mm of armour steel. The rod "
+                          "perforates about %.0f mm of armour plate (Odermatt) - %s. (Estimates, not measurements - see "
+                          "Details > Tank check.)\n",
                           target.estimateLow * 1e3, target.estimateHigh * 1e3, depth * 1e3,
                           depth > target.estimateHigh ? "MORE than even the high estimate: likely to get through"
                           : depth < target.estimateLow ? "LESS than even the low estimate: likely stopped"
@@ -1125,9 +1132,15 @@ void App::drawTankCheck() {
     helpMarker("Long rods lose roughly 50-70 m/s per km in flight; 60 m/s per km is assumed here.");
     const double v = std::max(projSpeed_ - armor::kRodSpeedLossPerKm * tankRangeKm_, 1.0);
     const double lw = armor::rodWorkingLength(p);
-    const double depth = armor::lanzOdermattTungstenRHA(lw / p.diameter, pm.density0, materials_[armor::kSteelRHA].density0,
-                                                        armor::kSteelRHABrinell, v) * lw;
-    ImGui::Text("Impact %.0f m/s  ->  about %.0f mm into armour steel (Lanz-Odermatt)", v, depth * 1e3);
+    const bool du = p.depletedUranium;
+    const double depth = armor::odermattPerforation(lw / p.diameter, du ? armor::kDepletedUraniumDensity : pm.density0,
+                                                    materials_[armor::kSteelRHA].density0, armor::kThickRHABrinell, v, 0.0,
+                                                    du ? armor::PenetratorKind::DepletedUranium
+                                                       : armor::PenetratorKind::Tungsten) * lw;
+    ImGui::Text("Impact %.0f m/s  ->  perforates about %.0f mm of armour plate%s", v, depth * 1e3,
+                du ? " (depleted uranium)" : "");
+    helpMarker("Odermatt's perforation equation (2022): fitted to 99 tungsten and 42 depleted-uranium firings "
+               "against steel plates, standard deviation 3.3-3.5%. Plate hardness 260 BHN (thick armour plate).");
     if (ImGui::BeginTable("tanks", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
         ImGui::TableSetupColumn("Target");
         ImGui::TableSetupColumn("Estimate (mm)");
@@ -1150,10 +1163,10 @@ void App::drawTankCheck() {
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
     ImGui::TextWrapped("Rough guide only. Tank armour is secret; these are public estimates of the frontal protection "
-                       "against long rods in mm of armour steel, and they vary widely between sources. The depth is "
-                       "for thick plain steel; a finite plate is perforated at roughly 10%% more. Rounds listed as "
-                       "depleted uranium are modelled as tungsten alloy (about 6%% less dense: a few %% less depth). "
-                       "To watch one, pick a tank front as the armour layer in Build your own (big run: minutes).");
+                       "against long rods in mm of armour steel, and they vary widely between sources. Depleted-"
+                       "uranium rounds use DU density and constants here; a simulation runs them as tungsten alloy. "
+                       "To watch one, pick a tank front as the armour layer in Build your own (big run: minutes). "
+                       "A simulated block is thick, so it stops a rod sooner than this plate figure.");
     ImGui::PopStyleColor();
 }
 

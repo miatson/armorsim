@@ -268,11 +268,21 @@ TEST_CASE("tank rounds vs tank-front estimates: data present, Lanz-Odermatt dept
         const double lw = rodWorkingLength(p);
         const double depth = lanzOdermattTungstenRHA(lw / p.diameter, mats[p.material].density0,
                                                      mats[kSteelRHA].density0, kSteelRHABrinell, p.speed) * lw;
+        const auto kind = p.depletedUranium ? PenetratorKind::DepletedUranium : PenetratorKind::Tungsten;
+        const double rho = p.depletedUranium ? kDepletedUraniumDensity : mats[p.material].density0;
+        const double perf0 = odermattPerforation(lw / p.diameter, rho, mats[kSteelRHA].density0, kThickRHABrinell,
+                                                 p.speed, 0.0, kind) * lw;
+        const double perf2 = odermattPerforation(lw / p.diameter, rho, mats[kSteelRHA].density0, kThickRHABrinell,
+                                                 p.speed - 2.0 * kRodSpeedLossPerKm, 0.0, kind) * lw;
         MESSAGE(p.name, ": ", mats[p.material].density0 * projectileVolume(p), " kg, ", p.speed,
-                " m/s, Lanz-Odermatt depth into armour steel at the muzzle ", depth * 1e3, " mm");
-        // Modern 120/125 mm rods: published penetration claims are ~500-750 mm.
+                " m/s; thick block (Lanz-Odermatt) ", depth * 1e3, " mm; plate perforation (Odermatt) muzzle ",
+                perf0 * 1e3, " mm, 2 km ", perf2 * 1e3, " mm");
         CHECK(depth > 0.40);
         CHECK(depth < 0.80);
+        // Published figures for these rounds are mostly ~550-750 mm (plate).
+        CHECK(perf0 > 0.50);
+        CHECK(perf0 < 0.80);
+        CHECK(perf2 < perf0);
         CHECK(mats[p.material].density0 * projectileVolume(p) == Approx(4.5).epsilon(0.35)); // rods weigh ~4-6 kg
     }
     CHECK(rounds >= 4);

@@ -82,7 +82,7 @@ LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> 
     } catch (const json::parse_error& e) {
         throw ScenarioFileError(sourceName + ": not valid JSON: " + e.what());
     }
-    rd.onlyKeys(root, "$", {"name", "category", "description", "material", "shape", "speed_mps", "estimate_range_mm"});
+    rd.onlyKeys(root, "$", {"name", "category", "description", "material", "shape", "speed_mps", "estimate_range_mm", "depleted_uranium"});
     LibraryItem item;
     item.file = sourceName;
     item.name = rd.text(rd.need(root, "$", "name"), "$.name");
@@ -122,6 +122,10 @@ LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> 
     if (item.category == ItemCategory::Armor && item.shape != ItemShape::Plate)
         rd.fail("$.shape.type", "armour must be a plate");
     if (root.contains("speed_mps")) item.speed = rd.positive(root["speed_mps"], "$.speed_mps");
+    if (root.contains("depleted_uranium")) {
+        if (!root["depleted_uranium"].is_boolean()) rd.fail("$.depleted_uranium", "expected true or false");
+        item.depletedUranium = root["depleted_uranium"].get<bool>();
+    }
     if (root.contains("estimate_range_mm")) {
         const json& e = root["estimate_range_mm"];
         if (!e.is_array() || e.size() != 2 || !e[0].is_number() || !e[1].is_number() ||

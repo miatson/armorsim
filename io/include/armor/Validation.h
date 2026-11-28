@@ -31,6 +31,40 @@ inline double lanzOdermattTungstenRHA(double lengthOverDiameter, double rhoProje
            std::exp(-s2 / (vKmS * vKmS));
 }
 
+// ODERMATT PERFORATION EQUATION (longrods.ch, 2022): the speed-thickness
+// relation for PERFORATING a finite (possibly angled) steel plate - the basis
+// of the penetration figures usually quoted for tank rounds and of RHA-
+// equivalent armour estimates. Same form as above, plus obliquity:
+//
+//   P / Lw = a * 1/tanh(b0 + b1*Lw/D) * cos(theta)^m * sqrt(rho_p/rho_t) * exp(-s^2/v^2)
+//   s^2    = (c0 + c1*BHN_t) * BHN_t / rho_p
+//
+//   b0 = 0.283, b1 = 0.0656, m = -0.224
+//   tungsten: a 0.994, c0 134.5, c1 -0.148   (99 tests, sd 3.3%)
+//   DU:       a 0.825, c0 90.0,  c1 -0.0849  (42 tests, sd 3.5%)
+//
+// P is the plate thickness along the shot line that is just perforated. Valid
+// for Lw/D >= 4, obliquity 0-75 deg, target 150-500 BHN. Lw = working length
+// (penetrator without tracer; a conical tip counts partly - see Library.h).
+enum class PenetratorKind { Tungsten, DepletedUranium };
+
+inline double odermattPerforation(double workingLengthOverDiameter, double rhoProjectile, double rhoTarget,
+                                  double targetBHN, double velocity, double obliquity, PenetratorKind kind) {
+    const bool du = kind == PenetratorKind::DepletedUranium;
+    const double a = du ? 0.825 : 0.994, c0 = du ? 90.0 : 134.5, c1 = du ? -0.0849 : -0.148;
+    const double b0 = 0.283, b1 = 0.0656, m = -0.224;
+    const double vKmS = velocity / 1000.0;
+    const double s2 = (c0 + c1 * targetBHN) * targetBHN / rhoProjectile;
+    return a / std::tanh(b0 + b1 * workingLengthOverDiameter) * std::pow(std::cos(obliquity), m) *
+           std::sqrt(rhoProjectile / rhoTarget) * std::exp(-s2 / (vKmS * vKmS));
+}
+
+// Thick rolled armour (above ~100 mm) is softer than thin plate; roughly
+// 240-280 BHN. 260 is used for the tank check.
+inline constexpr double kThickRHABrinell = 260.0;
+// Depleted uranium alloy (U-0.75Ti) density, for DU rounds in the formulas.
+inline constexpr double kDepletedUraniumDensity = 18600.0;
+
 // Long rods slow down in flight; published APFSDS figures suggest roughly
 // 50-70 m/s per km. Used for the tank check's range setting (an assumption,
 // not a measured value for any particular round).

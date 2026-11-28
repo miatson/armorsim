@@ -49,6 +49,9 @@ struct LibraryItem {
     double width = 0.0;      // m (plate)
     double speed = 0.0;      // m/s, suggested (projectiles)
     double noseLength = 0.0; // m (rod): conical nose, part of `length`
+    // The real round is depleted uranium (the simulation uses the item's
+    // material; the tank check uses DU density and Odermatt's DU constants).
+    bool depletedUranium = false;
     // Armour standing in for a real tank's front: published estimates of its
     // protection against long rods, in mm of armour steel (RHA equivalent).
     double estimateLow = 0.0, estimateHigh = 0.0; // m; 0 = not a tank estimate
