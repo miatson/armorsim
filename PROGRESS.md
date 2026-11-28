@@ -479,5 +479,14 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   the ceramic gap** (kept as the default anyway: real tiles are bonded).
 - Tried a crack-speed limit on JH-2 damage (dD/dt <= 0.4 c_s / dx): 761 m/s,
   no effect -> reverted, not committed.
-- Next suspects: JH-2 tension (eps_f floor 1e-6 when P*+T* <= 0) and SPH
-  tensile noise at the tile back face. Needs runs; ask the user first.
+- Diagnostic shots (temporary env switch, not committed): no tension damage
+  -> 12.5 g @ 760 (no change); no compression damage -> 5.66 g @ 359. So the
+  tile crushed too easily in COMPRESSION; tension was not the cause.
+- Cause: alumina constants were a weaker low-purity set (rho 3700, G 90, HEL
+  2.79). Replaced with AD-995 from Zhang et al. 2019 (Compos. Struct. 111258,
+  Table 6): rho 3890, G 152, K1/K2/K3 231/-160/2774, HEL 6.57, A 0.88 N 0.64
+  B 0.28 M 0.6 T 0.312 D1 0.01 D2 0.7; C 0.007 (paper prints 0.07); no cap.
+  PHEL 3.51 derived (test).
+- Same shot: 11.3 g @ 706 m/s (247 s wall), rod energy -22% vs before ->
+  about the old steel result, better than equal-weight Al. Tile test passes
+  (9 s). Equal-weight table in README is from the OLD constants (not re-run).

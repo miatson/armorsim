@@ -216,18 +216,22 @@ std::vector<Material> defaultMaterials() {
         Material m;
         m.name = "Alumina ceramic (AD-995)";
         m.key = "alumina_ad995";
-        m.source = "JH-2 (Johnson & Holmquist 1994): A 0.93, B 0.31, M 0.6, N 0.6, D1 0.005, D2 1, HEL 2.79 GPa, "
-                   "K1 130.95 GPa, G 90.16 GPa, beta 1 (cross-checked: these K1, G and HEL give PHEL = 1.46 GPa, the "
-                   "published value). Tensile strength 0.2 GPa and fractured-strength cap 0.2: single source, approx.";
-        m.density0 = 3700.0;
-        m.eos = PolynomialEos{130.95e9, 0.0, 0.0};
-        m.bulkModulus = 130.95e9;
-        m.shearModulus = 90.16e9;
+        // The earlier set (rho 3700, G 90 GPa, HEL 2.79 GPa) is a much weaker,
+        // lower-purity alumina: real AD-995 has HEL ~6.6 GPa. With it a ceramic
+        // face did no better than aluminium of equal weight.
+        m.source = "JH-2 for AD-995 (Zhang et al. 2019, Compos. Struct. 111258, Table 6): rho 3890, G 152 GPa, "
+                   "K1/K2/K3 231/-160/2774 GPa, HEL 6.57 GPa, A 0.88, N 0.64, B 0.28, M 0.6, T 0.312 GPa, D1 0.01, "
+                   "D2 0.7, beta 1. PHEL derived from these (test). C 0.007 (the paper prints 0.07; 0.007 is the usual "
+                   "value and the cautious one). No fractured-strength cap is given, so none is used.";
+        m.density0 = 3890.0;
+        m.eos = PolynomialEos{231e9, -160e9, 2774e9};
+        m.bulkModulus = 231e9;
+        m.shearModulus = 152e9;
         m.specificHeat = 880.0;
         JohnsonHolmquist2 jh;
-        jh.A = 0.93; jh.B = 0.31; jh.C = 0.0; jh.M = 0.6; jh.N = 0.6;
-        jh.T = 0.2e9; jh.HEL = 2.79e9; jh.PHEL = 1.46e9; jh.sigmaHEL = 1.5 * (2.79e9 - 1.46e9);
-        jh.fracturedMax = 0.2; jh.D1 = 0.005; jh.D2 = 1.0; jh.beta = 1.0;
+        jh.A = 0.88; jh.B = 0.28; jh.C = 0.007; jh.M = 0.6; jh.N = 0.64;
+        jh.T = 0.312e9; jh.HEL = 6.57e9; jh.PHEL = 3.51e9; jh.sigmaHEL = 1.5 * (jh.HEL - jh.PHEL);
+        jh.fracturedMax = 1e9; jh.D1 = 0.01; jh.D2 = 0.7; jh.beta = 1.0;
         m.strength = jh;
         list.push_back(m);
     }

@@ -364,15 +364,17 @@ elastic energy released as strength drops raises the pressure,
 the same stored value, so energy stays exact.
 
 **Materials:**
-- **Alumina AD-995:** A 0.93, B 0.31, M 0.6, N 0.6, D1 0.005, D2 1, HEL 2.79 GPa,
-  K1 130.95 GPa, G 90.16 GPa.
+- **Alumina AD-995** (Zhang et al. 2019, Composite Structures, Table 6): density
+  3890 kg/m³, G 152 GPa, K1/K2/K3 231/−160/2774 GPa, HEL 6.57 GPa, A 0.88, N 0.64,
+  B 0.28, M 0.6, T 0.312 GPa, D1 0.01, D2 0.7. C = 0.007 (the paper prints 0.07;
+  0.007 is the usual value and the cautious choice). No rubble cap is given, so none
+  is used. (An earlier set with HEL 2.79 GPa and G 90 GPa turned out to describe a
+  much weaker, lower-purity alumina; see below.)
 - **Boron carbide** (Johnson & Holmquist 1999): A 0.927, B 0.7, C 0.005, M 0.85,
   N 0.67, T 0.26 GPa, HEL 19 GPa, K1/K2/K3 233/−593/2800 GPa, G 197 GPa.
 - **Cross-check:** the pressure at the HEL is not a free number. It follows from K1–K3,
   G and the HEL (uniaxial strain), and the code reproduces the published PHEL to
-  0.2% for both (1.46 and 8.71 GPa); this is a test.
-- **Approximate (single source):** alumina's tensile strength (0.2 GPa) and its
-  fractured-strength cap (0.2).
+  1% for all three (alumina 3.51, boron carbide 8.71, SiC 5.58 GPa); this is a test.
 - **Silicon carbide (SiC-B):** two sources agree on K1/K2/K3 = 220/361/0 GPa, G 193 GPa,
   HEL 11.7 GPa and the strength curve; PHEL (5.58 GPa) is derived from them. Its
   tensile strength (0.37 GPa), damage constants (0.48/0.48) and rubble cap (0.8) are
@@ -384,7 +386,7 @@ the ball, cracking spreading outward through the middle and back of the tile, an
 intact front surface away from the contact. Bulking reaches 2.7 GPa, and total
 energy never grows (final 0.998).
 
-**Open: the composite-armour advantage does not show yet.** A tungsten rod (30 × 6 mm,
+**Investigation (tables below use the OLD, too-weak alumina constants; the fix is at the end):** A tungsten rod (30 × 6 mm,
 15 g, 900 m/s) against three targets of equal weight (64 kg/m²):
 
 | Target | Rod leaves at |
@@ -415,9 +417,18 @@ aluminium): **loose tile 12.7 g at 767 m/s, glued tile 12.5 g at 760 m/s**. So g
 is more realistic but **does not close the gap**. A second idea was also tried and
 discarded: limiting how fast a ceramic particle can crack to a physical crack speed
 (0.4 × shear wave speed) gave 761 m/s, no change. The cause is still unknown; the
-next suspects are how JH-2 handles tension (it fails at almost zero strain once
-pulled) and SPH tension noise at the tile's back face. **Treat ceramic results as
-qualitative** until this is fixed.
+next suspects were tension and SPH noise.
+
+**Found: the alumina constants were for the wrong ceramic.** Two diagnostic shots
+switched off cracking from tension in one and from compression in the other. No
+cracking from tension changed nothing (760 m/s). No cracking from compression
+stopped the rod down to 5.7 g at 359 m/s. So the tile was simply crushing too
+easily. The constants used had HEL 2.79 GPa and G 90 GPa, a weaker lower-purity
+alumina, while real AD-995 has HEL ~6.6 GPa and G 152 GPa. With a sourced AD-995
+set (above), the same shot gives **11.3 g at 706 m/s** (was 12.5 g at 760 m/s). The
+leftover rod energy drops by 22%, roughly the steel result and clearly better than
+aluminium of the same weight. Real ceramic faces should still do somewhat better than
+steel, so ceramic results remain approximate, but no longer far off.
 
 ## Validation against experiments (Stage E)
 
