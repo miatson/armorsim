@@ -1,7 +1,7 @@
 {
  "name": "Tank cross-section: M1A2 Abrams turret cheek",
  "category": "armor",
- "description": "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates tilted 60 deg (rubber not modelled; depleted-uranium layers of later versions not modelled) and a 120 mm back plate. Public estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates tilted 60 deg (steel-rubber packets) and a 120 mm back plate, with two depleted-uranium armour layers (HA package; tungsten stand-in, no sourced DU data). Public estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
  "material": "steel_rha",
  "shape": {
   "type": "assembly",
@@ -126,12 +126,8 @@
     "group": 104,
     "points_mm": [
      [
-      700.0,
-      -150.0
-     ],
-     [
-      665.0,
-      -150.0
+      620,
+      -124.02
      ],
      [
       145.38,
@@ -142,8 +138,8 @@
       150.0
      ],
      [
-      700,
-      -141.34
+      620,
+      -95.15
      ]
     ]
    },
@@ -153,8 +149,8 @@
     "group": 105,
     "points_mm": [
      [
-      700,
-      -89.38
+      620,
+      -43.19
      ],
      [
       285.38,
@@ -165,8 +161,8 @@
       150.0
      ],
      [
-      700,
-      -60.51
+      620,
+      -14.32
      ]
     ]
    },
@@ -176,8 +172,8 @@
     "group": 106,
     "points_mm": [
      [
-      700,
-      -8.55
+      620,
+      37.64
      ],
      [
       425.38,
@@ -188,8 +184,8 @@
       150.0
      ],
      [
-      700,
-      20.32
+      620,
+      66.51
      ]
     ]
    },
@@ -199,8 +195,8 @@
     "group": 107,
     "points_mm": [
      [
-      700,
-      72.28
+      620,
+      118.47
      ],
      [
       565.38,
@@ -211,8 +207,8 @@
       150.0
      ],
      [
-      700,
-      101.15
+      620,
+      147.34
      ]
     ]
    },
@@ -314,8 +310,8 @@
     "group": 104,
     "points_mm": [
      [
-      700,
-      -132.68
+      620,
+      -86.49
      ],
      [
       210.38,
@@ -326,8 +322,8 @@
       150.0
      ],
      [
-      700,
-      -121.13
+      620,
+      -74.94
      ]
     ]
    },
@@ -337,8 +333,8 @@
     "group": 105,
     "points_mm": [
      [
-      700,
-      -51.85
+      620,
+      -5.66
      ],
      [
       350.38,
@@ -349,8 +345,8 @@
       150.0
      ],
      [
-      700,
-      -40.3
+      620,
+      5.88
      ]
     ]
    },
@@ -360,8 +356,8 @@
     "group": 106,
     "points_mm": [
      [
-      700,
-      28.98
+      620,
+      75.17
      ],
      [
       490.38,
@@ -372,31 +368,52 @@
       150.0
      ],
      [
-      700,
-      40.53
+      620,
+      86.71
      ]
     ]
    },
    {
-    "name": "NERA packet 8: rubber",
-    "material": "rubber_neoprene",
-    "group": 107,
+    "name": "DU armour layer 1 (tungsten stand-in)",
+    "material": "tungsten_wha",
     "points_mm": [
      [
-      700,
-      109.81
+      630,
+      -150.0
      ],
      [
-      630.38,
+      645,
+      -150.0
+     ],
+     [
+      645,
       150.0
      ],
      [
-      650.38,
+      630,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "DU armour layer 2 (tungsten stand-in)",
+    "material": "tungsten_wha",
+    "points_mm": [
+     [
+      660,
+      -150.0
+     ],
+     [
+      675,
+      -150.0
+     ],
+     [
+      675,
       150.0
      ],
      [
-      700,
-      121.35
+      660,
+      150.0
      ]
     ]
    },

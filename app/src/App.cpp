@@ -1517,11 +1517,12 @@ void App::drawSetup() {
     };
     // Where the projectile started (before you moved it): faint dashed outline.
     for (std::size_t k = 0; k < ghost_.size(); ++k) dashed(ghost_[k], ghost_[(k + 1) % ghost_.size()], Fade(WHITE, 0.45f), 1.5f, 5.0f);
-    // Everything else first, the projectile last (on top).
+    // Everything else first, the projectile last (on top). Later parts are
+    // drawn first: where shapes overlap the EARLIER part is the one simulated.
     for (std::size_t n = 0; n <= parts.size(); ++n) {
         std::size_t i;
         if (n < parts.size()) {
-            i = n;
+            i = parts.size() - 1 - n;
             if (static_cast<int>(i) == previewProj_) continue;
         } else {
             if (previewProj_ < 0) break;

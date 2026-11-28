@@ -1,14 +1,14 @@
 {
  "name": "Tank cross-section: T-80U turret cheek",
  "category": "armor",
- "description": "Cast turret: Kontakt-5 in front (inert), cast steel walls and 'cellular' inserts - two 80 mm polymer-cell layers in alloy shells with 40 mm hollows (polymer stood in by aluminium). Inserts ~815 mm deep. Estimates vs long rods 630-860 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Cast turret: Kontakt-5 in front (high-hardness steel plates; explosive not yet modelled), cast steel walls and two 80 mm inserts of ~60 mm ceramic (alumina) cylinders in polyurethane with 40 mm hollows (public estimates disagree: 'cellular' polymer cells vs ceramic cylinders). Inserts ~815 mm deep. Estimates vs long rods 630-860 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
  "material": "steel_rha",
  "shape": {
   "type": "assembly",
   "parts": [
    {
-    "name": "Kontakt-5 plate 1 (ERA, inert)",
-    "material": "steel_rha",
+    "name": "Kontakt-5 plate 1 (high-hardness steel; ERA explosive not modelled)",
+    "material": "tool_steel_hrc53",
     "points_mm": [
      [
       190,
@@ -29,8 +29,8 @@
     ]
    },
    {
-    "name": "Kontakt-5 plate 2 (ERA, inert)",
-    "material": "steel_rha",
+    "name": "Kontakt-5 plate 2 (high-hardness steel; ERA explosive not modelled)",
+    "material": "tool_steel_hrc53",
     "points_mm": [
      [
       190,
@@ -73,8 +73,293 @@
     ]
    },
    {
-    "name": "Cell insert 1 (alloy shell; polymer cells as aluminium)",
-    "material": "aluminium_6061",
+    "name": "Insert 1 ceramic cylinder 1",
+    "material": "alumina_ad995",
+    "group": 200,
+    "points_mm": [
+     [
+      390.0,
+      -112.5
+     ],
+     [
+      387.72,
+      -101.02
+     ],
+     [
+      381.21,
+      -91.29
+     ],
+     [
+      371.48,
+      -84.78
+     ],
+     [
+      360.0,
+      -82.5
+     ],
+     [
+      348.52,
+      -84.78
+     ],
+     [
+      338.79,
+      -91.29
+     ],
+     [
+      332.28,
+      -101.02
+     ],
+     [
+      330.0,
+      -112.5
+     ],
+     [
+      332.28,
+      -123.98
+     ],
+     [
+      338.79,
+      -133.71
+     ],
+     [
+      348.52,
+      -140.22
+     ],
+     [
+      360.0,
+      -142.5
+     ],
+     [
+      371.48,
+      -140.22
+     ],
+     [
+      381.21,
+      -133.71
+     ],
+     [
+      387.72,
+      -123.98
+     ]
+    ]
+   },
+   {
+    "name": "Insert 1 ceramic cylinder 2",
+    "material": "alumina_ad995",
+    "group": 200,
+    "points_mm": [
+     [
+      390.0,
+      -37.5
+     ],
+     [
+      387.72,
+      -26.02
+     ],
+     [
+      381.21,
+      -16.29
+     ],
+     [
+      371.48,
+      -9.78
+     ],
+     [
+      360.0,
+      -7.5
+     ],
+     [
+      348.52,
+      -9.78
+     ],
+     [
+      338.79,
+      -16.29
+     ],
+     [
+      332.28,
+      -26.02
+     ],
+     [
+      330.0,
+      -37.5
+     ],
+     [
+      332.28,
+      -48.98
+     ],
+     [
+      338.79,
+      -58.71
+     ],
+     [
+      348.52,
+      -65.22
+     ],
+     [
+      360.0,
+      -67.5
+     ],
+     [
+      371.48,
+      -65.22
+     ],
+     [
+      381.21,
+      -58.71
+     ],
+     [
+      387.72,
+      -48.98
+     ]
+    ]
+   },
+   {
+    "name": "Insert 1 ceramic cylinder 3",
+    "material": "alumina_ad995",
+    "group": 200,
+    "points_mm": [
+     [
+      390.0,
+      37.5
+     ],
+     [
+      387.72,
+      48.98
+     ],
+     [
+      381.21,
+      58.71
+     ],
+     [
+      371.48,
+      65.22
+     ],
+     [
+      360.0,
+      67.5
+     ],
+     [
+      348.52,
+      65.22
+     ],
+     [
+      338.79,
+      58.71
+     ],
+     [
+      332.28,
+      48.98
+     ],
+     [
+      330.0,
+      37.5
+     ],
+     [
+      332.28,
+      26.02
+     ],
+     [
+      338.79,
+      16.29
+     ],
+     [
+      348.52,
+      9.78
+     ],
+     [
+      360.0,
+      7.5
+     ],
+     [
+      371.48,
+      9.78
+     ],
+     [
+      381.21,
+      16.29
+     ],
+     [
+      387.72,
+      26.02
+     ]
+    ]
+   },
+   {
+    "name": "Insert 1 ceramic cylinder 4",
+    "material": "alumina_ad995",
+    "group": 200,
+    "points_mm": [
+     [
+      390.0,
+      112.5
+     ],
+     [
+      387.72,
+      123.98
+     ],
+     [
+      381.21,
+      133.71
+     ],
+     [
+      371.48,
+      140.22
+     ],
+     [
+      360.0,
+      142.5
+     ],
+     [
+      348.52,
+      140.22
+     ],
+     [
+      338.79,
+      133.71
+     ],
+     [
+      332.28,
+      123.98
+     ],
+     [
+      330.0,
+      112.5
+     ],
+     [
+      332.28,
+      101.02
+     ],
+     [
+      338.79,
+      91.29
+     ],
+     [
+      348.52,
+      84.78
+     ],
+     [
+      360.0,
+      82.5
+     ],
+     [
+      371.48,
+      84.78
+     ],
+     [
+      381.21,
+      91.29
+     ],
+     [
+      387.72,
+      101.02
+     ]
+    ]
+   },
+   {
+    "name": "Insert 1 polyurethane matrix",
+    "material": "polyurethane",
+    "group": 200,
     "points_mm": [
      [
       320,
@@ -95,8 +380,293 @@
     ]
    },
    {
-    "name": "Cell insert 2 (alloy shell; polymer cells as aluminium)",
-    "material": "aluminium_6061",
+    "name": "Insert 2 ceramic cylinder 1",
+    "material": "alumina_ad995",
+    "group": 201,
+    "points_mm": [
+     [
+      510.0,
+      -112.5
+     ],
+     [
+      507.72,
+      -101.02
+     ],
+     [
+      501.21,
+      -91.29
+     ],
+     [
+      491.48,
+      -84.78
+     ],
+     [
+      480.0,
+      -82.5
+     ],
+     [
+      468.52,
+      -84.78
+     ],
+     [
+      458.79,
+      -91.29
+     ],
+     [
+      452.28,
+      -101.02
+     ],
+     [
+      450.0,
+      -112.5
+     ],
+     [
+      452.28,
+      -123.98
+     ],
+     [
+      458.79,
+      -133.71
+     ],
+     [
+      468.52,
+      -140.22
+     ],
+     [
+      480.0,
+      -142.5
+     ],
+     [
+      491.48,
+      -140.22
+     ],
+     [
+      501.21,
+      -133.71
+     ],
+     [
+      507.72,
+      -123.98
+     ]
+    ]
+   },
+   {
+    "name": "Insert 2 ceramic cylinder 2",
+    "material": "alumina_ad995",
+    "group": 201,
+    "points_mm": [
+     [
+      510.0,
+      -37.5
+     ],
+     [
+      507.72,
+      -26.02
+     ],
+     [
+      501.21,
+      -16.29
+     ],
+     [
+      491.48,
+      -9.78
+     ],
+     [
+      480.0,
+      -7.5
+     ],
+     [
+      468.52,
+      -9.78
+     ],
+     [
+      458.79,
+      -16.29
+     ],
+     [
+      452.28,
+      -26.02
+     ],
+     [
+      450.0,
+      -37.5
+     ],
+     [
+      452.28,
+      -48.98
+     ],
+     [
+      458.79,
+      -58.71
+     ],
+     [
+      468.52,
+      -65.22
+     ],
+     [
+      480.0,
+      -67.5
+     ],
+     [
+      491.48,
+      -65.22
+     ],
+     [
+      501.21,
+      -58.71
+     ],
+     [
+      507.72,
+      -48.98
+     ]
+    ]
+   },
+   {
+    "name": "Insert 2 ceramic cylinder 3",
+    "material": "alumina_ad995",
+    "group": 201,
+    "points_mm": [
+     [
+      510.0,
+      37.5
+     ],
+     [
+      507.72,
+      48.98
+     ],
+     [
+      501.21,
+      58.71
+     ],
+     [
+      491.48,
+      65.22
+     ],
+     [
+      480.0,
+      67.5
+     ],
+     [
+      468.52,
+      65.22
+     ],
+     [
+      458.79,
+      58.71
+     ],
+     [
+      452.28,
+      48.98
+     ],
+     [
+      450.0,
+      37.5
+     ],
+     [
+      452.28,
+      26.02
+     ],
+     [
+      458.79,
+      16.29
+     ],
+     [
+      468.52,
+      9.78
+     ],
+     [
+      480.0,
+      7.5
+     ],
+     [
+      491.48,
+      9.78
+     ],
+     [
+      501.21,
+      16.29
+     ],
+     [
+      507.72,
+      26.02
+     ]
+    ]
+   },
+   {
+    "name": "Insert 2 ceramic cylinder 4",
+    "material": "alumina_ad995",
+    "group": 201,
+    "points_mm": [
+     [
+      510.0,
+      112.5
+     ],
+     [
+      507.72,
+      123.98
+     ],
+     [
+      501.21,
+      133.71
+     ],
+     [
+      491.48,
+      140.22
+     ],
+     [
+      480.0,
+      142.5
+     ],
+     [
+      468.52,
+      140.22
+     ],
+     [
+      458.79,
+      133.71
+     ],
+     [
+      452.28,
+      123.98
+     ],
+     [
+      450.0,
+      112.5
+     ],
+     [
+      452.28,
+      101.02
+     ],
+     [
+      458.79,
+      91.29
+     ],
+     [
+      468.52,
+      84.78
+     ],
+     [
+      480.0,
+      82.5
+     ],
+     [
+      491.48,
+      84.78
+     ],
+     [
+      501.21,
+      91.29
+     ],
+     [
+      507.72,
+      101.02
+     ]
+    ]
+   },
+   {
+    "name": "Insert 2 polyurethane matrix",
+    "material": "polyurethane",
+    "group": 201,
     "points_mm": [
      [
       440,

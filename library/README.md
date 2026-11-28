@@ -33,7 +33,7 @@ the source tree. Unknown keys are an error, so typos can't slip through.
 | Key | Meaning |
 |---|---|
 | `category` | `"projectile"` (in `projectiles/`) or `"armor"` (in `armor/`) |
-| `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide`, `silicon_carbide`, `rubber_neoprene` |
+| `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide`, `silicon_carbide`, `rubber_neoprene`, `polyurethane` |
 | `shape` | Projectiles: `sphere` (`diameter_mm`) or `rod` (`length_mm`, `diameter_mm`, flat nose). Armour: `plate` (`thickness_mm`, `width_mm`) |
 | `speed_mps` | Suggested speed (projectiles) |
 | `nose_length_mm` | Rods only, optional: a pointed conical nose, part of `length_mm` |

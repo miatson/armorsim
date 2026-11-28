@@ -102,7 +102,7 @@ COMMON = (" Approximate reconstruction from public sources (forums, modders' and
 # 6 mm rubber + 3 mm steel; steel merged to 24 mm), inner wall 150 mm.
 parts = []
 for k, (x, th) in enumerate([(0, 15), (60, 15)]):
-    parts.append({"name": "Kontakt-5 plate %d (ERA, inert)" % (k + 1), "material": "steel_rha",
+    parts.append({"name": "Kontakt-5 plate %d (high-hardness steel; ERA explosive not modelled)" % (k + 1), "material": "tool_steel_hrc53",
                   "points_mm": clip(slab(x + 60, th, 60), 0, 190, -H / 2, H / 2)})
 parts.append({"name": "Outer wall 65 mm", "material": "steel_rha", "points_mm": rect(200, 265)})
 parts += sandwich(265, 765, 55, [(24, "steel_rha", "steel"), (6, "rubber_neoprene", "rubber")], 52, "Reflecting sheet")
@@ -115,25 +115,39 @@ write("tank_t90a_turret_section.json", "Tank cross-section: T-90A turret cheek",
 # ---- T-80U turret cheek ----------------------------------------------------
 parts = []
 for k, (x, th) in enumerate([(0, 15), (60, 15)]):
-    parts.append({"name": "Kontakt-5 plate %d (ERA, inert)" % (k + 1), "material": "steel_rha",
+    parts.append({"name": "Kontakt-5 plate %d (high-hardness steel; ERA explosive not modelled)" % (k + 1), "material": "tool_steel_hrc53",
                   "points_mm": clip(slab(x + 60, th, 60), 0, 190, -H / 2, H / 2)})
 parts.append({"name": "Cast outer wall 80 mm", "material": "steel_rha", "points_mm": rect(200, 280)})
-parts.append({"name": "Cell insert 1 (alloy shell; polymer cells as aluminium)", "material": "aluminium_6061", "points_mm": rect(320, 400)})
-parts.append({"name": "Cell insert 2 (alloy shell; polymer cells as aluminium)", "material": "aluminium_6061", "points_mm": rect(440, 520)})
+def disc(cx, cy, r, n=16):
+    return [[round(cx + r * math.cos(2 * math.pi * k / n), 2), round(cy + r * math.sin(2 * math.pi * k / n), 2)] for k in range(n)]
+for k, (x0, x1) in enumerate([(320, 400), (440, 520)]):
+    # Ceramic cylinders (~60 mm) in a polyurethane matrix: listed first so they
+    # win where they overlap the matrix.
+    for j, cy in enumerate([-112.5, -37.5, 37.5, 112.5]):
+        parts.append({"name": "Insert %d ceramic cylinder %d" % (k + 1, j + 1), "material": "alumina_ad995",
+                      "group": 200 + k, "points_mm": disc(0.5 * (x0 + x1), cy, 30)})
+    parts.append({"name": "Insert %d polyurethane matrix" % (k + 1), "material": "polyurethane", "group": 200 + k,
+                  "points_mm": rect(x0, x1)})
 parts.append({"name": "Cast inner wall 300 mm", "material": "steel_rha", "points_mm": rect(560, 860)})
 write("tank_t80u_turret_section.json", "Tank cross-section: T-80U turret cheek",
-      "Cast turret: Kontakt-5 in front (inert), cast steel walls and 'cellular' inserts - two 80 mm polymer-cell "
-      "layers in alloy shells with 40 mm hollows (polymer stood in by aluminium). Inserts ~815 mm deep. Estimates "
+      "Cast turret: Kontakt-5 in front (high-hardness steel plates; explosive not yet modelled), cast steel walls "
+      "and two 80 mm inserts of ~60 mm ceramic (alumina) cylinders in polyurethane with 40 mm hollows (public "
+      "estimates disagree: 'cellular' polymer cells vs ceramic cylinders). Inserts ~815 mm deep. Estimates "
       "vs long rods 630-860 mm with Kontakt-5." + COMMON, parts, [630, 860])
 
 # ---- M1A2 Abrams turret cheek ---------------------------------------------
 parts = [{"name": "Front plate 60 mm", "material": "steel_rha", "points_mm": rect(0, 60)}]
-parts += sandwich(60, 700, 60, [(25, "steel_rha", "steel"), (10, "rubber_neoprene", "rubber")], 70, "NERA packet")
+parts += sandwich(60, 620, 60, [(25, "steel_rha", "steel"), (10, "rubber_neoprene", "rubber")], 70, "NERA packet")
+# Heavy armour (HA): depleted-uranium layers encased in steel. No sourced DU
+# strength data -> tungsten alloy stand-in (6 % lighter, similar hardness).
+parts.append({"name": "DU armour layer 1 (tungsten stand-in)", "material": "tungsten_wha", "points_mm": rect(630, 645)})
+parts.append({"name": "DU armour layer 2 (tungsten stand-in)", "material": "tungsten_wha", "points_mm": rect(660, 675)})
 parts.append({"name": "Back plate 120 mm", "material": "steel_rha", "points_mm": rect(700, 820)})
 write("tank_m1a2_turret_section.json", "Tank cross-section: M1A2 Abrams turret cheek",
       "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates "
-      "tilted 60 deg (rubber not modelled; depleted-uranium layers of later versions not modelled) and a 120 mm back "
-      "plate. Public estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods." + COMMON,
+      "tilted 60 deg (steel-rubber packets) and a 120 mm back "
+      "plate, with two depleted-uranium armour layers (HA package; tungsten stand-in, no sourced DU data). Public "
+      "estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods." + COMMON,
       parts, [700, 900])
 
 # ---- Leopard 2A6 turret cheek ---------------------------------------------

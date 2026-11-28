@@ -31,7 +31,7 @@ are an error**, so a typo can't be silently ignored.
 | Key | Meaning |
 |---|---|
 | `name` | Name (shown in the readout) |
-| `material` | `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide`, `silicon_carbide`, `rubber_neoprene` (or the full name) |
+| `material` | `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide`, `silicon_carbide`, `rubber_neoprene`, `polyurethane` (or the full name) |
 | `shape` | See below |
 | `velocity_mps` | `[vx, vy]`, m/s. Axisymmetric: vy must be 0 |
 | `temperature_K` | Initial temperature (default 293.15) |

@@ -11,6 +11,7 @@
 #include <string>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <vector>
 
 #include <fstream>
@@ -85,12 +86,41 @@ int runScenario(const std::string& title, const armor::Scenario& scenario, const
                     char buf[96];
                     std::snprintf(buf, sizeof buf, "%s%.3g g at %.0f m/s", top.empty() ? "" : ", ", f.mass * 1e3,
                                   std::hypot(f.velocity.x, f.velocity.y));
+                    if (top.empty() && std::hypot(f.velocity.x, f.velocity.y) > 50.0) { // heading of the main piece
+                        char h[48];
+                        std::snprintf(h, sizeof h, " heading %+.1f deg", std::atan2(f.velocity.y, f.velocity.x) * 57.29578);
+                        strncat_s(buf, sizeof buf, h, _TRUNCATE);
+                    }
                     top += buf;
                 }
             }
             std::printf("  %-26s %d piece(s)%s%s\n", b.name.c_str(), count, count ? ": " : "", top.c_str());
         }
         std::printf("  loose debris (fully failed): %zu particles, %.3g g\n", fs.debrisParticles, fs.debrisMass * 1e3);
+        // Tilt of moving bodies: angle of the long axis of their intact
+        // material (principal axis of the positions) - shows bending / yaw.
+        for (const armor::BodyName& b : armor::bodyNames(scenario)) {
+            bool moving = false;
+            for (std::size_t k = 0; k < scenario.parts.size(); ++k)
+                if (armor::bodyId(scenario, k) == b.id && armor::lengthSquared(scenario.parts[k].velocity) > 0.0) moving = true;
+            if (!moving) continue;
+            double m = 0, cx = 0, cy = 0;
+            for (std::size_t i = 0; i < solver.particleCount(); ++i)
+                if (P.part[i] == b.id && P.failed[i] == 0) { m += P.mass[i]; cx += P.mass[i] * P.pos[i].x; cy += P.mass[i] * P.pos[i].y; }
+            if (m <= 0) continue;
+            cx /= m;
+            cy /= m;
+            double sxx = 0, syy = 0, sxy = 0;
+            for (std::size_t i = 0; i < solver.particleCount(); ++i)
+                if (P.part[i] == b.id && P.failed[i] == 0) {
+                    const double ddx = P.pos[i].x - cx, ddy = P.pos[i].y - cy;
+                    sxx += P.mass[i] * ddx * ddx;
+                    syy += P.mass[i] * ddy * ddy;
+                    sxy += P.mass[i] * ddx * ddy;
+                }
+            std::printf("  %-26s long axis tilted %+.1f deg (intact material)\n", b.name.c_str(),
+                        0.5 * std::atan2(2.0 * sxy, sxx - syy) * 57.29578);
+        }
     }
 
     // Body sizes, measured to the surface (centres sit dx/2 inside it).

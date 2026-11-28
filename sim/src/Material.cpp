@@ -284,21 +284,65 @@ std::vector<Material> defaultMaterials() {
         m.key = "rubber_neoprene";
         // Shock data: Marsh, LASL Shock Hugoniot Data (1980), neoprene p.423:
         // rho0 1.439 g/cm3, five shots, Us 4.37-5.76 km/s at up 1.14-2.10 km/s.
-        // A straight-line fit through them gives c0 2.79 km/s, s 1.42 (only
-        // measured above ~7 GPa; polymers are softer at low pressure, so this
-        // is somewhat stiff there). Gruneisen 1.0, shear modulus 1 MPa, tear
-        // strain 3 (elongation at break ~300-600%), tensile strength 20 MPa:
-        // typical handbook values, approximate.
-        m.source = "EOS: Marsh 1980 LASL neoprene shots, linear fit c0 2.79 km/s, s 1.42 (valid up 1.1-2.1 km/s); "
-                   "Gruneisen 1.0, G 1 MPa, tear strain 3, tensile 20 MPa: typical values, approx.";
+        // Polymer Hugoniots curve: a straight line through those high-pressure
+        // shots (c0 2.79 km/s) would make rubber ~5x too stiff at low pressure
+        // (bulk modulus 11 GPa vs ~2 GPa) - exactly the range that drives NERA
+        // bulging. So the line is ANCHORED at rubber's low-pressure bulk modulus
+        // (~2 GPa -> c0 = 1.18 km/s) and its slope s = 2.4 keeps the five shots
+        // within ~10% (Us at up 1.14/1.53/2.09: 3.91/4.86/6.20 vs 4.37/5.01/5.74).
+        // Gruneisen 1.0, shear modulus 1 MPa, tensile strength 25 MPa,
+        // elongation at break 700% (Fras 2021, NERA rubber 70 Shore A):
+        // typical values, approximate.
+        m.source = "EOS: c0 1.18 km/s (bulk modulus ~2 GPa) + slope 2.4 fitted to Marsh 1980 LASL neoprene shots "
+                   "(within ~10% for up 1.1-2.1 km/s). Gruneisen 1.0, G 1 MPa, tensile 25 MPa, tear strain 2.1 "
+                   "(700% elongation, Fras 2021): typical values, approx.";
         m.density0 = 1439.0;
-        m.eos = MieGruneisenEos{2790.0, 1.42, 1.0};
-        m.bulkModulus = m.density0 * 2790.0 * 2790.0;
+        m.eos = MieGruneisenEos{1180.0, 2.4, 1.0};
+        m.bulkModulus = m.density0 * 1180.0 * 1180.0;
         m.shearModulus = 1.0e6;
         m.specificHeat = 2170.0;
-        m.strength = JohnsonCookStrength{20e6, 0.0, 1.0, 0.0, 1.0, 600.0};
-        m.failure = JohnsonCookFailure{3.0, 0.0, 0.0, 0.0, 0.0};
-        m.spallStrength = 20e6;
+        m.strength = JohnsonCookStrength{25e6, 0.0, 1.0, 0.0, 1.0, 600.0};
+        m.failure = JohnsonCookFailure{2.1, 0.0, 0.0, 0.0, 0.0};
+        m.spallStrength = 25e6;
+        list.push_back(m);
+    }
+    {
+        // Solid polyurethane: filler / interlayer of composite armour (e.g. the
+        // T-80U's ceramic-in-polyurethane inserts).
+        Material m;
+        m.name = "Polyurethane (solid)";
+        m.key = "polyurethane";
+        // Marsh 1980 LASL p.469: rho0 1.264 g/cm3, longitudinal 2.39 km/s,
+        // shear 1.03 km/s -> bulk sound speed 2.07 km/s, G = rho cs^2 = 1.34 GPa.
+        // Shots Us 3.64-9.76 km/s at up 0.66-5.08 km/s; line anchored at the
+        // bulk sound speed with slope 1.55 (last shot within 4%, first 15% low).
+        // Yield 60 MPa, tear strain 0.5, spall 60 MPa: typical values, approx.
+        m.source = "EOS: Marsh 1980 LASL solid polyurethane (sound speeds 2.39/1.03 km/s -> c0 2.07 km/s, G 1.34 GPa), "
+                   "slope 1.55 fitted to the shots. Yield 60 MPa, tear strain 0.5: typical values, approx.";
+        m.density0 = 1264.0;
+        m.eos = MieGruneisenEos{2070.0, 1.55, 1.0};
+        m.bulkModulus = m.density0 * 2070.0 * 2070.0;
+        m.shearModulus = 1.34e9;
+        m.specificHeat = 1800.0;
+        m.strength = JohnsonCookStrength{60e6, 0.0, 1.0, 0.0, 1.0, 550.0};
+        m.failure = JohnsonCookFailure{0.5, 0.0, 0.0, 0.0, 0.0};
+        m.spallStrength = 60e6;
+        list.push_back(m);
+    }
+    {
+        // A brittle penetrator grade: tungsten alloy Kennametal Y925 (92.5 % W,
+        // Ni/Fe/Co), as fired at NERA in Fras 2021. Same strength and shock
+        // behaviour as the tougher 93W grade above, but it stretches only 8 %
+        // before breaking (vs ~20 % for the JC 1985 tungsten data), so its
+        // Johnson-Cook fracture strains are scaled by 0.4.
+        Material m = list[kTungstenHeavyAlloy];
+        m.name = "Tungsten alloy, brittle grade (Y925)";
+        m.key = "tungsten_y925";
+        m.density0 = 17700.0;
+        m.strength = JohnsonCookStrength{1258e6, 177e6, 0.12, 0.016, 1.0, 1723.0};
+        m.failure = JohnsonCookFailure{0.0, 0.33 * 0.4, -1.5, 0.0, 0.0};
+        m.source = "Fras 2021 (Materials 14, 3334): Y925, 17.7 g/cm3, yield 1258-1300 MPa, UTS 1350 MPa, elongation "
+                   "8%. Hardening, rate and EOS as the 93W grade; JC fracture strains scaled by 0.4 (8% vs ~20%).";
         list.push_back(m);
     }
     return list;

@@ -601,3 +601,21 @@ fracture validation (plate plugging / V50 overlaps Stage E).
 - Check (2D, W slab 1500 m/s, 2 x 8 mm steel at 60 deg, 120 us): gap ->
   tip 159.5 mm, 1389 m/s; rubber -> 139.8 mm, 1371 m/s. Energy 1.000.
 - NEXT: Stage G explosives (JWL + programmed burn) -> ERA explosive, HEAT, HESH.
+
+## 2026-11-28 — session 25: NERA realism + real elements in the tank sections
+
+- Rubber EOS was ~5x too stiff at low pressure (linear fit c0 2.79 -> K 11 GPa
+  vs ~2 GPa real). Now c0 1.18 km/s (K ~2 GPa) + slope 2.4 (Marsh shots within
+  ~10%); tensile 25 MPa, tear strain 2.1 (700%, Fras 2021).
+- New materials: polyurethane (Marsh solid PU: cl 2.39, cs 1.03 km/s -> c0
+  2.07, G 1.34 GPa, slope 1.55), tungsten_y925 (Fras rod: 17.7 g/cc, yield
+  1258 MPa, JC fracture strains x0.4 for 8% elongation).
+- Sections: Kontakt-5 plates -> high-hardness steel; T-80U inserts -> alumina
+  cylinders (60 mm) in polyurethane; Abrams -> 2 DU armour layers (tungsten
+  stand-in). Setup view (and plot) draw later parts first = what is simulated.
+- Validation vs Fras 2021 (2D, 0.25 mm, held plates): air 15 -> 76% rod,
+  tilt -0.7; rubber 15 -> 64%, -1.3; 2x10 -> 68%, -0.7; energy loss ~13% in
+  all (Fras ~5%, independent of rubber - trend matches). Fras: rubber bends
+  and breaks the rod (4 pieces for 2x10) - NOT reproduced (bulging erodes
+  the rod instead); Y925 too (3.31 vs 3.91 kg, one piece). Likely needs 3D.
+- Headless prints the main piece's heading and moving bodies' tilt.

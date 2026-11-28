@@ -7,8 +7,8 @@
   "type": "assembly",
   "parts": [
    {
-    "name": "Kontakt-5 plate 1 (ERA, inert)",
-    "material": "steel_rha",
+    "name": "Kontakt-5 plate 1 (high-hardness steel; ERA explosive not modelled)",
+    "material": "tool_steel_hrc53",
     "points_mm": [
      [
       190,
@@ -29,8 +29,8 @@
     ]
    },
    {
-    "name": "Kontakt-5 plate 2 (ERA, inert)",
-    "material": "steel_rha",
+    "name": "Kontakt-5 plate 2 (high-hardness steel; ERA explosive not modelled)",
+    "material": "tool_steel_hrc53",
     "points_mm": [
      [
       190,
