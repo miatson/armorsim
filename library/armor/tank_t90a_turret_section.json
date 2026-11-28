@@ -1,571 +1,474 @@
 {
  "name": "Tank cross-section: T-90A turret cheek",
  "category": "armor",
- "description": "Welded turret: Kontakt-5 explosive reactive armour in front (two 15 mm plates at 60 deg; explosive not modelled), a 65 mm outer wall, a ~500 mm cavity of 'reflecting sheet' packets (steel-rubber-steel, tilted 55 deg) and a 150 mm inner wall. Estimates vs long rods ~780-830 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Welded turret seen from above: Kontakt-5 block in front, then the cheek at ~59 deg to a frontal shot - 100 mm outer wall, ~250 mm cavity of 'reflecting' NERA modules (21 mm steel + 6 mm rubber + 3 mm steel, 22 mm gaps), 95 mm inner wall and a 45 mm high-hardness plate. Estimates vs long rods ~780-830 mm with Kontakt-5. Reconstruction from public sources (Tankograd, Below The Turret Ring, Zaloga/Wikipedia, forum analyses); real tank armour is secret. Armour amount = public protection estimate / mass efficiency (NERA ~1.3-1.5, Soviet arrays ~1.17). The explosive inside ERA is an empty gap until explosives are added, and the model under-represents NERA breaking long rods - so a full simulation is penetrated more easily than the real armour; the Tank check uses the estimates. 2D slice.",
  "material": "steel_rha",
+ "estimate_range_mm": [
+  700,
+  850
+ ],
  "shape": {
   "type": "assembly",
   "parts": [
    {
-    "name": "Kontakt-5 plate 1 (high-hardness steel; ERA explosive not modelled)",
+    "name": "Kontakt-5 front plate 15 mm",
     "material": "tool_steel_hrc53",
     "points_mm": [
      [
-      190,
-      75.06
+      246.71,
+      150.0
      ],
      [
-      0,
-      -34.64
+      0.0,
+      0.0
      ],
      [
-      0,
-      -51.96
+      0.0,
+      -17.55
      ],
      [
-      190,
-      57.74
+      275.58,
+      150.0
      ]
     ]
    },
    {
-    "name": "Kontakt-5 plate 2 (high-hardness steel; ERA explosive not modelled)",
+    "name": "Kontakt-5 rear wall 9 mm",
     "material": "tool_steel_hrc53",
     "points_mm": [
      [
-      190,
-      40.41
-     ],
-     [
-      0,
-      -69.28
-     ],
-     [
-      0,
-      -86.6
-     ],
-     [
-      190,
-      23.09
-     ]
-    ]
-   },
-   {
-    "name": "Outer wall 65 mm",
-    "material": "steel_rha",
-    "points_mm": [
-     [
-      200,
-      -150.0
-     ],
-     [
-      265,
-      -150.0
-     ],
-     [
-      265,
+      352.57,
       150.0
      ],
      [
-      200,
+      -0.0,
+      -64.37
+     ],
+     [
+      0.0,
+      -74.9
+     ],
+     [
+      369.9,
       150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 1: steel",
+    "name": "Outer wall 100 mm (welded)",
     "material": "steel_rha",
-    "group": 100,
     "points_mm": [
      [
-      289.41,
-      -150.0
-     ],
-     [
-      265,
-      -132.91
-     ],
-     [
-      265,
-      -103.61
-     ],
-     [
-      331.25,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 2: steel",
-    "material": "steel_rha",
-    "group": 101,
-    "points_mm": [
-     [
-      380.07,
-      -150.0
-     ],
-     [
-      265,
-      -69.43
-     ],
-     [
-      265,
-      -40.13
-     ],
-     [
-      421.91,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 3: steel",
-    "material": "steel_rha",
-    "group": 102,
-    "points_mm": [
-     [
-      470.73,
-      -150.0
-     ],
-     [
-      265,
-      -5.95
-     ],
-     [
-      265,
-      23.35
-     ],
-     [
-      512.57,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 4: steel",
-    "material": "steel_rha",
-    "group": 103,
-    "points_mm": [
-     [
-      561.39,
-      -150.0
-     ],
-     [
-      265,
-      57.53
-     ],
-     [
-      265,
-      86.83
-     ],
-     [
-      603.23,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 5: steel",
-    "material": "steel_rha",
-    "group": 104,
-    "points_mm": [
-     [
-      652.05,
-      -150.0
-     ],
-     [
-      265,
-      121.01
-     ],
-     [
-      265.0,
+      427.64,
       150.0
      ],
      [
-      265.44,
-      150.0
+      0.0,
+      -110.01
      ],
      [
-      693.89,
+      0.0,
       -150.0
+     ],
+     [
+      126.72,
+      -150.0
+     ],
+     [
+      620.13,
+      150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 6: steel",
+    "name": "Reflecting module 6: steel 21 mm",
     "material": "steel_rha",
     "group": 105,
     "points_mm": [
      [
-      765.0,
-      -150.0
-     ],
-     [
-      742.7,
-      -150.0
-     ],
-     [
-      314.26,
+      627.18,
       150.0
      ],
      [
-      356.1,
-      150.0
+      133.77,
+      -150.0
      ],
      [
-      765,
-      -136.31
+      174.19,
+      -150.0
+     ],
+     [
+      667.6,
+      150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 7: steel",
-    "material": "steel_rha",
-    "group": 106,
-    "points_mm": [
-     [
-      765,
-      -102.13
-     ],
-     [
-      404.92,
-      150.0
-     ],
-     [
-      446.76,
-      150.0
-     ],
-     [
-      765,
-      -72.83
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 8: steel",
-    "material": "steel_rha",
-    "group": 107,
-    "points_mm": [
-     [
-      765,
-      -38.65
-     ],
-     [
-      495.58,
-      150.0
-     ],
-     [
-      537.42,
-      150.0
-     ],
-     [
-      765,
-      -9.35
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 9: steel",
-    "material": "steel_rha",
-    "group": 108,
-    "points_mm": [
-     [
-      765,
-      24.83
-     ],
-     [
-      586.24,
-      150.0
-     ],
-     [
-      628.08,
-      150.0
-     ],
-     [
-      765,
-      54.13
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 10: steel",
-    "material": "steel_rha",
-    "group": 109,
-    "points_mm": [
-     [
-      765,
-      88.31
-     ],
-     [
-      676.9,
-      150.0
-     ],
-     [
-      718.74,
-      150.0
-     ],
-     [
-      765,
-      117.61
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 1: rubber",
-    "material": "rubber_neoprene",
-    "group": 100,
-    "points_mm": [
-     [
-      346.94,
-      -150.0
-     ],
-     [
-      265,
-      -92.62
-     ],
-     [
-      265,
-      -85.3
-     ],
-     [
-      357.4,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 2: rubber",
-    "material": "rubber_neoprene",
-    "group": 101,
-    "points_mm": [
-     [
-      437.6,
-      -150.0
-     ],
-     [
-      265,
-      -29.14
-     ],
-     [
-      265,
-      -21.82
-     ],
-     [
-      448.06,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 3: rubber",
-    "material": "rubber_neoprene",
-    "group": 102,
-    "points_mm": [
-     [
-      528.26,
-      -150.0
-     ],
-     [
-      265,
-      34.34
-     ],
-     [
-      265,
-      41.66
-     ],
-     [
-      538.72,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 4: rubber",
-    "material": "rubber_neoprene",
-    "group": 103,
-    "points_mm": [
-     [
-      618.92,
-      -150.0
-     ],
-     [
-      265,
-      97.82
-     ],
-     [
-      265,
-      105.14
-     ],
-     [
-      629.38,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 5: rubber",
-    "material": "rubber_neoprene",
-    "group": 104,
-    "points_mm": [
-     [
-      709.58,
-      -150.0
-     ],
-     [
-      281.13,
-      150.0
-     ],
-     [
-      291.6,
-      150.0
-     ],
-     [
-      720.04,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "Reflecting sheet 6: rubber",
+    "name": "Reflecting module 6: rubber 6 mm",
     "material": "rubber_neoprene",
     "group": 105,
     "points_mm": [
      [
-      765,
-      -125.33
-     ],
-     [
-      371.79,
+      667.6,
       150.0
      ],
      [
-      382.25,
-      150.0
+      174.19,
+      -150.0
      ],
      [
-      765,
-      -118.0
+      185.74,
+      -150.0
+     ],
+     [
+      679.15,
+      150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 7: rubber",
+    "name": "Reflecting module 6: bulging plate 3 mm",
+    "material": "steel_rha",
+    "group": 105,
+    "points_mm": [
+     [
+      679.15,
+      150.0
+     ],
+     [
+      185.74,
+      -150.0
+     ],
+     [
+      191.52,
+      -150.0
+     ],
+     [
+      684.93,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 7: steel 21 mm",
+    "material": "steel_rha",
+    "group": 106,
+    "points_mm": [
+     [
+      727.28,
+      150.0
+     ],
+     [
+      233.86,
+      -150.0
+     ],
+     [
+      274.28,
+      -150.0
+     ],
+     [
+      767.7,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 7: rubber 6 mm",
     "material": "rubber_neoprene",
     "group": 106,
     "points_mm": [
      [
-      765,
-      -61.85
-     ],
-     [
-      462.45,
+      767.7,
       150.0
      ],
      [
-      472.91,
-      150.0
+      274.28,
+      -150.0
      ],
      [
-      765,
-      -54.52
+      285.83,
+      -150.0
+     ],
+     [
+      779.25,
+      150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 8: rubber",
+    "name": "Reflecting module 7: bulging plate 3 mm",
+    "material": "steel_rha",
+    "group": 106,
+    "points_mm": [
+     [
+      779.25,
+      150.0
+     ],
+     [
+      285.83,
+      -150.0
+     ],
+     [
+      291.61,
+      -150.0
+     ],
+     [
+      785.02,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 8: steel 21 mm",
+    "material": "steel_rha",
+    "group": 107,
+    "points_mm": [
+     [
+      827.37,
+      150.0
+     ],
+     [
+      333.95,
+      -150.0
+     ],
+     [
+      374.38,
+      -150.0
+     ],
+     [
+      867.79,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 8: rubber 6 mm",
     "material": "rubber_neoprene",
     "group": 107,
     "points_mm": [
      [
-      765,
-      1.63
-     ],
-     [
-      553.11,
+      867.79,
       150.0
      ],
      [
-      563.57,
-      150.0
+      374.38,
+      -150.0
      ],
      [
-      765,
-      8.96
+      385.93,
+      -150.0
+     ],
+     [
+      879.34,
+      150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 9: rubber",
+    "name": "Reflecting module 8: bulging plate 3 mm",
+    "material": "steel_rha",
+    "group": 107,
+    "points_mm": [
+     [
+      879.34,
+      150.0
+     ],
+     [
+      385.93,
+      -150.0
+     ],
+     [
+      391.7,
+      -150.0
+     ],
+     [
+      885.11,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 9: steel 21 mm",
+    "material": "steel_rha",
+    "group": 108,
+    "points_mm": [
+     [
+      927.46,
+      150.0
+     ],
+     [
+      434.05,
+      -150.0
+     ],
+     [
+      474.47,
+      -150.0
+     ],
+     [
+      967.88,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 9: rubber 6 mm",
     "material": "rubber_neoprene",
     "group": 108,
     "points_mm": [
      [
-      765,
-      65.11
-     ],
-     [
-      643.77,
+      967.88,
       150.0
      ],
      [
-      654.23,
-      150.0
+      474.47,
+      -150.0
      ],
      [
-      765,
-      72.44
+      486.02,
+      -150.0
+     ],
+     [
+      979.43,
+      150.0
      ]
     ]
    },
    {
-    "name": "Reflecting sheet 10: rubber",
+    "name": "Reflecting module 9: bulging plate 3 mm",
+    "material": "steel_rha",
+    "group": 108,
+    "points_mm": [
+     [
+      979.43,
+      150.0
+     ],
+     [
+      486.02,
+      -150.0
+     ],
+     [
+      491.79,
+      -150.0
+     ],
+     [
+      985.21,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 10: steel 21 mm",
+    "material": "steel_rha",
+    "group": 109,
+    "points_mm": [
+     [
+      1027.55,
+      150.0
+     ],
+     [
+      534.14,
+      -150.0
+     ],
+     [
+      574.56,
+      -150.0
+     ],
+     [
+      1067.98,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting module 10: rubber 6 mm",
     "material": "rubber_neoprene",
     "group": 109,
     "points_mm": [
      [
-      765,
-      128.6
-     ],
-     [
-      734.43,
+      1067.98,
       150.0
      ],
      [
-      744.89,
-      150.0
+      574.56,
+      -150.0
      ],
      [
-      765,
-      135.92
+      586.11,
+      -150.0
+     ],
+     [
+      1079.52,
+      150.0
      ]
     ]
    },
    {
-    "name": "Inner wall 150 mm",
+    "name": "Reflecting module 10: bulging plate 3 mm",
     "material": "steel_rha",
+    "group": 109,
     "points_mm": [
      [
-      765,
-      -150.0
-     ],
-     [
-      915,
-      -150.0
-     ],
-     [
-      915,
+      1079.52,
       150.0
      ],
      [
-      765,
+      586.11,
+      -150.0
+     ],
+     [
+      591.89,
+      -150.0
+     ],
+     [
+      1085.3,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Inner wall 95 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      1101.34,
+      150.0
+     ],
+     [
+      607.93,
+      -150.0
+     ],
+     [
+      790.79,
+      -150.0
+     ],
+     [
+      1284.2,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "BTK-1Sh plate 45 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      1284.2,
+      150.0
+     ],
+     [
+      790.79,
+      -150.0
+     ],
+     [
+      877.41,
+      -150.0
+     ],
+     [
+      1370.82,
       150.0
      ]
     ]
    }
   ]
- },
- "estimate_range_mm": [
-  700,
-  850
- ]
+ }
 }

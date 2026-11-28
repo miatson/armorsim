@@ -1,616 +1,769 @@
 {
  "name": "Tank cross-section: Leopard 2A6 turret cheek",
  "category": "armor",
- "description": "Spaced add-on wedge (two 45 mm hard-steel plates at ~60 deg, with interlayers) a few hundred mm in front of the turret front, then a NERA array tilted 45 deg and a 100 mm back plate; cheek ~760 mm deep without the wedge. Estimates vs long rods ~800-850 mm. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Seen from above: the spaced add-on wedge (two 45 mm high-hardness plates with a rubber interlayer, ~60 deg) then the near-square turret front - 50 mm high-hardness front plate, ~600 mm NERA cavity (20 mm steel + 8 mm rubber packets at 45 deg) and a 60 mm back plate (~860 mm deep, like the measured 2A4). Estimates vs long rods ~800-850 mm. Reconstruction from public sources (Tankograd, Below The Turret Ring, Zaloga/Wikipedia, forum analyses); real tank armour is secret. Armour amount = public protection estimate / mass efficiency (NERA ~1.3-1.5, Soviet arrays ~1.17). The explosive inside ERA is an empty gap until explosives are added, and the model under-represents NERA breaking long rods - so a full simulation is penetrated more easily than the real armour; the Tank check uses the estimates. 2D slice.",
  "material": "steel_rha",
+ "estimate_range_mm": [
+  800,
+  850
+ ],
  "shape": {
   "type": "assembly",
   "parts": [
    {
-    "name": "Wedge plate 1 (45 mm hard steel)",
+    "name": "Wedge plate 1 (45 mm high-hardness)",
     "material": "tool_steel_hrc53",
     "points_mm": [
      [
-      0,
-      -23.09
-     ],
-     [
-      0,
-      -75.06
-     ],
-     [
-      320,
-      109.7
-     ],
-     [
-      320,
+      330.0,
       150.0
      ],
      [
-      299.81,
+      289.81,
       150.0
+     ],
+     [
+      0.0,
+      -17.32
+     ],
+     [
+      0.0,
+      -69.28
+     ],
+     [
+      330.0,
+      121.24
      ]
     ]
    },
    {
-    "name": "Wedge plate 2 (45 mm hard steel)",
-    "material": "tool_steel_hrc53",
-    "points_mm": [
-     [
-      320,
-      86.6
-     ],
-     [
-      0,
-      -98.15
-     ],
-     [
-      0,
-      -150.0
-     ],
-     [
-      0.19,
-      -150.0
-     ],
-     [
-      320,
-      34.64
-     ]
-    ]
-   },
-   {
-    "name": "Wedge interlayer (rubber, assumed)",
+    "name": "Wedge interlayer (rubber)",
     "material": "rubber_neoprene",
     "points_mm": [
      [
-      320,
-      109.7
+      330.0,
+      121.24
      ],
      [
-      0,
-      -75.06
+      0.0,
+      -69.28
      ],
      [
-      0,
-      -98.15
+      0.0,
+      -92.38
      ],
      [
-      320,
-      86.6
+      330.0,
+      98.15
      ]
     ]
    },
    {
-    "name": "Turret front plate 50 mm",
-    "material": "steel_rha",
+    "name": "Wedge plate 2 (45 mm high-hardness)",
+    "material": "tool_steel_hrc53",
     "points_mm": [
      [
-      330,
-      -150.0
+      330.0,
+      98.15
      ],
      [
-      380,
-      -150.0
+      0.0,
+      -92.38
      ],
      [
-      380,
+      0.0,
+      -144.34
+     ],
+     [
+      330.0,
+      46.19
+     ]
+    ]
+   },
+   {
+    "name": "Turret front plate 50 mm (high-hardness)",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      376.45,
       150.0
      ],
      [
-      330,
+      323.55,
+      -150.0
+     ],
+     [
+      374.32,
+      -150.0
+     ],
+     [
+      427.22,
       150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 1: steel",
-    "material": "steel_rha",
-    "group": 100,
-    "points_mm": [
-     [
-      404.75,
-      -150.0
-     ],
-     [
-      380,
-      -125.25
-     ],
-     [
-      380,
-      -96.97
-     ],
-     [
-      433.03,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "NERA packet 2: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 2: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 101,
     "points_mm": [
      [
-      482.53,
-      -150.0
+      436.55,
+      150.0
      ],
      [
-      380,
-      -47.47
+      425.22,
+      138.68
      ],
      [
-      380,
-      -19.19
+      419.17,
+      104.34
      ],
      [
-      510.81,
-      -150.0
+      464.83,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 3: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 2: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 101,
+    "points_mm": [
+     [
+      464.83,
+      150.0
+     ],
+     [
+      419.17,
+      104.34
+     ],
+     [
+      416.75,
+      90.6
+     ],
+     [
+      476.14,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 3: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 102,
     "points_mm": [
      [
-      560.31,
-      -150.0
+      498.77,
+      150.0
      ],
      [
-      380,
-      30.31
+      411.9,
+      63.13
      ],
      [
-      380,
-      58.6
+      405.85,
+      28.79
      ],
      [
-      588.6,
-      -150.0
+      527.06,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 4: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 3: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 102,
+    "points_mm": [
+     [
+      527.06,
+      150.0
+     ],
+     [
+      405.85,
+      28.79
+     ],
+     [
+      403.42,
+      15.06
+     ],
+     [
+      538.37,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 4: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 103,
     "points_mm": [
      [
-      638.09,
-      -150.0
+      561.0,
+      150.0
      ],
      [
-      380,
-      108.09
+      398.58,
+      -12.42
      ],
      [
-      380,
-      136.38
+      392.53,
+      -46.75
      ],
      [
-      666.38,
-      -150.0
+      589.28,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 5: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 4: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 103,
+    "points_mm": [
+     [
+      589.28,
+      150.0
+     ],
+     [
+      392.53,
+      -46.75
+     ],
+     [
+      390.1,
+      -60.49
+     ],
+     [
+      600.59,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 5: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 104,
     "points_mm": [
      [
-      715.88,
-      -150.0
-     ],
-     [
-      415.88,
+      623.22,
       150.0
      ],
      [
-      444.16,
-      150.0
+      385.26,
+      -87.96
      ],
      [
-      744.16,
-      -150.0
+      379.2,
+      -122.3
+     ],
+     [
+      651.51,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 6: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 5: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 104,
+    "points_mm": [
+     [
+      651.51,
+      150.0
+     ],
+     [
+      379.2,
+      -122.3
+     ],
+     [
+      376.78,
+      -136.04
+     ],
+     [
+      662.82,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 6: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 105,
     "points_mm": [
      [
-      793.66,
-      -150.0
-     ],
-     [
-      493.66,
+      685.45,
       150.0
      ],
      [
-      521.94,
-      150.0
+      385.45,
+      -150.0
      ],
      [
-      821.94,
+      413.73,
       -150.0
+     ],
+     [
+      713.73,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 7: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 6: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 105,
+    "points_mm": [
+     [
+      713.73,
+      150.0
+     ],
+     [
+      413.73,
+      -150.0
+     ],
+     [
+      425.04,
+      -150.0
+     ],
+     [
+      725.04,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 7: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 106,
     "points_mm": [
      [
-      871.44,
-      -150.0
-     ],
-     [
-      571.44,
+      747.67,
       150.0
      ],
      [
-      599.72,
-      150.0
+      447.67,
+      -150.0
      ],
      [
-      899.72,
+      475.96,
       -150.0
+     ],
+     [
+      775.96,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 8: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 7: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 106,
+    "points_mm": [
+     [
+      775.96,
+      150.0
+     ],
+     [
+      475.96,
+      -150.0
+     ],
+     [
+      487.27,
+      -150.0
+     ],
+     [
+      787.27,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 8: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 107,
     "points_mm": [
      [
-      900,
-      -100.78
-     ],
-     [
-      649.22,
+      809.9,
       150.0
      ],
      [
-      677.51,
-      150.0
+      509.9,
+      -150.0
      ],
      [
-      900,
-      -72.49
+      538.18,
+      -150.0
+     ],
+     [
+      838.18,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 9: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 8: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 107,
+    "points_mm": [
+     [
+      838.18,
+      150.0
+     ],
+     [
+      538.18,
+      -150.0
+     ],
+     [
+      549.5,
+      -150.0
+     ],
+     [
+      849.5,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 9: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 108,
     "points_mm": [
      [
-      900,
-      -23.0
-     ],
-     [
-      727.0,
+      872.12,
       150.0
      ],
      [
-      755.29,
-      150.0
+      572.12,
+      -150.0
      ],
      [
-      900,
-      5.29
+      600.41,
+      -150.0
+     ],
+     [
+      900.41,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 10: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 9: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 108,
+    "points_mm": [
+     [
+      900.41,
+      150.0
+     ],
+     [
+      600.41,
+      -150.0
+     ],
+     [
+      611.72,
+      -150.0
+     ],
+     [
+      911.72,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 10: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 109,
     "points_mm": [
      [
-      900,
-      54.78
-     ],
-     [
-      804.78,
+      934.35,
       150.0
      ],
      [
-      833.07,
-      150.0
+      634.35,
+      -150.0
      ],
      [
-      900,
-      83.07
+      662.63,
+      -150.0
+     ],
+     [
+      962.63,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 11: steel",
-    "material": "steel_rha",
+    "name": "NERA packet 10: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 109,
+    "points_mm": [
+     [
+      962.63,
+      150.0
+     ],
+     [
+      662.63,
+      -150.0
+     ],
+     [
+      673.95,
+      -150.0
+     ],
+     [
+      973.95,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 11: steel 20 mm",
+    "material": "tool_steel_hrc53",
     "group": 110,
     "points_mm": [
      [
-      900.0,
+      996.57,
       150.0
      ],
      [
-      900,
-      132.57
+      696.57,
+      -150.0
      ],
      [
-      882.57,
+      724.86,
+      -150.0
+     ],
+     [
+      1024.86,
       150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 1: rubber",
+    "name": "NERA packet 11: rubber 8 mm",
     "material": "rubber_neoprene",
-    "group": 100,
+    "group": 110,
     "points_mm": [
      [
-      441.52,
+      1024.86,
+      150.0
+     ],
+     [
+      724.86,
       -150.0
      ],
      [
-      380,
-      -88.48
-     ],
-     [
-      380,
-      -77.17
-     ],
-     [
-      452.83,
+      736.17,
       -150.0
+     ],
+     [
+      1036.17,
+      150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 2: rubber",
-    "material": "rubber_neoprene",
-    "group": 101,
+    "name": "NERA packet 12: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "group": 111,
     "points_mm": [
      [
-      519.3,
+      1031.7,
+      122.9
+     ],
+     [
+      758.8,
       -150.0
      ],
      [
-      380,
-      -10.7
-     ],
-     [
-      380,
-      0.61
-     ],
-     [
-      530.61,
+      787.08,
       -150.0
+     ],
+     [
+      1025.65,
+      88.56
      ]
     ]
    },
    {
-    "name": "NERA packet 3: rubber",
+    "name": "NERA packet 12: rubber 8 mm",
     "material": "rubber_neoprene",
-    "group": 102,
+    "group": 111,
     "points_mm": [
      [
-      597.08,
+      1025.65,
+      88.56
+     ],
+     [
+      787.08,
       -150.0
      ],
      [
-      380,
-      67.08
-     ],
-     [
-      380,
-      78.4
-     ],
-     [
-      608.4,
+      798.4,
       -150.0
+     ],
+     [
+      1023.22,
+      74.83
      ]
     ]
    },
    {
-    "name": "NERA packet 4: rubber",
-    "material": "rubber_neoprene",
-    "group": 103,
+    "name": "NERA packet 13: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "group": 112,
     "points_mm": [
      [
-      674.86,
+      1018.38,
+      47.36
+     ],
+     [
+      821.02,
       -150.0
      ],
      [
-      380,
-      144.86
+      849.31,
+      -150.0
      ],
      [
-      380.0,
-      150.0
+      1012.33,
+      13.02
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 13: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 112,
+    "points_mm": [
+     [
+      1012.33,
+      13.02
      ],
      [
-      386.18,
-      150.0
+      849.31,
+      -150.0
      ],
      [
-      686.18,
+      860.62,
+      -150.0
+     ],
+     [
+      1009.9,
+      -0.72
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 14: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "group": 113,
+    "points_mm": [
+     [
+      1005.06,
+      -28.19
+     ],
+     [
+      883.25,
+      -150.0
+     ],
+     [
+      911.53,
+      -150.0
+     ],
+     [
+      999.0,
+      -62.53
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 14: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 113,
+    "points_mm": [
+     [
+      999.0,
+      -62.53
+     ],
+     [
+      911.53,
+      -150.0
+     ],
+     [
+      922.85,
+      -150.0
+     ],
+     [
+      996.58,
+      -76.27
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 15: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "group": 114,
+    "points_mm": [
+     [
+      991.74,
+      -103.74
+     ],
+     [
+      945.48,
+      -150.0
+     ],
+     [
+      973.76,
+      -150.0
+     ],
+     [
+      985.68,
+      -138.08
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 15: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "group": 114,
+    "points_mm": [
+     [
+      985.68,
+      -138.08
+     ],
+     [
+      973.76,
+      -150.0
+     ],
+     [
+      983.58,
       -150.0
      ]
     ]
    },
    {
-    "name": "NERA packet 5: rubber",
-    "material": "rubber_neoprene",
-    "group": 104,
-    "points_mm": [
-     [
-      752.65,
-      -150.0
-     ],
-     [
-      452.65,
-      150.0
-     ],
-     [
-      463.96,
-      150.0
-     ],
-     [
-      763.96,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "NERA packet 6: rubber",
-    "material": "rubber_neoprene",
-    "group": 105,
-    "points_mm": [
-     [
-      830.43,
-      -150.0
-     ],
-     [
-      530.43,
-      150.0
-     ],
-     [
-      541.74,
-      150.0
-     ],
-     [
-      841.74,
-      -150.0
-     ]
-    ]
-   },
-   {
-    "name": "NERA packet 7: rubber",
-    "material": "rubber_neoprene",
-    "group": 106,
-    "points_mm": [
-     [
-      900,
-      -141.79
-     ],
-     [
-      608.21,
-      150.0
-     ],
-     [
-      619.52,
-      150.0
-     ],
-     [
-      900,
-      -130.48
-     ]
-    ]
-   },
-   {
-    "name": "NERA packet 8: rubber",
-    "material": "rubber_neoprene",
-    "group": 107,
-    "points_mm": [
-     [
-      900,
-      -64.01
-     ],
-     [
-      685.99,
-      150.0
-     ],
-     [
-      697.3,
-      150.0
-     ],
-     [
-      900,
-      -52.7
-     ]
-    ]
-   },
-   {
-    "name": "NERA packet 9: rubber",
-    "material": "rubber_neoprene",
-    "group": 108,
-    "points_mm": [
-     [
-      900,
-      13.77
-     ],
-     [
-      763.77,
-      150.0
-     ],
-     [
-      775.09,
-      150.0
-     ],
-     [
-      900,
-      25.09
-     ]
-    ]
-   },
-   {
-    "name": "NERA packet 10: rubber",
-    "material": "rubber_neoprene",
-    "group": 109,
-    "points_mm": [
-     [
-      900,
-      91.55
-     ],
-     [
-      841.55,
-      150.0
-     ],
-     [
-      852.87,
-      150.0
-     ],
-     [
-      900,
-      102.87
-     ]
-    ]
-   },
-   {
-    "name": "Back plate 100 mm",
+    "name": "Back plate 60 mm",
     "material": "steel_rha",
     "points_mm": [
      [
-      900,
-      -150.0
-     ],
-     [
-      1000,
-      -150.0
-     ],
-     [
-      1000,
+      1036.48,
       150.0
      ],
      [
-      900,
+      983.58,
+      -150.0
+     ],
+     [
+      1044.5,
+      -150.0
+     ],
+     [
+      1097.4,
       150.0
      ]
     ]
    }
   ]
- },
- "estimate_range_mm": [
-  800,
-  850
- ]
+ }
 }

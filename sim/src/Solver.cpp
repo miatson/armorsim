@@ -151,6 +151,14 @@ Solver::Solver(Scenario scenario, std::vector<Material> materials)
     // radially, and erosion made the validated long rod go 8% deeper
     // (P/L 0.94 vs 0.87; experiments 0.85) - so it stays off there.
     erode_ = scenario_.settings.erodeDebris && !axisymmetric_;
+    // Only the TARGET erodes: the pile-ups were broken armour trapped in front
+    // of the projectile. Eroding the projectile too stopped NERA working: the
+    // rod's surface, broken where the bulging plates grip it, flew off as
+    // debris and the plates could no longer push and bend the rod (Fras 2021
+    // check: rod tilt -1.3 deg with, -8.5 deg without).
+    projectileBody_.assign(65536, 0);
+    for (std::size_t k = 0; k < scenario_.parts.size(); ++k)
+        if (lengthSquared(scenario_.parts[k].velocity) > 0.0) projectileBody_[bodyId(scenario_, k)] = 1;
     setupMounts();
 }
 
@@ -283,7 +291,7 @@ void Solver::stickDebris() {
             if (j == i || j >= nReal_ || P.failed[j] == kDebris) continue;
             if (lengthSquared(P.pos[i] - P.pos[j]) < shareSq && ++solid >= 2) break;
         }
-        if (solid < 2) {
+        if (solid < 2) { // (also projectile crumbs: a lone particle cannot bend anything)
             P.failed[i] = kDebris;
             P.S[i] = {};
             P.pressure[i] = 0.0;
@@ -953,7 +961,7 @@ void Solver::integrate(std::size_t i) {
                 P.failed[i] = kDuctile;
             }
         }
-        if (erode_ && fullyFailed(P.failed[i]) && P.failed[i] != kDebris)
+        if (erode_ && fullyFailed(P.failed[i]) && P.failed[i] != kDebris && !projectileBody_[P.part[i]])
             P.failed[i] = kDebris; // erosion: becomes flying debris (stickDebris)
         if (fullyFailed(P.failed[i])) {
             P.S[i] = {}; // no shear strength left (tension is cut in the pair sums)

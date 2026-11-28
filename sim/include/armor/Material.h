@@ -245,6 +245,7 @@ enum MaterialId : int {
     kRubberNeoprene,
     kPolyurethane,
     kTungstenY925,
+    kGlassTextolite,
 };
 
 std::vector<Material> defaultMaterials();

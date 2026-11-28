@@ -1,0 +1,339 @@
+{
+ "name": "Tank cross-section: Leopard 2A6 hull front (nose)",
+ "category": "armor",
+ "description": "Hull nose special armour at ~50 deg (side view): 40 mm high-hardness exterior plate, six steel-rubber NERA packets with gaps, 110 mm inner plate. The glacis above relies on its extreme slope. Estimates vs long rods ~500-620 mm. Reconstruction from public sources (Tankograd, Below The Turret Ring, Zaloga/Wikipedia, forum analyses); real tank armour is secret. Armour amount = public protection estimate / mass efficiency (NERA ~1.3-1.5, Soviet arrays ~1.17). The explosive inside ERA is an empty gap until explosives are added, and the model under-represents NERA breaking long rods - so a full simulation is penetrated more easily than the real armour; the Tank check uses the estimates. 2D slice.",
+ "material": "steel_rha",
+ "estimate_range_mm": [
+  500,
+  620
+ ],
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Exterior plate 40 mm (high-hardness)",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      178.76,
+      150.0
+     ],
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      -52.22
+     ],
+     [
+      240.99,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA 1: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      240.99,
+      150.0
+     ],
+     [
+      0.0,
+      -52.22
+     ],
+     [
+      0.0,
+      -78.32
+     ],
+     [
+      272.11,
+      150.0
+     ]
+    ],
+    "group": 500
+   },
+   {
+    "name": "NERA 1: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      272.11,
+      150.0
+     ],
+     [
+      0.0,
+      -78.32
+     ],
+     [
+      0.0,
+      -88.77
+     ],
+     [
+      284.55,
+      150.0
+     ]
+    ],
+    "group": 500
+   },
+   {
+    "name": "NERA 2: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      331.22,
+      150.0
+     ],
+     [
+      0.0,
+      -127.93
+     ],
+     [
+      0.0,
+      -150.0
+     ],
+     [
+      4.81,
+      -150.0
+     ],
+     [
+      362.34,
+      150.0
+     ]
+    ],
+    "group": 501
+   },
+   {
+    "name": "NERA 2: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      362.34,
+      150.0
+     ],
+     [
+      4.81,
+      -150.0
+     ],
+     [
+      17.26,
+      -150.0
+     ],
+     [
+      374.78,
+      150.0
+     ]
+    ],
+    "group": 501
+   },
+   {
+    "name": "NERA 3: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      421.46,
+      150.0
+     ],
+     [
+      63.93,
+      -150.0
+     ],
+     [
+      95.04,
+      -150.0
+     ],
+     [
+      452.57,
+      150.0
+     ]
+    ],
+    "group": 502
+   },
+   {
+    "name": "NERA 3: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      452.57,
+      150.0
+     ],
+     [
+      95.04,
+      -150.0
+     ],
+     [
+      107.49,
+      -150.0
+     ],
+     [
+      465.02,
+      150.0
+     ]
+    ],
+    "group": 502
+   },
+   {
+    "name": "NERA 4: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      511.69,
+      150.0
+     ],
+     [
+      154.16,
+      -150.0
+     ],
+     [
+      185.28,
+      -150.0
+     ],
+     [
+      542.8,
+      150.0
+     ]
+    ],
+    "group": 503
+   },
+   {
+    "name": "NERA 4: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      542.8,
+      150.0
+     ],
+     [
+      185.28,
+      -150.0
+     ],
+     [
+      197.72,
+      -150.0
+     ],
+     [
+      555.25,
+      150.0
+     ]
+    ],
+    "group": 503
+   },
+   {
+    "name": "NERA 5: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      601.92,
+      150.0
+     ],
+     [
+      244.39,
+      -150.0
+     ],
+     [
+      275.51,
+      -150.0
+     ],
+     [
+      633.03,
+      150.0
+     ]
+    ],
+    "group": 504
+   },
+   {
+    "name": "NERA 5: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      633.03,
+      150.0
+     ],
+     [
+      275.51,
+      -150.0
+     ],
+     [
+      287.95,
+      -150.0
+     ],
+     [
+      645.48,
+      150.0
+     ]
+    ],
+    "group": 504
+   },
+   {
+    "name": "NERA 6: steel 20 mm",
+    "material": "tool_steel_hrc53",
+    "points_mm": [
+     [
+      692.15,
+      150.0
+     ],
+     [
+      334.63,
+      -150.0
+     ],
+     [
+      365.74,
+      -150.0
+     ],
+     [
+      723.27,
+      150.0
+     ]
+    ],
+    "group": 505
+   },
+   {
+    "name": "NERA 6: rubber 8 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      723.27,
+      150.0
+     ],
+     [
+      365.74,
+      -150.0
+     ],
+     [
+      378.19,
+      -150.0
+     ],
+     [
+      735.71,
+      150.0
+     ]
+    ],
+    "group": 505
+   },
+   {
+    "name": "Inner plate 110 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      782.38,
+      150.0
+     ],
+     [
+      424.86,
+      -150.0
+     ],
+     [
+      595.99,
+      -150.0
+     ],
+     [
+      953.51,
+      150.0
+     ]
+    ]
+   }
+  ]
+ }
+}

@@ -157,7 +157,7 @@ TEST_CASE("library: every item loads, and every projectile/armour pair builds a 
             const ScenarioFile f = buildScenario(spec, mats);
             const Particles P = buildParticles(f.scenario, mats);
             CHECK(P.size() > 50);
-            CHECK(P.size() < 60000); // suggested spacing keeps runs reasonable
+            CHECK(P.size() < 80000); // suggested spacing keeps runs reasonable (dense tank sections ~65k)
         }
     }
 }
@@ -314,7 +314,7 @@ TEST_CASE("armour assemblies (tank cross-sections) and free placement") {
         CHECK(f.scenario.parts.size() == a.parts.size() + 1);
         const Particles P = buildParticles(f.scenario, mats);
         CHECK(P.size() > 1000);
-        CHECK(P.size() < 60000);
+        CHECK(P.size() < 80000);
     }
     CHECK(sections >= 5);
 

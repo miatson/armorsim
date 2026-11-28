@@ -619,3 +619,22 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   and breaks the rod (4 pieces for 2x10) - NOT reproduced (bulging erodes
   the rod instead); Y925 too (3.31 vs 3.91 kg, one piece). Likely needs 3D.
 - Headless prints the main piece's heading and moving bodies' tilt.
+
+## 2026-11-28 — session 26: realistic tank sections (10) + NERA that bends rods
+
+- tools/gen_tank_sections.py rewritten: 5 turret cheeks (horizontal slices,
+  real slant: T-90A 58.7, T-80U 46.8, M1A2 30, Leopard wedge 60 / front 10,
+  Challenger 36 deg) + 5 hull fronts (vertical: T-90A/T-80U 68, M1A2/Leopard
+  nose 50, Challenger 60). Kontakt-5 lies on the armour (15 HHS + gap + 9).
+  Mass = estimate / ME (NERA 1.3-1.5, Soviet 1.17): tools/los.py -> 738, 592,
+  624, 586, 502 (turrets), 502, 495, 435, 419, 405 (hulls) mm steel-eq.
+- glass_textolite (Marsh Doron: c0 2.574, s 1.375).
+- NERA fix: erosion (debris) only for target bodies; projectile keeps its
+  broken material (except lone crumbs). Fras vs: air intact (-1.4 deg, 4.0 kg
+  + 93 g), rubber 15 broken (2.83 + 0.81 kg, -9.1), 2x10 broken (3.3 + 0.57,
+  -7.1); WHA 2x10 bent -5.2 not broken. Spaced-plate burst test still fine
+  (max speed 1483, end pressure 3.3 GPa).
+- 3BM59 vs new Leopard cheek (2 mm, 1000 us, 162 s): perforates, ~16% of rod
+  exits at 1020 m/s. Remaining causes: 2D slab rod, long-rod overshoot (~30%).
+- NEXT: Stage G explosives (ERA explosive, HEAT, HESH); later revisit long-rod
+  overshoot (biggest remaining accuracy issue for tank-scale runs).

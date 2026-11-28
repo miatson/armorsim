@@ -345,6 +345,29 @@ std::vector<Material> defaultMaterials() {
                    "8%. Hardening, rate and EOS as the 93W grade; JC fracture strains scaled by 0.4 (8% vs ~20%).";
         list.push_back(m);
     }
+    {
+        // Glass textolite / glass-fibre reinforced plastic: the filler of
+        // Soviet hull arrays (e.g. T-80 glacis 50-35-50-35-50 steel/GRP).
+        Material m;
+        m.name = "Glass textolite (glass-fibre plastic)";
+        m.key = "glass_textolite";
+        // Marsh 1980 LASL p.438 "Polyester, fiber-glass reinforced (Doron)":
+        // rho0 1.942 g/cm3, 14 shots up 0.89-4.16 km/s -> linear fit c0 2.574
+        // km/s, s 1.375 (all shots within 7%). Shear modulus 4.5 GPa, yield
+        // 250 MPa, brittle (fracture strain 0.05), spall 150 MPa: typical GRP
+        // laminate values, approximate.
+        m.source = "EOS: Marsh 1980 LASL fiber-glass reinforced polyester (Doron), fit c0 2.574 km/s, s 1.375 "
+                   "(14 shots, within 7%). G 4.5 GPa, yield 250 MPa, fracture strain 0.05: typical values, approx.";
+        m.density0 = 1942.0;
+        m.eos = MieGruneisenEos{2574.0, 1.375, 1.0};
+        m.bulkModulus = m.density0 * 2574.0 * 2574.0;
+        m.shearModulus = 4.5e9;
+        m.specificHeat = 1000.0;
+        m.strength = JohnsonCookStrength{250e6, 0.0, 1.0, 0.0, 1.0, 600.0};
+        m.failure = JohnsonCookFailure{0.05, 0.0, 0.0, 0.0, 0.0};
+        m.spallStrength = 150e6;
+        list.push_back(m);
+    }
     return list;
 }
 

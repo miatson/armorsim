@@ -1,0 +1,270 @@
+{
+ "name": "Tank cross-section: Challenger 2 hull front",
+ "category": "armor",
+ "description": "Glacis at ~60 deg (side view): 50 mm front plate, three steel / rubber / ceramic groups, 60 mm back plate. SPECULATIVE (Dorchester is classified). Estimates vs long rods vary widely (~400-660 mm). Reconstruction from public sources (Tankograd, Below The Turret Ring, Zaloga/Wikipedia, forum analyses); real tank armour is secret. Armour amount = public protection estimate / mass efficiency (NERA ~1.3-1.5, Soviet arrays ~1.17). The explosive inside ERA is an empty gap until explosives are added, and the model under-represents NERA breaking long rods - so a full simulation is penetrated more easily than the real armour; the Tank check uses the estimates. 2D slice.",
+ "material": "steel_rha",
+ "estimate_range_mm": [
+  400,
+  660
+ ],
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Front plate 50 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      259.81,
+      150.0
+     ],
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -0.0,
+      -57.74
+     ],
+     [
+      359.81,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array steel 1 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      359.81,
+      150.0
+     ],
+     [
+      0.0,
+      -57.74
+     ],
+     [
+      0.0,
+      -80.83
+     ],
+     [
+      399.81,
+      150.0
+     ]
+    ],
+    "group": 600
+   },
+   {
+    "name": "Array rubber 1",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      399.81,
+      150.0
+     ],
+     [
+      0.0,
+      -80.83
+     ],
+     [
+      0.0,
+      -92.38
+     ],
+     [
+      419.81,
+      150.0
+     ]
+    ],
+    "group": 600
+   },
+   {
+    "name": "Array ceramic 1 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      419.81,
+      150.0
+     ],
+     [
+      0.0,
+      -92.38
+     ],
+     [
+      -0.0,
+      -121.24
+     ],
+     [
+      469.81,
+      150.0
+     ]
+    ],
+    "group": 600
+   },
+   {
+    "name": "Array steel 2 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      499.81,
+      150.0
+     ],
+     [
+      0.0,
+      -138.56
+     ],
+     [
+      0.0,
+      -150.0
+     ],
+     [
+      20.19,
+      -150.0
+     ],
+     [
+      539.81,
+      150.0
+     ]
+    ],
+    "group": 601
+   },
+   {
+    "name": "Array rubber 2",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      539.81,
+      150.0
+     ],
+     [
+      20.19,
+      -150.0
+     ],
+     [
+      40.19,
+      -150.0
+     ],
+     [
+      559.81,
+      150.0
+     ]
+    ],
+    "group": 601
+   },
+   {
+    "name": "Array ceramic 2 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      559.81,
+      150.0
+     ],
+     [
+      40.19,
+      -150.0
+     ],
+     [
+      90.19,
+      -150.0
+     ],
+     [
+      609.81,
+      150.0
+     ]
+    ],
+    "group": 601
+   },
+   {
+    "name": "Array steel 3 (20 mm)",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      639.81,
+      150.0
+     ],
+     [
+      120.19,
+      -150.0
+     ],
+     [
+      160.19,
+      -150.0
+     ],
+     [
+      679.81,
+      150.0
+     ]
+    ],
+    "group": 602
+   },
+   {
+    "name": "Array rubber 3",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      679.81,
+      150.0
+     ],
+     [
+      160.19,
+      -150.0
+     ],
+     [
+      180.19,
+      -150.0
+     ],
+     [
+      699.81,
+      150.0
+     ]
+    ],
+    "group": 602
+   },
+   {
+    "name": "Array ceramic 3 (25 mm, assumed)",
+    "material": "alumina_ad995",
+    "points_mm": [
+     [
+      699.81,
+      150.0
+     ],
+     [
+      180.19,
+      -150.0
+     ],
+     [
+      230.19,
+      -150.0
+     ],
+     [
+      749.81,
+      150.0
+     ]
+    ],
+    "group": 602
+   },
+   {
+    "name": "Back plate 60 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      779.81,
+      150.0
+     ],
+     [
+      260.19,
+      -150.0
+     ],
+     [
+      380.19,
+      -150.0
+     ],
+     [
+      899.81,
+      150.0
+     ]
+    ]
+   }
+  ]
+ }
+}

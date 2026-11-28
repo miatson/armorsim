@@ -1,0 +1,335 @@
+{
+ "name": "Tank cross-section: M1A2 Abrams hull front (nose)",
+ "category": "armor",
+ "description": "Lower front / nose special armour at ~50 deg (side view): 50 mm exterior steel, four NERA sandwiches (25 mm steel + 12 mm rubber + 10 mm steel) taking about half the volume, 90 mm inner steel (~530 mm thick). The upper glacis above is thin, very sloped steel. Estimates vs long rods ~560-650 mm. Reconstruction from public sources (Tankograd, Below The Turret Ring, Zaloga/Wikipedia, forum analyses); real tank armour is secret. Armour amount = public protection estimate / mass efficiency (NERA ~1.3-1.5, Soviet arrays ~1.17). The explosive inside ERA is an empty gap until explosives are added, and the model under-represents NERA breaking long rods - so a full simulation is penetrated more easily than the real armour; the Tank check uses the estimates. 2D slice.",
+ "material": "steel_rha",
+ "estimate_range_mm": [
+  560,
+  650
+ ],
+ "shape": {
+  "type": "assembly",
+  "parts": [
+   {
+    "name": "Exterior steel 50 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      178.76,
+      150.0
+     ],
+     [
+      0.0,
+      0.0
+     ],
+     [
+      -0.0,
+      -65.27
+     ],
+     [
+      256.55,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA sandwich 1: steel 25 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      256.55,
+      150.0
+     ],
+     [
+      0.0,
+      -65.27
+     ],
+     [
+      0.0,
+      -97.91
+     ],
+     [
+      295.44,
+      150.0
+     ]
+    ],
+    "group": 400
+   },
+   {
+    "name": "NERA sandwich 1: rubber 12 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      295.44,
+      150.0
+     ],
+     [
+      0.0,
+      -97.91
+     ],
+     [
+      0.0,
+      -113.57
+     ],
+     [
+      314.11,
+      150.0
+     ]
+    ],
+    "group": 400
+   },
+   {
+    "name": "NERA sandwich 1: steel 10 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      314.11,
+      150.0
+     ],
+     [
+      0.0,
+      -113.57
+     ],
+     [
+      0.0,
+      -126.62
+     ],
+     [
+      329.67,
+      150.0
+     ]
+    ],
+    "group": 400
+   },
+   {
+    "name": "NERA sandwich 2: steel 25 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      407.45,
+      150.0
+     ],
+     [
+      49.93,
+      -150.0
+     ],
+     [
+      88.82,
+      -150.0
+     ],
+     [
+      446.35,
+      150.0
+     ]
+    ],
+    "group": 401
+   },
+   {
+    "name": "NERA sandwich 2: rubber 12 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      446.35,
+      150.0
+     ],
+     [
+      88.82,
+      -150.0
+     ],
+     [
+      107.49,
+      -150.0
+     ],
+     [
+      465.02,
+      150.0
+     ]
+    ],
+    "group": 401
+   },
+   {
+    "name": "NERA sandwich 2: steel 10 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      465.02,
+      150.0
+     ],
+     [
+      107.49,
+      -150.0
+     ],
+     [
+      123.05,
+      -150.0
+     ],
+     [
+      480.57,
+      150.0
+     ]
+    ],
+    "group": 401
+   },
+   {
+    "name": "NERA sandwich 3: steel 25 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      558.36,
+      150.0
+     ],
+     [
+      200.83,
+      -150.0
+     ],
+     [
+      239.73,
+      -150.0
+     ],
+     [
+      597.25,
+      150.0
+     ]
+    ],
+    "group": 402
+   },
+   {
+    "name": "NERA sandwich 3: rubber 12 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      597.25,
+      150.0
+     ],
+     [
+      239.73,
+      -150.0
+     ],
+     [
+      258.4,
+      -150.0
+     ],
+     [
+      615.92,
+      150.0
+     ]
+    ],
+    "group": 402
+   },
+   {
+    "name": "NERA sandwich 3: steel 10 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      615.92,
+      150.0
+     ],
+     [
+      258.4,
+      -150.0
+     ],
+     [
+      273.95,
+      -150.0
+     ],
+     [
+      631.48,
+      150.0
+     ]
+    ],
+    "group": 402
+   },
+   {
+    "name": "NERA sandwich 4: steel 25 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      709.26,
+      150.0
+     ],
+     [
+      351.74,
+      -150.0
+     ],
+     [
+      390.63,
+      -150.0
+     ],
+     [
+      748.16,
+      150.0
+     ]
+    ],
+    "group": 403
+   },
+   {
+    "name": "NERA sandwich 4: rubber 12 mm",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      748.16,
+      150.0
+     ],
+     [
+      390.63,
+      -150.0
+     ],
+     [
+      409.3,
+      -150.0
+     ],
+     [
+      766.83,
+      150.0
+     ]
+    ],
+    "group": 403
+   },
+   {
+    "name": "NERA sandwich 4: steel 10 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      766.83,
+      150.0
+     ],
+     [
+      409.3,
+      -150.0
+     ],
+     [
+      424.86,
+      -150.0
+     ],
+     [
+      782.38,
+      150.0
+     ]
+    ],
+    "group": 403
+   },
+   {
+    "name": "Inner steel 90 mm",
+    "material": "steel_rha",
+    "points_mm": [
+     [
+      860.17,
+      150.0
+     ],
+     [
+      502.64,
+      -150.0
+     ],
+     [
+      642.66,
+      -150.0
+     ],
+     [
+      1000.19,
+      150.0
+     ]
+    ]
+   }
+  ]
+ }
+}
