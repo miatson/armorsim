@@ -464,6 +464,41 @@ or the slow test `armor_tests -tc="VALIDATION*" --no-skip`. The builder shows th
 Lanz-Odermatt prediction (Details → Theory) whenever you fire a tungsten rod at
 steel.
 
+### Tank rounds against tank fronts (estimates)
+
+The library has four modern APFSDS rounds and seven tank-front stand-ins. All figures
+are **public estimates**, not official data:
+
+| Round | Rod (modelled) | Speed | Lanz-Odermatt depth at the muzzle |
+|---|---|---|---|
+| DM53 (Germany, 120 mm) | tungsten, 685 × 23 mm, 60 mm nose | 1720 m/s (L/55) | 502 mm |
+| M829A3 (USA, 120 mm) | DU*, 670 × 25 mm, 50 mm nose | 1555 m/s | 438 mm |
+| 3BM60 Svinets-2 (Russia, 125 mm) | tungsten, 735 × 21 mm, 60 mm nose | 1660 m/s | 510 mm |
+| 3BM59 Svinets-1 (Russia, 125 mm) | DU*, 735 × 21 mm, 60 mm nose | 1650 m/s | 506 mm |
+
+\*Depleted uranium isn't in the simulator yet. No sourced Johnson-Cook set was found,
+so DU rods are modelled as tungsten alloy, which is 6% lighter and gives a few % less depth.
+Fins, sabots and M829A3's steel tip are not modelled. Sources disagree on DM53's diameter
+(23 or 26 mm); 23 mm matches the stated 5 kg rod.
+
+Tank fronts are blocks of armour steel as thick as the estimated protection against long
+rods (RHA equivalent): M1A2 Abrams turret 700–900 mm (770 used), hull 470–600 (550);
+T-90A turret 700–850 (790); T-80U turret 630–860 (750), hull 630–800 (715); Challenger 2
+hull 400–660 (530); Leopard 2A6 turret 800–850 (825). Real armour is secret composite,
+so treat these as a rough guide.
+
+**Details › Tank check** compares the builder's round with every tank front instantly,
+using Lanz-Odermatt. A range slider takes off an assumed 60 m/s per km of flight. The
+verdict is "gets through", "stopped" or "too close to call" against each estimate range.
+
+**Full simulation check (one run, 1.5 mm spacing, 262 s):** DM53 at 1720 m/s into a
+770 mm block stopped at **~660 mm**. That is about 30% deeper than Lanz-Odermatt's
+502 mm. It lands nearer the 600–700 mm often claimed for DM53, but those claims are
+estimates and usually refer to angled plates. The L/D-10 validation above, at finer
+resolution, was within 6%. So this gap is open: likely resolution (only ~8 particles
+across the rod's radius) and the very long L/D 30 rod. A convergence check needs longer
+runs. The verdict against the Abrams estimate is the same either way: stopped.
+
 ### Ballistic limit (V50) of a steel plate (Børvik et al.)
 
 The **V50 tool** finds the speed at which a projectile just perforates a plate, as

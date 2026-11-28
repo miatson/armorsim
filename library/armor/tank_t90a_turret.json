@@ -1,0 +1,15 @@
+{
+  "name": "Tank front (est.): T-90A turret",
+  "category": "armor",
+  "description": "Estimates around 780-800 mm vs long rods (with Kontakt-5 reactive armour). Stand-in: a block of armour steel as thick as the estimated protection against long rods (RHA equivalent, line of sight). Real tank armour is secret composite; public estimates vary widely between sources - this is a rough guide, not data.",
+  "material": "steel_rha",
+  "estimate_range_mm": [
+    700,
+    850
+  ],
+  "shape": {
+    "type": "plate",
+    "thickness_mm": 790,
+    "width_mm": 300
+  }
+}

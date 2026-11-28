@@ -26,6 +26,22 @@ Box boundsOf(const Shape& shape) {
         }
         return b;
     }
+    if (const auto* poly = std::get_if<PolygonShape>(&shape)) {
+        Box b{{1e300, 1e300}, {-1e300, -1e300}};
+        for (const Vec2& q : poly->points) {
+            b.min = {std::min(b.min.x, q.x), std::min(b.min.y, q.y)};
+            b.max = {std::max(b.max.x, q.x), std::max(b.max.y, q.y)};
+        }
+        return b;
+    }
+    if (const auto* poly = std::get_if<PolygonShape>(&shape)) {
+        Box b{{1e300, 1e300}, {-1e300, -1e300}};
+        for (const Vec2& q : poly->points) {
+            b.min = {std::min(b.min.x, q.x), std::min(b.min.y, q.y)};
+            b.max = {std::max(b.max.x, q.x), std::max(b.max.y, q.y)};
+        }
+        return b;
+    }
     const auto& d = std::get<DiscShape>(shape);
     return {d.center - Vec2{d.radius, d.radius}, d.center + Vec2{d.radius, d.radius}};
 }
@@ -36,6 +52,28 @@ bool contains(const Shape& shape, Vec2 p) {
     if (const auto* r = std::get_if<RectShape>(&shape)) {
         const Vec2 local = rotate(p - r->center, -r->angle);
         return std::abs(local.x) <= r->halfSize.x && std::abs(local.y) <= r->halfSize.y;
+    }
+    if (const auto* poly = std::get_if<PolygonShape>(&shape)) {
+        // Even-odd ray casting along +x.
+        bool inside = false;
+        const auto& v = poly->points;
+        for (std::size_t i = 0, j = v.size() - 1; i < v.size(); j = i++) {
+            if ((v[i].y > p.y) != (v[j].y > p.y) &&
+                p.x < v[j].x + (p.y - v[j].y) * (v[i].x - v[j].x) / (v[i].y - v[j].y))
+                inside = !inside;
+        }
+        return inside;
+    }
+    if (const auto* poly = std::get_if<PolygonShape>(&shape)) {
+        // Even-odd ray casting along +x.
+        bool inside = false;
+        const auto& v = poly->points;
+        for (std::size_t i = 0, j = v.size() - 1; i < v.size(); j = i++) {
+            if ((v[i].y > p.y) != (v[j].y > p.y) &&
+                p.x < v[j].x + (p.y - v[j].y) * (v[i].x - v[j].x) / (v[i].y - v[j].y))
+                inside = !inside;
+        }
+        return inside;
     }
     const auto& d = std::get<DiscShape>(shape);
     return lengthSquared(p - d.center) <= d.radius * d.radius;

@@ -118,10 +118,8 @@ std::string App::builderSummary() const {
     const armor::BuildSpec spec = builderSpec();
     if (spec.layers.empty()) return "Add an armour layer.";
     const armor::Material& pm = materials_[static_cast<std::size_t>(spec.projectileMaterial)];
-    const double r = 0.5 * spec.projectile.diameter;
     const bool rod = spec.projectile.shape == armor::ItemShape::Rod;
-    const double volume = rod ? 3.14159265 * r * r * spec.projectile.length : 4.0 / 3.0 * 3.14159265 * r * r * r;
-    const double mass = pm.density0 * volume;
+    const double mass = pm.density0 * armor::projectileVolume(spec.projectile);
     char buf[512];
     std::string t;
     std::snprintf(buf, sizeof buf, "Projectile: %.3g g of %s, %.0f m/s -> kinetic energy %.3g J.\n", mass * 1e3,
@@ -137,14 +135,27 @@ std::string App::builderSummary() const {
     t += buf;
     if (rod && pm.key == "tungsten_wha" && materials_[static_cast<std::size_t>(spec.layers[0].material)].key == "steel_rha") {
         // Measured: Lanz-Odermatt fit to 148 tungsten-into-RHA tests (see Validation.h).
-        const double pl = armor::lanzOdermattTungstenRHA(spec.projectile.length / spec.projectile.diameter, pm.density0,
+        const double lw = armor::rodWorkingLength(spec.projectile);
+        const double pl = armor::lanzOdermattTungstenRHA(lw / spec.projectile.diameter, pm.density0,
                                                          materials_[static_cast<std::size_t>(spec.layers[0].material)].density0,
                                                          armor::kSteelRHABrinell, spec.speed);
         std::snprintf(buf, sizeof buf,
                       "Experiments (Lanz-Odermatt fit, 148 tests, +-4%%): this rod should get about %.0f mm deep (P/L = %.2f) "
                       "into thick steel armour. Compare with the rod's furthest point in Results.\n",
-                      pl * spec.projectile.length * 1e3, pl);
+                      pl * lw * 1e3, pl);
         t += buf;
+        const armor::LibraryItem& target = spec.layers[0].item;
+        if (target.isTankEstimate()) {
+            const double depth = pl * lw;
+            std::snprintf(buf, sizeof buf,
+                          "Tank front: published estimates for this armour are %.0f-%.0f mm of armour steel. The rod's "
+                          "predicted %.0f mm is %s. (Estimates, not measurements - see Details > Tank check.)\n",
+                          target.estimateLow * 1e3, target.estimateHigh * 1e3, depth * 1e3,
+                          depth > target.estimateHigh ? "MORE than even the high estimate: likely to get through"
+                          : depth < target.estimateLow ? "LESS than even the low estimate: likely stopped"
+                                                        : "inside the estimate range: too close to call");
+            t += buf;
+        }
     } else if (rod) {
         const double rt = materials_[static_cast<std::size_t>(spec.layers[0].material)].density0;
         std::snprintf(buf, sizeof buf,
@@ -173,8 +184,8 @@ std::string App::builderSummary() const {
     bool ceramic = false;
     for (const armor::ArmorLayer& l : spec.layers) ceramic = ceramic || materials_[static_cast<std::size_t>(l.material)].isCeramic();
     if (ceramic)
-        t += "\nCeramic armour: results are qualitative. The ceramic model is checked for consistency, but at equal "
-             "weight ceramic-faced armour does not yet beat plain metal as clearly as real armour does (see README).";
+        t += "\nCeramic armour: results are approximate. At equal weight a ceramic face now beats aluminium and "
+             "roughly matches steel; real ceramic armour should do somewhat better than steel (see README).";
     if (spec.obliquity != 0.0)
         t += "\nAngled shot: simulated as a 2D slice (plane strain) - the projectile is really an infinitely "
              "wide slab, so treat depths as qualitative.";
@@ -889,7 +900,7 @@ void App::drawBuilder() {
             ImGui::EndCombo();
         }
         materialCombo("Material", l.material, materials_);
-        ImGui::SliderFloat("Thickness (mm)", &l.thicknessMm, 0.5f, 150.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+        ImGui::SliderFloat("Thickness (mm)", &l.thicknessMm, 0.5f, 1000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
         if (k > 0) {
             ImGui::SliderFloat("Gap before (mm)", &l.gapMm, 0.0f, 100.0f, "%.1f");
             helpMarker("Empty space in front of this layer: spaced armour.");
@@ -978,6 +989,7 @@ void App::drawDetailsTab() {
         if (!run_) ImGui::TextDisabled("Run a simulation to see results.");
     }
 
+    if (ImGui::CollapsingHeader("Tank check (instant, no simulation)")) drawTankCheck();
     if (ImGui::CollapsingHeader("Theory & checks")) {
         const std::string text = run_ ? runTheory_
                                       : (sourceMode_ == 1 ? builderSummary()
@@ -1094,6 +1106,57 @@ void App::drawDetailsTab() {
 // Length (along x) and width (across) of every body in the frame, measured to
 // the outer surface (particle centres sit half a spacing inside it). In
 // axisymmetric mode the width is the diameter of the full round body.
+// Tank check: the builder's projectile (a tungsten long rod) against every
+// tank-front estimate in the library, using the Lanz-Odermatt fit - instant,
+// no simulation. Both sides are uncertain: the fit is +-4% for depth into
+// semi-infinite armour steel, while the tank figures are public estimates.
+void App::drawTankCheck() {
+    const armor::Library& lib = appLibrary();
+    if (lib.projectiles.empty()) return;
+    const armor::LibraryItem& p = lib.projectiles[static_cast<std::size_t>(std::clamp(projItem_, 0, static_cast<int>(lib.projectiles.size()) - 1))];
+    const armor::Material& pm = materials_[static_cast<std::size_t>(projMaterial_)];
+    if (p.shape != armor::ItemShape::Rod || pm.key != "tungsten_wha") {
+        ImGui::TextWrapped("Pick a long rod in tungsten alloy as the projectile (Simulate > Build your own), e.g. one "
+                           "of the APFSDS rounds, and this compares it with modern tank fronts.");
+        return;
+    }
+    ImGui::TextWrapped("%s at %.0f m/s from the muzzle.", p.name.c_str(), projSpeed_);
+    ImGui::SliderFloat("Range (km)", &tankRangeKm_, 0.0f, 4.0f, "%.1f");
+    helpMarker("Long rods lose roughly 50-70 m/s per km in flight; 60 m/s per km is assumed here.");
+    const double v = std::max(projSpeed_ - armor::kRodSpeedLossPerKm * tankRangeKm_, 1.0);
+    const double lw = armor::rodWorkingLength(p);
+    const double depth = armor::lanzOdermattTungstenRHA(lw / p.diameter, pm.density0, materials_[armor::kSteelRHA].density0,
+                                                        armor::kSteelRHABrinell, v) * lw;
+    ImGui::Text("Impact %.0f m/s  ->  about %.0f mm into armour steel (Lanz-Odermatt)", v, depth * 1e3);
+    if (ImGui::BeginTable("tanks", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Target");
+        ImGui::TableSetupColumn("Estimate (mm)");
+        ImGui::TableSetupColumn("Verdict");
+        ImGui::TableHeadersRow();
+        for (const armor::LibraryItem& a : lib.armor) {
+            if (!a.isTankEstimate()) continue;
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(a.name.c_str());
+            if (ImGui::IsItemHovered() && !a.description.empty()) ImGui::SetItemTooltip("%s", a.description.c_str());
+            ImGui::TableNextColumn();
+            ImGui::Text("%.0f-%.0f", a.estimateLow * 1e3, a.estimateHigh * 1e3);
+            ImGui::TableNextColumn();
+            if (depth > a.estimateHigh) ImGui::TextColored({1.0f, 0.45f, 0.4f, 1.0f}, "gets through");
+            else if (depth < a.estimateLow) ImGui::TextColored({0.45f, 0.9f, 0.5f, 1.0f}, "stopped");
+            else ImGui::TextColored({1.0f, 0.8f, 0.35f, 1.0f}, "too close to call");
+        }
+        ImGui::EndTable();
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextWrapped("Rough guide only. Tank armour is secret; these are public estimates of the frontal protection "
+                       "against long rods in mm of armour steel, and they vary widely between sources. The depth is "
+                       "for thick plain steel; a finite plate is perforated at roughly 10%% more. Rounds listed as "
+                       "depleted uranium are modelled as tungsten alloy (about 6%% less dense: a few %% less depth). "
+                       "To watch one, pick a tank front as the armour layer in Build your own (big run: minutes).");
+    ImGui::PopStyleColor();
+}
+
 void App::drawBodySizes(const armor::Frame& f, const armor::Recording& rec) const {
     const auto& bodies = rec.bodies();
     if (bodies.empty() || f.body.size() != f.x.size()) return;

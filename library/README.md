@@ -36,6 +36,13 @@ the source tree. Unknown keys are an error, so typos can't slip through.
 | `material` | Default material: `steel_rha`, `aluminium_6061`, `copper_ofhc`, `tungsten_wha`, `titanium_6al4v`, `weldox_460e`, `tool_steel_hrc53`, `alumina_ad995`, `boron_carbide`, `silicon_carbide` |
 | `shape` | Projectiles: `sphere` (`diameter_mm`) or `rod` (`length_mm`, `diameter_mm`, flat nose). Armour: `plate` (`thickness_mm`, `width_mm`) |
 | `speed_mps` | Suggested speed (projectiles) |
+| `nose_length_mm` | Rods only, optional: a pointed conical nose, part of `length_mm` |
+| `estimate_range_mm` | Armour only, optional: `[low, high]`. Marks a tank-front stand-in (published RHA-equivalent estimates); used by Details › Tank check |
+
+**Tank rounds and tank fronts.** `apfsds_*.json` are modern tank rounds (DM53, M829A3,
+3BM60, 3BM59) and `tank_*.json` are armour-steel blocks as thick as public estimates of
+tank fronts (Abrams, T-90A, T-80U, Challenger 2, Leopard 2A6). All are estimates; see
+the main README.
 
 `width_mm` is the diameter of a round plate in straight-on shots, or the height of
 the plate in angled (2D slice) shots.

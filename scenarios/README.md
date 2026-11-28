@@ -45,6 +45,7 @@ Where parts overlap, the earlier one in the list wins.
 |---|---|---|
 | `cylinder` | `x_mm: [from, to]`, `radius_mm` | Axisymmetric: a solid round rod or plate on the axis |
 | `sphere` | `center_x_mm`, `radius_mm` | Axisymmetric: a ball on the axis |
+| `polygon` | `points_mm: [[x, y], ...]` (3 or more) | Any outline, e.g. a pointed rod nose; in axisymmetric mode give only the y ≥ 0 half |
 | `rect` | `center_mm: [x, y]`, `size_mm: [w, h]`, `angle_deg` | Plane strain; in axisymmetric mode a rect off the axis is a ring |
 | `disc` | `center_mm`, `radius_mm` | Plane strain: a long round bar seen end-on |
 

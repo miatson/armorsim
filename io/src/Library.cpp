@@ -66,6 +66,14 @@ double projectileLength(const LibraryItem& p) { return p.shape == ItemShape::Rod
 
 } // namespace
 
+double projectileVolume(const LibraryItem& p) {
+    const double r = 0.5 * p.diameter, pi = 3.14159265358979323846;
+    if (p.shape != ItemShape::Rod) return 4.0 / 3.0 * pi * r * r * r;
+    return pi * r * r * (p.length - p.noseLength + p.noseLength / 3.0);
+}
+
+double rodWorkingLength(const LibraryItem& p) { return p.length - p.noseLength * (2.0 / 3.0); }
+
 LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> materials, const std::string& sourceName) {
     const ItemReader rd{sourceName};
     json root;
@@ -74,7 +82,7 @@ LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> 
     } catch (const json::parse_error& e) {
         throw ScenarioFileError(sourceName + ": not valid JSON: " + e.what());
     }
-    rd.onlyKeys(root, "$", {"name", "category", "description", "material", "shape", "speed_mps"});
+    rd.onlyKeys(root, "$", {"name", "category", "description", "material", "shape", "speed_mps", "estimate_range_mm"});
     LibraryItem item;
     item.file = sourceName;
     item.name = rd.text(rd.need(root, "$", "name"), "$.name");
@@ -93,10 +101,14 @@ LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> 
         item.shape = ItemShape::Sphere;
         item.diameter = rd.positive(rd.need(s, "$.shape", "diameter_mm"), "$.shape.diameter_mm") * kMm;
     } else if (type == "rod") {
-        rd.onlyKeys(s, "$.shape", {"type", "length_mm", "diameter_mm"});
+        rd.onlyKeys(s, "$.shape", {"type", "length_mm", "diameter_mm", "nose_length_mm"});
         item.shape = ItemShape::Rod;
         item.length = rd.positive(rd.need(s, "$.shape", "length_mm"), "$.shape.length_mm") * kMm;
         item.diameter = rd.positive(rd.need(s, "$.shape", "diameter_mm"), "$.shape.diameter_mm") * kMm;
+        if (s.contains("nose_length_mm")) {
+            item.noseLength = rd.positive(s["nose_length_mm"], "$.shape.nose_length_mm") * kMm;
+            if (item.noseLength >= item.length) rd.fail("$.shape.nose_length_mm", "the nose must be shorter than the rod");
+        }
     } else if (type == "plate") {
         rd.onlyKeys(s, "$.shape", {"type", "thickness_mm", "width_mm"});
         item.shape = ItemShape::Plate;
@@ -110,6 +122,14 @@ LibraryItem parseLibraryItem(const std::string& text, std::span<const Material> 
     if (item.category == ItemCategory::Armor && item.shape != ItemShape::Plate)
         rd.fail("$.shape.type", "armour must be a plate");
     if (root.contains("speed_mps")) item.speed = rd.positive(root["speed_mps"], "$.speed_mps");
+    if (root.contains("estimate_range_mm")) {
+        const json& e = root["estimate_range_mm"];
+        if (!e.is_array() || e.size() != 2 || !e[0].is_number() || !e[1].is_number() ||
+            e[0].get<double>() <= 0 || e[1].get<double>() < e[0].get<double>())
+            rd.fail("$.estimate_range_mm", "expected [low, high] in mm with 0 < low <= high");
+        item.estimateLow = e[0].get<double>() * kMm;
+        item.estimateHigh = e[1].get<double>() * kMm;
+    }
     return item;
 }
 
@@ -153,14 +173,15 @@ double suggestSpacing(const BuildSpec& spec) {
 
 // Duration: the projectile travels through the whole stack and its own
 // length 1.5 times over at its initial speed (it slows down, so most of the
-// action is covered), plus 5 us; 5 .. 400 us.
+// action is covered), plus 5 us; 5 .. 1500 us (full-size tank rods into
+// tank-front blocks take over a millisecond).
 double suggestEndTime(const BuildSpec& spec) {
     double distance = projectileLength(spec.projectile);
     const double c = std::cos(spec.obliquity);
     for (std::size_t k = 0; k < spec.layers.size(); ++k)
         distance += (spec.layers[k].thickness + (k ? spec.layers[k].gapBefore : 0.0)) / c;
     const double t = 1.5 * distance / std::max(spec.speed, 1.0) + 5e-6;
-    return std::round(std::clamp(t, 5e-6, 400e-6) / 1e-6) * 1e-6;
+    return std::round(std::clamp(t, 5e-6, 1500e-6) / 1e-6) * 1e-6;
 }
 
 ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> materials) {
@@ -216,8 +237,15 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
     double tail = nose;
     if (p.shape == ItemShape::Rod) {
         tail = nose - p.length;
-        if (axi) proj.shape = RectShape{{nose - 0.5 * p.length, 0.5 * r}, {0.5 * p.length, 0.5 * r}, 0.0};
-        else proj.shape = RectShape{{nose - 0.5 * p.length, 0.0}, {0.5 * p.length, r}, 0.0};
+        if (p.noseLength > 0.0) { // pointed nose: cylinder + cone as one polygon
+            const double shoulder = nose - p.noseLength;
+            if (axi) proj.shape = PolygonShape{{{tail, 0.0}, {tail, r}, {shoulder, r}, {nose, 0.0}}};
+            else proj.shape = PolygonShape{{{tail, -r}, {tail, r}, {shoulder, r}, {nose, 0.0}, {shoulder, -r}}};
+        } else if (axi) {
+            proj.shape = RectShape{{nose - 0.5 * p.length, 0.5 * r}, {0.5 * p.length, 0.5 * r}, 0.0};
+        } else {
+            proj.shape = RectShape{{nose - 0.5 * p.length, 0.0}, {0.5 * p.length, r}, 0.0};
+        }
     } else {
         tail = nose - 2.0 * r;
         proj.shape = DiscShape{{nose - r, 0.0}, r};
@@ -263,6 +291,10 @@ std::string scenarioToJson(const ScenarioFile& file, std::span<const Material> m
             if (r->angle != 0.0) pj["shape"]["angle_deg"] = r->angle * 180.0 / 3.14159265358979323846;
         } else if (const auto* d = std::get_if<DiscShape>(&part.shape)) {
             pj["shape"] = {{"type", "disc"}, {"center_mm", {mm(d->center.x), mm(d->center.y)}}, {"radius_mm", mm(d->radius)}};
+        } else if (const auto* poly = std::get_if<PolygonShape>(&part.shape)) {
+            json pts = json::array();
+            for (const Vec2& q : poly->points) pts.push_back({mm(q.x), mm(q.y)});
+            pj["shape"] = {{"type", "polygon"}, {"points_mm", pts}};
         }
         pj["velocity_mps"] = {part.velocity.x, part.velocity.y};
         if (part.temperature != 293.15) pj["temperature_K"] = part.temperature;

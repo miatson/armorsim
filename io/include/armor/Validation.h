@@ -31,6 +31,11 @@ inline double lanzOdermattTungstenRHA(double lengthOverDiameter, double rhoProje
            std::exp(-s2 / (vKmS * vKmS));
 }
 
+// Long rods slow down in flight; published APFSDS figures suggest roughly
+// 50-70 m/s per km. Used for the tank check's range setting (an assumption,
+// not a measured value for any particular round).
+inline constexpr double kRodSpeedLossPerKm = 60.0;
+
 // Brinell hardness of the simulator's steel: 4340 at Rockwell C 30 (the
 // Johnson-Cook data set it uses) is about BHN 286; RHA is typically 260-300.
 inline constexpr double kSteelRHABrinell = 286.0;

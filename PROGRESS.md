@@ -490,3 +490,23 @@ fracture validation (plate plugging / V50 overlaps Stage E).
 - Same shot: 11.3 g @ 706 m/s (247 s wall), rod energy -22% vs before ->
   about the old steel result, better than equal-weight Al. Tile test passes
   (9 s). Equal-weight table in README is from the OLD constants (not re-run).
+
+## 2026-11-28 — session 18: tank rounds and tank-front estimates
+
+- New shape: `PolygonShape` (scenario files: "polygon", points_mm). Rods can
+  have `nose_length_mm` (cone). projectileVolume / rodWorkingLength (cone = 1/3).
+- Library: apfsds_dm53 (685x23, 1720), apfsds_m829a3 (670x25, 1555),
+  apfsds_3bm60 (735x21, 1660), apfsds_3bm59 (735x21, 1650). DU modelled as
+  tungsten: no sourced DU JC set found (JC 1983 table is a scan only).
+- Tank fronts (steel_rha blocks, estimate_range_mm): M1A2 turret 770 [700,900],
+  hull 550 [470,600]; T-90A turret 790 [700,850]; T-80U turret 750 [630,860],
+  hull 715 [630,800]; Challenger 2 hull 530 [400,660]; Leopard 2A6 turret 825
+  [800,850]. Sources: forum / Russian-attributed estimates (see README).
+- App: Details > Tank check (Lanz-Odermatt, range slider, 60 m/s per km
+  assumed); builder Theory notes a tank front's verdict; thickness slider to
+  1000 mm; suggested end time up to 1500 us.
+- LO muzzle depths: DM53 502, M829A3 438, 3BM60 510, 3BM59 506 mm.
+- One full run (user allowed short runs): DM53 1720 m/s vs 770 mm, 1.5 mm,
+  1000 us, 262 s -> stopped at ~660 mm (LO 502, +31%). Open: convergence
+  (resolution ~8 particles per rod radius, L/D 30); needs longer runs.
+- Fast tests pass (1040 assertions: library, builder, tank data, JH-2).

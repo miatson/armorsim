@@ -37,7 +37,13 @@ struct DiscShape {
     double radius = 0.0;
 };
 
-using Shape = std::variant<RectShape, DiscShape>;
+// Any simple polygon (corners in order, either direction). Used for pointed
+// projectile noses; in axisymmetric mode give only the y >= 0 half.
+struct PolygonShape {
+    std::vector<Vec2> points;
+};
+
+using Shape = std::variant<RectShape, DiscShape, PolygonShape>;
 
 bool contains(const Shape& shape, Vec2 p);
 

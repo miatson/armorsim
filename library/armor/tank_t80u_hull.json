@@ -1,0 +1,15 @@
+{
+  "name": "Tank front (est.): T-80U hull",
+  "category": "armor",
+  "description": "Estimates from 630-700 mm to about 800 mm with Kontakt-5. Stand-in: a block of armour steel as thick as the estimated protection against long rods (RHA equivalent, line of sight). Real tank armour is secret composite; public estimates vary widely between sources - this is a rough guide, not data.",
+  "material": "steel_rha",
+  "estimate_range_mm": [
+    630,
+    800
+  ],
+  "shape": {
+    "type": "plate",
+    "thickness_mm": 715,
+    "width_mm": 300
+  }
+}

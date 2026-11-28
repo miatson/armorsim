@@ -205,3 +205,76 @@ TEST_CASE("builder: projectile starts clear of the armour, straight and oblique;
         CHECK(g.scenario.parts[2].material == f.scenario.parts[2].material);
     }
 }
+
+// -----------------------------------------------------------------------------
+// Tank rounds and tank-front estimates (library data + instant checks)
+// -----------------------------------------------------------------------------
+#include <armor/Validation.h>
+
+TEST_CASE("pointed rod nose: polygon shape, right mass, survives a JSON round trip") {
+    const auto mats = defaultMaterials();
+    const LibraryItem rod = parseLibraryItem(
+        R"({"name":"r","category":"projectile","material":"tungsten_wha",
+            "shape":{"type":"rod","length_mm":100,"diameter_mm":10,"nose_length_mm":30}})", mats);
+    CHECK(rod.noseLength == Approx(0.030));
+    CHECK(rodWorkingLength(rod) == Approx(0.080));
+    const double pi = 3.14159265358979323846;
+    CHECK(projectileVolume(rod) == Approx(pi * 25e-6 * (0.070 + 0.010)));
+    CHECK_THROWS_AS(parseLibraryItem(R"({"name":"r","category":"projectile","material":"tungsten_wha",
+            "shape":{"type":"rod","length_mm":10,"diameter_mm":10,"nose_length_mm":10}})", mats), ScenarioFileError);
+    for (double angleDeg : {0.0, 30.0}) {
+        CAPTURE(angleDeg);
+        BuildSpec spec;
+        spec.projectile = rod;
+        spec.projectileMaterial = kTungstenHeavyAlloy;
+        spec.speed = 1500.0;
+        LibraryItem plate;
+        plate.category = ItemCategory::Armor;
+        plate.shape = ItemShape::Plate;
+        plate.thickness = 0.02;
+        plate.width = 0.06;
+        spec.layers.push_back({plate, kSteelRHA, 0.02, 0.0});
+        spec.obliquity = angleDeg * pi / 180.0;
+        spec.spacing = 0.5e-3;
+        const ScenarioFile f = buildScenario(spec, mats);
+        REQUIRE(std::holds_alternative<PolygonShape>(f.scenario.parts[0].shape));
+        // Particle mass of the projectile matches the solid (axisymmetric: real
+        // mass; plane strain: per unit depth).
+        const Particles P = buildParticles(f.scenario, mats);
+        double m = 0.0;
+        for (std::size_t i = 0; i < P.size(); ++i)
+            if (P.part[i] == 0) m += P.mass[i];
+        const double area2d = 2 * 0.005 * (0.070 + 0.5 * 0.030);
+        const double expect = angleDeg == 0.0 ? 17600.0 * projectileVolume(rod) : 17600.0 * area2d;
+        CHECK(m == Approx(expect).epsilon(0.06));
+        const ScenarioFile g = parseScenarioJson(scenarioToJson(f, mats), mats, "roundtrip.json");
+        CHECK(buildParticles(g.scenario, mats).size() == P.size());
+    }
+}
+
+TEST_CASE("tank rounds vs tank-front estimates: data present, Lanz-Odermatt depths plausible") {
+    const auto mats = defaultMaterials();
+    const Library lib = loadLibrary(ARMOR_LIBRARY_DIR, mats);
+    int rounds = 0, tanks = 0;
+    for (const LibraryItem& a : lib.armor)
+        if (a.isTankEstimate()) {
+            ++tanks;
+            CHECK(a.estimateLow <= a.thickness);
+            CHECK(a.thickness <= a.estimateHigh);
+        }
+    for (const LibraryItem& p : lib.projectiles) {
+        if (p.file.rfind("apfsds_", 0) != 0) continue;
+        ++rounds;
+        const double lw = rodWorkingLength(p);
+        const double depth = lanzOdermattTungstenRHA(lw / p.diameter, mats[p.material].density0,
+                                                     mats[kSteelRHA].density0, kSteelRHABrinell, p.speed) * lw;
+        MESSAGE(p.name, ": ", mats[p.material].density0 * projectileVolume(p), " kg, ", p.speed,
+                " m/s, Lanz-Odermatt depth into armour steel at the muzzle ", depth * 1e3, " mm");
+        // Modern 120/125 mm rods: published penetration claims are ~500-750 mm.
+        CHECK(depth > 0.40);
+        CHECK(depth < 0.80);
+        CHECK(mats[p.material].density0 * projectileVolume(p) == Approx(4.5).epsilon(0.35)); // rods weigh ~4-6 kg
+    }
+    CHECK(rounds >= 4);
+    CHECK(tanks >= 5);
+}

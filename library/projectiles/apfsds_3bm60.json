@@ -1,0 +1,13 @@
+{
+  "name": "APFSDS 3BM60 Svinets-2 (Russia, 125 mm)",
+  "category": "projectile",
+  "description": "Russian 125 mm round (T-90A, T-72B3, T-80BVM with the newer autoloader). Tungsten-alloy rod about 735 mm long, 21 mm thick, ~1660 m/s. Public estimates; fins and sabot not modelled.",
+  "material": "tungsten_wha",
+  "shape": {
+    "type": "rod",
+    "length_mm": 735,
+    "diameter_mm": 21,
+    "nose_length_mm": 60
+  },
+  "speed_mps": 1660
+}

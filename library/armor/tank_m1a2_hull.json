@@ -1,0 +1,15 @@
+{
+  "name": "Tank front (est.): M1A2 Abrams hull",
+  "category": "armor",
+  "description": "Forum estimates around 470-550 mm vs long rods for the glacis/lower front. Stand-in: a block of armour steel as thick as the estimated protection against long rods (RHA equivalent, line of sight). Real tank armour is secret composite; public estimates vary widely between sources - this is a rough guide, not data.",
+  "material": "steel_rha",
+  "estimate_range_mm": [
+    470,
+    600
+  ],
+  "shape": {
+    "type": "plate",
+    "thickness_mm": 550,
+    "width_mm": 300
+  }
+}

@@ -99,7 +99,16 @@ struct Reader {
             return DiscShape{Vec2{number(need(s, path, "center_x_mm"), path + ".center_x_mm"), 0.0} * kMm,
                              positive(need(s, path, "radius_mm"), path + ".radius_mm") * kMm};
         }
-        fail(path + ".type", "unknown shape \"" + type + "\" (rect, disc, cylinder, sphere)");
+        if (type == "polygon") {
+            onlyKeys(s, path, {"type", "points_mm"});
+            const json& pts = need(s, path, "points_mm");
+            if (!pts.is_array() || pts.size() < 3) fail(path + ".points_mm", "expected at least 3 [x, y] points");
+            PolygonShape poly;
+            for (std::size_t k = 0; k < pts.size(); ++k)
+                poly.points.push_back(pair(pts[k], path + ".points_mm[" + std::to_string(k) + "]") * kMm);
+            return poly;
+        }
+        fail(path + ".type", "unknown shape \"" + type + "\" (rect, disc, cylinder, sphere, polygon)");
     }
 
     void settings(const json& s, const std::string& path, SolverSettings& out) const {

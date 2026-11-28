@@ -88,6 +88,7 @@ private:
     void drawBodySizes(const armor::Frame& f, const armor::Recording& rec) const;
     void drawProbesPanel();
     void drawClickGauges();
+    void drawTankCheck();
     void drawSimulateTab();
     void drawDetailsTab();
     void drawBuilder();
@@ -126,6 +127,7 @@ private:
     float projSpeed_ = 500.0f;
     std::vector<BuilderLayer> layers_;
     float obliquityDeg_ = 0.0f;
+    float tankRangeKm_ = 2.0f; // Details > Tank check
     float spacingMm_ = 0.5f;
     float endTimeUs_ = 50.0f;
     bool autoResolution_ = true;

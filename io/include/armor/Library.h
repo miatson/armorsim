@@ -17,7 +17,8 @@
 //     "material": "steel_rha", "shape": { "type": "sphere", "diameter_mm": 10 },
 //     "speed_mps": 500 }
 //
-// Shapes: "sphere" (diameter_mm), "rod" (length_mm, diameter_mm; flat nose),
+// Shapes: "sphere" (diameter_mm), "rod" (length_mm, diameter_mm, optional
+// nose_length_mm: a pointed conical nose that is part of the length),
 // "plate" (thickness_mm, width_mm = diameter of a round plate in axisymmetric
 // mode, height of the slice in plane strain).
 // -----------------------------------------------------------------------------
@@ -47,7 +48,18 @@ struct LibraryItem {
     double thickness = 0.0;  // m (plate)
     double width = 0.0;      // m (plate)
     double speed = 0.0;      // m/s, suggested (projectiles)
+    double noseLength = 0.0; // m (rod): conical nose, part of `length`
+    // Armour standing in for a real tank's front: published estimates of its
+    // protection against long rods, in mm of armour steel (RHA equivalent).
+    double estimateLow = 0.0, estimateHigh = 0.0; // m; 0 = not a tank estimate
+    bool isTankEstimate() const { return estimateHigh > 0.0; }
 };
+
+// Volume of a projectile item (m^3), counting a rod's conical nose.
+double projectileVolume(const LibraryItem& p);
+// A rod's working length for long-rod formulas: a cone counts a third of its
+// length (equal volume).
+double rodWorkingLength(const LibraryItem& p);
 
 LibraryItem parseLibraryItem(const std::string& json, std::span<const Material> materials,
                              const std::string& sourceName = "item");

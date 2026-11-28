@@ -1,0 +1,15 @@
+{
+  "name": "Tank front (est.): M1A2 Abrams turret",
+  "category": "armor",
+  "description": "Russian-attributed estimate 770 mm vs long rods for the M1A2; later SEP versions are thought to be better. Stand-in: a block of armour steel as thick as the estimated protection against long rods (RHA equivalent, line of sight). Real tank armour is secret composite; public estimates vary widely between sources - this is a rough guide, not data.",
+  "material": "steel_rha",
+  "estimate_range_mm": [
+    700,
+    900
+  ],
+  "shape": {
+    "type": "plate",
+    "thickness_mm": 770,
+    "width_mm": 300
+  }
+}

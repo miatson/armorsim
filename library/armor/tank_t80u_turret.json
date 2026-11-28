@@ -1,0 +1,15 @@
+{
+  "name": "Tank front (est.): T-80U turret",
+  "category": "armor",
+  "description": "Estimates from 630-700 mm (UK-sourced) to 860 mm (Russian-attributed), depending on how much Kontakt-5 is credited. Stand-in: a block of armour steel as thick as the estimated protection against long rods (RHA equivalent, line of sight). Real tank armour is secret composite; public estimates vary widely between sources - this is a rough guide, not data.",
+  "material": "steel_rha",
+  "estimate_range_mm": [
+    630,
+    860
+  ],
+  "shape": {
+    "type": "plate",
+    "thickness_mm": 750,
+    "width_mm": 300
+  }
+}

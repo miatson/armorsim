@@ -1,0 +1,15 @@
+{
+  "name": "Tank front (est.): Leopard 2A6 turret",
+  "category": "armor",
+  "description": "Forum estimates around 800-850 mm vs long rods (the often-quoted 1300 mm is probably vs shaped charges). Stand-in: a block of armour steel as thick as the estimated protection against long rods (RHA equivalent, line of sight). Real tank armour is secret composite; public estimates vary widely between sources - this is a rough guide, not data.",
+  "material": "steel_rha",
+  "estimate_range_mm": [
+    800,
+    850
+  ],
+  "shape": {
+    "type": "plate",
+    "thickness_mm": 825,
+    "width_mm": 300
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "APFSDS DM53 (Germany, 120 mm)",
+  "category": "projectile",
+  "description": "German 120 mm tank round (Leopard 2A6/2A7, L/55 gun). Tungsten-alloy rod about 685 mm long, 23 mm thick (5 kg); 1720 m/s from the L/55 gun, 1670 m/s from the shorter L/44. Public figures disagree (23 or 26 mm thick); 23 mm matches the stated 5 kg. DM63 uses the same rod. Fins and sabot are not modelled. Nose shape approximate.",
+  "material": "tungsten_wha",
+  "shape": {
+    "type": "rod",
+    "length_mm": 685,
+    "diameter_mm": 23,
+    "nose_length_mm": 60
+  },
+  "speed_mps": 1720
+}

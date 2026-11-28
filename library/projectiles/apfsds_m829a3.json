@@ -1,0 +1,13 @@
+{
+  "name": "APFSDS M829A3 (USA, 120 mm)",
+  "category": "projectile",
+  "description": "US 120 mm round (M1 Abrams). Depleted-uranium main rod about 670 mm long, 25 mm thick, ~1555 m/s. The real round also has a 100 mm steel tip section in front (meant to set off reactive armour) - not modelled. Depleted uranium is not in the simulator yet: modelled as tungsten alloy (6% lighter). Figures are public estimates.",
+  "material": "tungsten_wha",
+  "shape": {
+    "type": "rod",
+    "length_mm": 670,
+    "diameter_mm": 25,
+    "nose_length_mm": 50
+  },
+  "speed_mps": 1555
+}
