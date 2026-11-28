@@ -573,6 +573,34 @@ Check: a 5 mm steel ball at 600 m/s into an 80 mm-wide aluminium plate, 2D, 30 �
 plate's outer parts move at 24 m/s when free and 6 m/s when held. The energy ratio
 including the absorbed energy is 0.996.
 
+### Flying debris (erosion) in 2D slices
+
+In a 2D slice, broken material in front of the projectile cannot escape sideways as real
+debris does in 3D. It piled up, got squeezed and burst outward, and spaced armour looked
+like it was being snowploughed. So in slice runs, **fully broken material becomes flying
+debris**:
+- It no longer pushes or is pushed. It flies on with its mass, speed and heat, drawn as
+  small faded dots.
+- When it runs into solid material, it sticks in a perfectly inelastic collision shared
+  by the solid within 1.5 particle spacings. Its momentum still pushes what it hits; the
+  lost motion becomes heat.
+- A solid particle left almost alone among debris (fewer than 2 solid neighbours) is a
+  crumb and becomes debris too.
+
+Check: a tungsten rod (60 × 6 mm slab, 1500 m/s) through three 8 mm steel plates spaced
+20 mm apart, 2D slice, 90 µs, 16 s:
+
+| | Debris off | Debris on |
+|---|---|---|
+| Fastest particle | 3171 m/s | 1690 m/s |
+| Highest pressure at the end | 8.4 GPa | 2.0 GPa |
+| Rod after the plates | 16 pieces, 1318 m/s | main piece, 1332 m/s |
+| Energy ratio | 0.996 | 1.000 |
+
+**Not used in round (straight-on) runs.** There broken material can flow out radially,
+and erosion made the validated L/D-10 rod go 8% deeper (P/L 0.94 vs 0.87; experiments
+0.85), with energy +0.5%. Details › Solver settings can switch it off for slices too.
+
 ### Ballistic limit (V50) of a steel plate (Børvik et al.)
 
 The **V50 tool** finds the speed at which a projectile just perforates a plate, as

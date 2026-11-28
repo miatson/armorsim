@@ -76,6 +76,7 @@ struct Frame {
     double absorbedEnergy = 0.0; // J taken out by the mounts of held bodies
     std::vector<float> x, y;
     std::vector<std::uint16_t> body; // contact body id per particle
+    std::vector<std::uint8_t> debris; // 1 = flying debris (drawn small and faded)
     std::array<std::vector<float>, kFieldCount> values;
 };
 

@@ -560,3 +560,18 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   the same rule, warns when a layer has no room to be held.
 - Test (30 us, 2 s): outer plate speed free 23.6 vs held 5.9 m/s, energy
   ratio 0.996 incl. absorbed. Hatching not yet checked visually.
+
+## 2026-11-28 — session 22: flying debris (erosion) in 2D slices
+
+- FailureKind kDebris; SolverSettings.erodeDebris (file key erode_debris,
+  default on) applied only when NOT axisymmetric (erode_). Fully failed ->
+  debris: skipped in force/strain-rate/time-step/ghost loops, pressure 0,
+  keeps mass/velocity/energy. stickDebris: touching (< 0.75 dx, > 0.71 lattice
+  gap) -> inelastic collision with all solid within 1.5 dx (same dv for the
+  group), loss -> debris heat. Isolated solid (< 2 solid neighbours in
+  1.5 dx) -> debris (fixed 40-85 GPa spikes). Frame.debris -> drawn small.
+- Slice check (W slab 1500 m/s, 3 x 8 mm plates, 90 us): max speed 3171 ->
+  1690 m/s, end max pressure 8.4 -> 2.0 GPa, energy 0.996 -> 1.000, rod
+  1318 -> 1332 m/s.
+- Round mode: erosion made L/D-10 P/L 0.942 (was 0.872, LO 0.852) and energy
+  1.005 -> kept off there; validated behaviour unchanged.

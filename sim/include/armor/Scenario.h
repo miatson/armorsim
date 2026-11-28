@@ -97,6 +97,10 @@ inline MountZone mountZone(double farthest, double projectileDiameter, double dx
 }
 
 struct SolverSettings {
+    // EROSION: fully broken material becomes flying debris (no forces, sticks
+    // to what it runs into) instead of piling up in front of the projectile.
+    // Applies to 2D slices (plane strain) only; see the Solver constructor.
+    bool erodeDebris = true;
     double cfl = 0.25;          // time step safety factor (see Solver.cpp)
     double hFactor = 1.3;       // smoothing length h = hFactor · dx
     double viscAlpha = 1.0;     // artificial viscosity, linear term

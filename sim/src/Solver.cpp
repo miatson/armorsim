@@ -146,6 +146,11 @@ Solver::Solver(Scenario scenario, std::vector<Material> materials)
     if (nReal_ == 0) {
         throw std::invalid_argument("the scenario contains no particles");
     }
+    // Erosion only in 2D slices: there broken material cannot escape sideways
+    // and piled up and burst. In round (axisymmetric) runs it can flow
+    // radially, and erosion made the validated long rod go 8% deeper
+    // (P/L 0.94 vs 0.87; experiments 0.85) - so it stays off there.
+    erode_ = scenario_.settings.erodeDebris && !axisymmetric_;
     setupMounts();
 }
 
@@ -218,6 +223,72 @@ void Solver::setupMounts() {
     if (skipped > 0)
         mountNote_ = std::to_string(skipped) + " held bod" + (skipped == 1 ? "y is" : "ies are") +
                      " too close to the shot line to be held (shot near its edge) - left free.";
+}
+
+// -----------------------------------------------------------------------------
+// EROSION ("flying debris"). Fully broken material carries no tension and no
+// shear, but as ordinary particles it still pushes: in front of a projectile
+// it piled up, got squeezed (in a 2D slice it cannot escape sideways as real
+// debris does in 3D) and burst outward. Professional impact codes erode such
+// material. Here it becomes DEBRIS: it feels and exerts no forces and flies
+// straight on, keeping its mass, speed and heat - so it is still drawn (small,
+// faded) as the debris cloud. When a debris particle runs INTO solid material
+// (closer than 0.75 dx to a non-debris particle) it sticks to it: a perfectly
+// inelastic collision of the pair, so its momentum is handed to what it hit
+// (an eroding rod still pushes the crater bottom) and the lost kinetic energy
+// becomes heat. Momentum and energy stay exactly balanced.
+// -----------------------------------------------------------------------------
+void Solver::stickDebris() {
+    Particles& P = particles_;
+    // 0.75 dx: more than the 0.71 dx from the middle of a lattice square to its
+    // corners, so debris cannot slip between the particles of a solid.
+    const double r0sq = 0.5625 * scenario_.dx * scenario_.dx;
+    // The hit is shared by the solid material within 1.5 dx (about 9
+    // particles): one particle taking every stuck piece's momentum rammed its
+    // neighbours and made pressure spikes of ~70 GPa.
+    const double shareSq = 2.25 * scenario_.dx * scenario_.dx;
+    std::vector<std::size_t> group;
+    for (std::size_t i = 0; i < nReal_; ++i) {
+        if (P.failed[i] != kDebris) continue;
+        bool touching = false;
+        group.clear();
+        for (const std::uint32_t j : grid_.neighbors(i)) {
+            if (j >= nReal_ || P.failed[j] == kDebris) continue; // ghosts and other debris
+            const double d2 = lengthSquared(P.pos[i] - P.pos[j]);
+            if (d2 < r0sq) touching = true;
+            if (d2 < shareSq) group.push_back(j);
+        }
+        if (!touching) continue;
+        // Perfectly inelastic: debris and the group's mean motion end up equal;
+        // every group particle gets the same velocity change (its internal
+        // motion is untouched). The kinetic energy lost becomes the debris' heat.
+        double M = 0.0;
+        Vec2 pg;
+        for (const std::size_t j : group) { M += P.mass[j]; pg += P.vel[j] * P.mass[j]; }
+        const double mi = P.mass[i];
+        const Vec2 vg = pg * (1.0 / M), vi = P.vel[i];
+        const Vec2 vc = (vi * mi + pg) * (1.0 / (mi + M));
+        const Vec2 dvGroup = vc - vg;
+        P.energy[i] += 0.5 * M / (mi + M) * lengthSquared(vi - vg); // loss / mi
+        P.vel[i] = vc;
+        for (const std::size_t j : group) P.vel[j] += dvGroup;
+    }
+    // A solid particle left (almost) alone among debris is itself a crumb:
+    // with fewer than 2 solid neighbours within 1.5 dx its density estimate
+    // breaks down (it showed pressure spikes of 40-85 GPa). Make it debris.
+    for (std::size_t i = 0; i < nReal_; ++i) {
+        if (P.failed[i] == kDebris || lengthSquared(P.vel[i]) == 0.0) continue;
+        int solid = 0;
+        for (const std::uint32_t j : grid_.neighbors(i)) {
+            if (j == i || j >= nReal_ || P.failed[j] == kDebris) continue;
+            if (lengthSquared(P.pos[i] - P.pos[j]) < shareSq && ++solid >= 2) break;
+        }
+        if (solid < 2) {
+            P.failed[i] = kDebris;
+            P.S[i] = {};
+            P.pressure[i] = 0.0;
+        }
+    }
 }
 
 void Solver::applyMounts() {
@@ -294,6 +365,7 @@ void Solver::step() {
         for (std::size_t i = b; i < e; ++i) kick(i);
     });
     if (!held_.empty()) applyMounts();
+    if (erode_) stickDebris();
     // Ghosts must see the new velocities of the particles they mirror.
     for (std::size_t k = 0; k < ghostSource_.size(); ++k) {
         const Vec2 v = particles_.vel[ghostSource_[k]];
@@ -406,7 +478,7 @@ void Solver::addAxisGhosts() {
     const double reach = kernel_.support();
     ghostSource_.clear();
     for (std::size_t i = 0; i < nReal_; ++i) {
-        if (particles_.pos[i].y >= reach) {
+        if (particles_.pos[i].y >= reach || particles_.failed[i] == kDebris) {
             continue;
         }
         ghostSource_.push_back(static_cast<std::uint32_t>(i));
@@ -501,6 +573,7 @@ double Solver::stableTimeStep() const {
     const double k = scenario_.settings.axisTimeStepFactor;
     double dt = 1e30;
     for (std::size_t i = 0; i < nReal_; ++i) {
+        if (particles_.failed[i] == kDebris) continue; // no interactions: no stability limit
         const double signal = soundSpeed_[i] + length(particles_.vel[i]);
         const double len = axisymmetric_ ? std::min(h, k * particles_.pos[i].y) : h;
         dt = std::min(dt, len / signal);
@@ -529,8 +602,16 @@ void Solver::computeStrainRates(std::size_t i) {
     //    would build up huge tension (and energy) at the interface of two
     //    bodies that have bounced apart. Such neighbours are treated as
     //    co-moving.
+    if (P.failed[i] == kDebris) { // flying debris: nothing changes but its position
+        rhoDot_[i] = 0.0;
+        SDot_[i] = {};
+        strainRate_[i] = 0.0;
+        balsara_[i] = 1.0;
+        return;
+    }
     Mat2 gradAll, gradSame, mAll, mSame;
     for (const std::uint32_t j : grid_.neighbors(i)) {
+        if (P.failed[j] == kDebris) continue;
         const Vec2 d = xi - P.pos[j];
         const double r = length(d);
         if (r <= 0.0) continue;
@@ -643,10 +724,16 @@ void Solver::computeForces(std::size_t i) {
     // Ring radius (axisymmetric) or 1 (plane strain). See ENERGY-COMPATIBLE FORCES.
     const double rI = axisymmetric_ ? xi.y : 1.0;
 
+    if (P.failed[i] == kDebris) {
+        acc_[i] = {};
+        eDot_[i] = 0.0;
+        return;
+    }
     Vec2 acc;
     double viscousHeating = 0.0;
     double artStressWork = 0.0;
     for (const std::uint32_t j : grid_.neighbors(i)) {
+        if (P.failed[j] == kDebris) continue;
         const Vec2 d = xi - P.pos[j];
         const double r2 = lengthSquared(d);
         if (r2 <= 0.0) continue;
@@ -866,9 +953,12 @@ void Solver::integrate(std::size_t i) {
                 P.failed[i] = kDuctile;
             }
         }
+        if (erode_ && fullyFailed(P.failed[i]) && P.failed[i] != kDebris)
+            P.failed[i] = kDebris; // erosion: becomes flying debris (stickDebris)
         if (fullyFailed(P.failed[i])) {
             P.S[i] = {}; // no shear strength left (tension is cut in the pair sums)
         }
+        if (P.failed[i] == kDebris) P.pressure[i] = 0.0; // carries no stress (its heat stays in `energy`)
 
     }
 
@@ -905,6 +995,7 @@ std::unique_ptr<Frame> Solver::captureFrame() const {
     f->x.resize(n);
     f->y.resize(n);
     f->body.resize(n);
+    f->debris.resize(n);
     for (auto& v : f->values) v.resize(n);
 
     auto put = [&](Field field, std::size_t i, double value) {
@@ -916,6 +1007,7 @@ std::unique_ptr<Frame> Solver::captureFrame() const {
         f->x[i] = static_cast<float>(P.pos[i].x);
         f->y[i] = static_cast<float>(P.pos[i].y);
         f->body[i] = P.part[i];
+        f->debris[i] = P.failed[i] == kDebris ? 1 : 0;
         put(Field::Material, i, P.material[i]);
         put(Field::Pressure, i, p);
         put(Field::VonMises, i, vonMises(S));

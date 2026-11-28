@@ -69,6 +69,7 @@ public:
 
 private:
     void setupMounts();
+    void stickDebris();
     void applyMounts();
     void computeDerived(std::size_t i);
     void filterDensity();
@@ -97,6 +98,7 @@ private:
     std::vector<double> holdRate_;
     double absorbed_ = 0.0;
     std::string mountNote_;
+    bool erode_ = false; // flying debris on (2D slices only)
 
     // Per-particle helpers, recomputed every step.
     std::vector<double> planarMass_;    // mass per unit depth / per radian (see Solver.cpp)

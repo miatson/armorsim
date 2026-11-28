@@ -37,9 +37,11 @@ namespace armor {
 //    copper Taylor rod at 175 m/s has such voids ~3 mm behind the impact face,
 //    Gray, Maudlin & Chen, LA-UR-01-5614; making them strengthless instead let
 //    the core squirt out and inflated the foot to 16.8 mm.)
-enum FailureKind : std::uint8_t { kIntact = 0, kDuctile = 1, kSpall = 2, kMelted = 3 };
+// kDebris: fully broken material turned into flying debris (EROSION, see
+// Solver::stickDebris) - no forces, flies straight, sticks to what it hits.
+enum FailureKind : std::uint8_t { kIntact = 0, kDuctile = 1, kSpall = 2, kMelted = 3, kDebris = 4 };
 
-inline bool fullyFailed(std::uint8_t f) { return f == kDuctile || f == kMelted; }
+inline bool fullyFailed(std::uint8_t f) { return f == kDuctile || f == kMelted || f == kDebris; }
 
 struct Particles {
     std::vector<Vec2> pos;        // m

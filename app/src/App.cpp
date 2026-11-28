@@ -243,6 +243,7 @@ void App::startSimulation() {
     if (advancedEdited_) {
         armor::SolverSettings& s = scenario.settings;
         s.failure = advanced_.failure;
+        s.erodeDebris = advanced_.erodeDebris;
         s.cfl = advanced_.cfl;
         s.viscAlpha = advanced_.viscAlpha;
         s.viscBeta = advanced_.viscBeta;
@@ -593,8 +594,21 @@ void App::drawParticles() {
         if (p.x < area.x - size || p.x > area.x + area.width + size || p.y < -size || p.y > area.height + size) return;
         DrawRectangleV({p.x - size * 0.5f, p.y - size * 0.5f}, {size, size}, c);
     };
+    const bool hasDebris = f->debris.size() == f->x.size();
     for (std::size_t i = 0; i < f->x.size(); ++i) {
-        const Color c = colorFor(values[i], range);
+        Color c = colorFor(values[i], range);
+        if (hasDebris && f->debris[i]) { // flying debris: small, faded dots
+            c.a = 150;
+            const Vector2 p = view_.toScreen(f->x[i], f->y[i]);
+            const float s = std::max(1.2f, size * 0.45f);
+            if (p.x >= area.x && p.x <= area.x + area.width && p.y >= 0 && p.y <= area.height)
+                DrawRectangleV({p.x - s * 0.5f, p.y - s * 0.5f}, {s, s}, c);
+            if (mirror) {
+                const Vector2 q = view_.toScreen(f->x[i], -f->y[i]);
+                DrawRectangleV({q.x - s * 0.5f, q.y - s * 0.5f}, {s, s}, Fade(c, 0.7f));
+            }
+            continue;
+        }
         drawAt(view_.toScreen(f->x[i], f->y[i]), c);
         if (mirror) {
             // The lower half is the mirror image: the same rings seen from the other side of the axis.
@@ -1092,6 +1106,11 @@ void App::drawDetailsTab() {
         ImGui::TextDisabled("Changes apply to the next run, also to ready-made scenarios.");
         bool ch = false;
         ch |= ImGui::Checkbox("Materials can fail (fracture, spall, melting)", &advanced_.failure);
+        ch |= ImGui::Checkbox("Broken material becomes flying debris (2D slices)", &advanced_.erodeDebris);
+        helpMarker("On (default): in 2D-slice runs, fully broken material stops pushing and flies on as small faded "
+                   "debris, sticking to whatever it runs into (its momentum and energy are kept). Without it, broken "
+                   "material piles up in front of the projectile and bursts outward, because in a slice it cannot "
+                   "escape sideways. Round (straight-on) runs never use it: there it made validated depths 8% too deep.");
         float cfl = static_cast<float>(advanced_.cfl), va = static_cast<float>(advanced_.viscAlpha),
               vb = static_cast<float>(advanced_.viscBeta), bm = static_cast<float>(advanced_.balsaraMin);
         if (ImGui::SliderFloat("Time-step safety (CFL)", &cfl, 0.05f, 0.5f, "%.2f")) { advanced_.cfl = cfl; ch = true; }
