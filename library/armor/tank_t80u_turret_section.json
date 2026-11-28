@@ -1,7 +1,7 @@
 {
  "name": "Tank cross-section: T-80U turret cheek",
  "category": "armor",
- "description": "Cast turret: Kontakt-5 in front (inert), cast steel walls and 'cellular' inserts - two 80 mm polymer-cell layers in alloy shells with 40 mm hollows (polymer stood in by aluminium). Inserts ~815 mm deep. Estimates vs long rods 630-860 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Cast turret: Kontakt-5 in front (inert), cast steel walls and 'cellular' inserts - two 80 mm polymer-cell layers in alloy shells with 40 mm hollows (polymer stood in by aluminium). Inserts ~815 mm deep. Estimates vs long rods 630-860 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
  "material": "steel_rha",
  "shape": {
   "type": "assembly",

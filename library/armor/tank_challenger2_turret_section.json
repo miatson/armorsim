@@ -1,7 +1,7 @@
 {
  "name": "Tank cross-section: Challenger 2 turret front",
  "category": "armor",
- "description": "Dorchester (Chobham-family) armour is the least public of all: here a generic array of steel plates, rubber interlayers (gaps) and ceramic tiles between an 80 mm front plate and a 120 mm back plate, ~870 mm deep near the gun. SPECULATIVE layout. Estimates vs long rods vary widely. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Dorchester (Chobham-family) armour is the least public of all: here a generic array of steel plates, rubber interlayers and ceramic tiles between an 80 mm front plate and a 120 mm back plate, ~870 mm deep near the gun. SPECULATIVE layout. Estimates vs long rods vary widely. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
  "material": "steel_rha",
  "shape": {
   "type": "assembly",
@@ -51,6 +51,28 @@
     ]
    },
    {
+    "name": "Array rubber 1 (15 mm)",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      100,
+      -150.0
+     ],
+     [
+      115,
+      -150.0
+     ],
+     [
+      115,
+      150.0
+     ],
+     [
+      100,
+      150.0
+     ]
+    ]
+   },
+   {
     "name": "Array ceramic tile 1 (25 mm, assumed)",
     "material": "alumina_ad995",
     "points_mm": [
@@ -90,6 +112,28 @@
      ],
      [
       180,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array rubber 2 (15 mm)",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      200,
+      -150.0
+     ],
+     [
+      215,
+      -150.0
+     ],
+     [
+      215,
+      150.0
+     ],
+     [
+      200,
       150.0
      ]
     ]
@@ -139,6 +183,28 @@
     ]
    },
    {
+    "name": "Array rubber 3 (15 mm)",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      300,
+      -150.0
+     ],
+     [
+      315,
+      -150.0
+     ],
+     [
+      315,
+      150.0
+     ],
+     [
+      300,
+      150.0
+     ]
+    ]
+   },
+   {
     "name": "Array ceramic tile 3 (25 mm, assumed)",
     "material": "alumina_ad995",
     "points_mm": [
@@ -178,6 +244,28 @@
      ],
      [
       380,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array rubber 4 (15 mm)",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      400,
+      -150.0
+     ],
+     [
+      415,
+      -150.0
+     ],
+     [
+      415,
+      150.0
+     ],
+     [
+      400,
       150.0
      ]
     ]
@@ -227,6 +315,28 @@
     ]
    },
    {
+    "name": "Array rubber 5 (15 mm)",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      500,
+      -150.0
+     ],
+     [
+      515,
+      -150.0
+     ],
+     [
+      515,
+      150.0
+     ],
+     [
+      500,
+      150.0
+     ]
+    ]
+   },
+   {
     "name": "Array ceramic tile 5 (25 mm, assumed)",
     "material": "alumina_ad995",
     "points_mm": [
@@ -266,6 +376,28 @@
      ],
      [
       580,
+      150.0
+     ]
+    ]
+   },
+   {
+    "name": "Array rubber 6 (15 mm)",
+    "material": "rubber_neoprene",
+    "points_mm": [
+     [
+      600,
+      -150.0
+     ],
+     [
+      615,
+      -150.0
+     ],
+     [
+      615,
+      150.0
+     ],
+     [
+      600,
       150.0
      ]
     ]

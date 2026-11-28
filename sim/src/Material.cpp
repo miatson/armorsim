@@ -276,6 +276,31 @@ std::vector<Material> defaultMaterials() {
         m.strength = jh;
         list.push_back(m);
     }
+    {
+        // Rubber: the interlayer of NERA (steel-rubber-steel sandwiches) and of
+        // many spaced arrays. Nearly incompressible but extremely soft in shear.
+        Material m;
+        m.name = "Rubber (neoprene)";
+        m.key = "rubber_neoprene";
+        // Shock data: Marsh, LASL Shock Hugoniot Data (1980), neoprene p.423:
+        // rho0 1.439 g/cm3, five shots, Us 4.37-5.76 km/s at up 1.14-2.10 km/s.
+        // A straight-line fit through them gives c0 2.79 km/s, s 1.42 (only
+        // measured above ~7 GPa; polymers are softer at low pressure, so this
+        // is somewhat stiff there). Gruneisen 1.0, shear modulus 1 MPa, tear
+        // strain 3 (elongation at break ~300-600%), tensile strength 20 MPa:
+        // typical handbook values, approximate.
+        m.source = "EOS: Marsh 1980 LASL neoprene shots, linear fit c0 2.79 km/s, s 1.42 (valid up 1.1-2.1 km/s); "
+                   "Gruneisen 1.0, G 1 MPa, tear strain 3, tensile 20 MPa: typical values, approx.";
+        m.density0 = 1439.0;
+        m.eos = MieGruneisenEos{2790.0, 1.42, 1.0};
+        m.bulkModulus = m.density0 * 2790.0 * 2790.0;
+        m.shearModulus = 1.0e6;
+        m.specificHeat = 2170.0;
+        m.strength = JohnsonCookStrength{20e6, 0.0, 1.0, 0.0, 1.0, 600.0};
+        m.failure = JohnsonCookFailure{3.0, 0.0, 0.0, 0.0, 0.0};
+        m.spallStrength = 20e6;
+        list.push_back(m);
+    }
     return list;
 }
 

@@ -1,7 +1,7 @@
 {
  "name": "Tank cross-section: T-90A turret cheek",
  "category": "armor",
- "description": "Welded turret: Kontakt-5 explosive reactive armour in front (two 15 mm plates at 60 deg; explosive not modelled), a 65 mm outer wall, a ~500 mm cavity of 'reflecting sheet' packets (steel-rubber-steel, tilted 55 deg) and a 150 mm inner wall. Estimates vs long rods ~780-830 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Welded turret: Kontakt-5 explosive reactive armour in front (two 15 mm plates at 60 deg; explosive not modelled), a 65 mm outer wall, a ~500 mm cavity of 'reflecting sheet' packets (steel-rubber-steel, tilted 55 deg) and a 150 mm inner wall. Estimates vs long rods ~780-830 mm with Kontakt-5. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
  "material": "steel_rha",
  "shape": {
   "type": "assembly",
@@ -73,8 +73,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 1 (steel; rubber = gap)",
+    "name": "Reflecting sheet 1: steel",
     "material": "steel_rha",
+    "group": 100,
     "points_mm": [
      [
       289.41,
@@ -95,8 +96,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 2 (steel; rubber = gap)",
+    "name": "Reflecting sheet 2: steel",
     "material": "steel_rha",
+    "group": 101,
     "points_mm": [
      [
       380.07,
@@ -117,8 +119,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 3 (steel; rubber = gap)",
+    "name": "Reflecting sheet 3: steel",
     "material": "steel_rha",
+    "group": 102,
     "points_mm": [
      [
       470.73,
@@ -139,8 +142,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 4 (steel; rubber = gap)",
+    "name": "Reflecting sheet 4: steel",
     "material": "steel_rha",
+    "group": 103,
     "points_mm": [
      [
       561.39,
@@ -161,8 +165,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 5 (steel; rubber = gap)",
+    "name": "Reflecting sheet 5: steel",
     "material": "steel_rha",
+    "group": 104,
     "points_mm": [
      [
       652.05,
@@ -187,8 +192,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 6 (steel; rubber = gap)",
+    "name": "Reflecting sheet 6: steel",
     "material": "steel_rha",
+    "group": 105,
     "points_mm": [
      [
       765.0,
@@ -213,8 +219,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 7 (steel; rubber = gap)",
+    "name": "Reflecting sheet 7: steel",
     "material": "steel_rha",
+    "group": 106,
     "points_mm": [
      [
       765,
@@ -235,8 +242,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 8 (steel; rubber = gap)",
+    "name": "Reflecting sheet 8: steel",
     "material": "steel_rha",
+    "group": 107,
     "points_mm": [
      [
       765,
@@ -257,8 +265,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 9 (steel; rubber = gap)",
+    "name": "Reflecting sheet 9: steel",
     "material": "steel_rha",
+    "group": 108,
     "points_mm": [
      [
       765,
@@ -279,8 +288,9 @@
     ]
    },
    {
-    "name": "Reflecting sheet 10 (steel; rubber = gap)",
+    "name": "Reflecting sheet 10: steel",
     "material": "steel_rha",
+    "group": 109,
     "points_mm": [
      [
       765,
@@ -297,6 +307,236 @@
      [
       765,
       117.61
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 1: rubber",
+    "material": "rubber_neoprene",
+    "group": 100,
+    "points_mm": [
+     [
+      346.94,
+      -150.0
+     ],
+     [
+      265,
+      -92.62
+     ],
+     [
+      265,
+      -85.3
+     ],
+     [
+      357.4,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 2: rubber",
+    "material": "rubber_neoprene",
+    "group": 101,
+    "points_mm": [
+     [
+      437.6,
+      -150.0
+     ],
+     [
+      265,
+      -29.14
+     ],
+     [
+      265,
+      -21.82
+     ],
+     [
+      448.06,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 3: rubber",
+    "material": "rubber_neoprene",
+    "group": 102,
+    "points_mm": [
+     [
+      528.26,
+      -150.0
+     ],
+     [
+      265,
+      34.34
+     ],
+     [
+      265,
+      41.66
+     ],
+     [
+      538.72,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 4: rubber",
+    "material": "rubber_neoprene",
+    "group": 103,
+    "points_mm": [
+     [
+      618.92,
+      -150.0
+     ],
+     [
+      265,
+      97.82
+     ],
+     [
+      265,
+      105.14
+     ],
+     [
+      629.38,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 5: rubber",
+    "material": "rubber_neoprene",
+    "group": 104,
+    "points_mm": [
+     [
+      709.58,
+      -150.0
+     ],
+     [
+      281.13,
+      150.0
+     ],
+     [
+      291.6,
+      150.0
+     ],
+     [
+      720.04,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 6: rubber",
+    "material": "rubber_neoprene",
+    "group": 105,
+    "points_mm": [
+     [
+      765,
+      -125.33
+     ],
+     [
+      371.79,
+      150.0
+     ],
+     [
+      382.25,
+      150.0
+     ],
+     [
+      765,
+      -118.0
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 7: rubber",
+    "material": "rubber_neoprene",
+    "group": 106,
+    "points_mm": [
+     [
+      765,
+      -61.85
+     ],
+     [
+      462.45,
+      150.0
+     ],
+     [
+      472.91,
+      150.0
+     ],
+     [
+      765,
+      -54.52
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 8: rubber",
+    "material": "rubber_neoprene",
+    "group": 107,
+    "points_mm": [
+     [
+      765,
+      1.63
+     ],
+     [
+      553.11,
+      150.0
+     ],
+     [
+      563.57,
+      150.0
+     ],
+     [
+      765,
+      8.96
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 9: rubber",
+    "material": "rubber_neoprene",
+    "group": 108,
+    "points_mm": [
+     [
+      765,
+      65.11
+     ],
+     [
+      643.77,
+      150.0
+     ],
+     [
+      654.23,
+      150.0
+     ],
+     [
+      765,
+      72.44
+     ]
+    ]
+   },
+   {
+    "name": "Reflecting sheet 10: rubber",
+    "material": "rubber_neoprene",
+    "group": 109,
+    "points_mm": [
+     [
+      765,
+      128.6
+     ],
+     [
+      734.43,
+      150.0
+     ],
+     [
+      744.89,
+      150.0
+     ],
+     [
+      765,
+      135.92
      ]
     ]
    },

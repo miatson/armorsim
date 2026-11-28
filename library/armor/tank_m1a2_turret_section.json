@@ -1,7 +1,7 @@
 {
  "name": "Tank cross-section: M1A2 Abrams turret cheek",
  "category": "armor",
- "description": "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates tilted 60 deg (rubber not modelled; depleted-uranium layers of later versions not modelled) and a 120 mm back plate. Public estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.",
+ "description": "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates tilted 60 deg (rubber not modelled; depleted-uranium layers of later versions not modelled) and a 120 mm back plate. Public estimates: about 430 mm of steel excluding the NERA panels; ~770 mm vs long rods. Approximate reconstruction from public sources (forums, modders' and game reconstructions); real tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D vertical slice.",
  "material": "steel_rha",
  "shape": {
   "type": "assembly",
@@ -29,8 +29,9 @@
     ]
    },
    {
-    "name": "NERA plate 1 (steel; rubber = gap)",
+    "name": "NERA packet 1: steel",
     "material": "steel_rha",
+    "group": 100,
     "points_mm": [
      [
       105.0,
@@ -51,8 +52,9 @@
     ]
    },
    {
-    "name": "NERA plate 2 (steel; rubber = gap)",
+    "name": "NERA packet 2: steel",
     "material": "steel_rha",
+    "group": 101,
     "points_mm": [
      [
       245.0,
@@ -73,8 +75,9 @@
     ]
    },
    {
-    "name": "NERA plate 3 (steel; rubber = gap)",
+    "name": "NERA packet 3: steel",
     "material": "steel_rha",
+    "group": 102,
     "points_mm": [
      [
       385.0,
@@ -95,8 +98,9 @@
     ]
    },
    {
-    "name": "NERA plate 4 (steel; rubber = gap)",
+    "name": "NERA packet 4: steel",
     "material": "steel_rha",
+    "group": 103,
     "points_mm": [
      [
       525.0,
@@ -117,8 +121,9 @@
     ]
    },
    {
-    "name": "NERA plate 5 (steel; rubber = gap)",
+    "name": "NERA packet 5: steel",
     "material": "steel_rha",
+    "group": 104,
     "points_mm": [
      [
       700.0,
@@ -143,8 +148,9 @@
     ]
    },
    {
-    "name": "NERA plate 6 (steel; rubber = gap)",
+    "name": "NERA packet 6: steel",
     "material": "steel_rha",
+    "group": 105,
     "points_mm": [
      [
       700,
@@ -165,8 +171,9 @@
     ]
    },
    {
-    "name": "NERA plate 7 (steel; rubber = gap)",
+    "name": "NERA packet 7: steel",
     "material": "steel_rha",
+    "group": 106,
     "points_mm": [
      [
       700,
@@ -187,8 +194,9 @@
     ]
    },
    {
-    "name": "NERA plate 8 (steel; rubber = gap)",
+    "name": "NERA packet 8: steel",
     "material": "steel_rha",
+    "group": 107,
     "points_mm": [
      [
       700,
@@ -205,6 +213,190 @@
      [
       700,
       101.15
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 1: rubber",
+    "material": "rubber_neoprene",
+    "group": 100,
+    "points_mm": [
+     [
+      170.0,
+      -150.0
+     ],
+     [
+      60,
+      -86.49
+     ],
+     [
+      60,
+      -74.94
+     ],
+     [
+      190.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 2: rubber",
+    "material": "rubber_neoprene",
+    "group": 101,
+    "points_mm": [
+     [
+      310.0,
+      -150.0
+     ],
+     [
+      60,
+      -5.66
+     ],
+     [
+      60,
+      5.88
+     ],
+     [
+      330.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 3: rubber",
+    "material": "rubber_neoprene",
+    "group": 102,
+    "points_mm": [
+     [
+      450.0,
+      -150.0
+     ],
+     [
+      60,
+      75.17
+     ],
+     [
+      60,
+      86.71
+     ],
+     [
+      470.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 4: rubber",
+    "material": "rubber_neoprene",
+    "group": 103,
+    "points_mm": [
+     [
+      590.0,
+      -150.0
+     ],
+     [
+      70.38,
+      150.0
+     ],
+     [
+      90.38,
+      150.0
+     ],
+     [
+      610.0,
+      -150.0
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 5: rubber",
+    "material": "rubber_neoprene",
+    "group": 104,
+    "points_mm": [
+     [
+      700,
+      -132.68
+     ],
+     [
+      210.38,
+      150.0
+     ],
+     [
+      230.38,
+      150.0
+     ],
+     [
+      700,
+      -121.13
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 6: rubber",
+    "material": "rubber_neoprene",
+    "group": 105,
+    "points_mm": [
+     [
+      700,
+      -51.85
+     ],
+     [
+      350.38,
+      150.0
+     ],
+     [
+      370.38,
+      150.0
+     ],
+     [
+      700,
+      -40.3
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 7: rubber",
+    "material": "rubber_neoprene",
+    "group": 106,
+    "points_mm": [
+     [
+      700,
+      28.98
+     ],
+     [
+      490.38,
+      150.0
+     ],
+     [
+      510.38,
+      150.0
+     ],
+     [
+      700,
+      40.53
+     ]
+    ]
+   },
+   {
+    "name": "NERA packet 8: rubber",
+    "material": "rubber_neoprene",
+    "group": 107,
+    "points_mm": [
+     [
+      700,
+      109.81
+     ],
+     [
+      630.38,
+      150.0
+     ],
+     [
+      650.38,
+      150.0
+     ],
+     [
+      700,
+      121.35
      ]
     ]
    },

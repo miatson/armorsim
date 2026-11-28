@@ -35,10 +35,12 @@ def clip(poly, x0, x1, y0, y1):
         p = clip_edge(p, inside, inter)
     return [[round(q[0], 2), round(q[1], 2)] for q in p]
 
-def slanted_plates(x0, x1, angle_deg, thickness, pitch, y0=-H / 2, y1=H / 2):
+def slanted_plates(x0, x1, angle_deg, thickness, pitch, y0=-H / 2, y1=H / 2, offset=0.0):
     """Parallel plates crossing the box [x0,x1]x[y0,y1]. angle_deg = tilt of the
     plates from vertical (0 = facing the shot squarely). thickness and pitch
-    are measured perpendicular to the plates."""
+    are measured perpendicular to the plates. offset shifts every band along
+    the normal (to lay a second layer right behind the first). Returns
+    (band index, polygon) pairs, so layers of one sandwich can be matched."""
     a = math.radians(angle_deg)
     n = (math.cos(a), math.sin(a))      # plate normal
     d = (-math.sin(a), math.cos(a))     # along the plate
@@ -48,7 +50,8 @@ def slanted_plates(x0, x1, angle_deg, thickness, pitch, y0=-H / 2, y1=H / 2):
     corners = [(x0, y0), (x1, y0), (x0, y1), (x1, y1)]
     s_min = min(c[0] * n[0] + c[1] * n[1] for c in corners)
     s_max = max(c[0] * n[0] + c[1] * n[1] for c in corners)
-    s = s_min + 0.5 * (pitch - thickness)
+    s = s_min + 0.5 * (pitch - thickness) + offset
+    k = 0
     while s < s_max:
         p0 = (n[0] * s, n[1] * s)
         p1 = (n[0] * (s + thickness), n[1] * (s + thickness))
@@ -58,8 +61,9 @@ def slanted_plates(x0, x1, angle_deg, thickness, pitch, y0=-H / 2, y1=H / 2):
         if len(c) >= 3:
             xs = [q[0] for q in c]; ys = [q[1] for q in c]
             if max(xs) - min(xs) > 1 and max(ys) - min(ys) > 1:
-                pieces.append(c)
+                pieces.append((k, c))
         s += pitch
+        k += 1
     return pieces
 
 def slab(x0, thick, angle_deg, y0=-H / 2, y1=H / 2):
@@ -70,6 +74,16 @@ def slab(x0, thick, angle_deg, y0=-H / 2, y1=H / 2):
     w = thick / math.cos(a)  # horizontal thickness
     return [[x0 + y0 * t, y0], [x0 + y0 * t + w, y0], [x0 + y1 * t + w, y1], [x0 + y1 * t, y1]]
 
+def sandwich(x0, x1, angle_deg, layers, pitch, label):
+    """NERA-type packets: each band is several layers (thickness, material,
+    name) laid one behind the other, bonded together (one group per packet)."""
+    parts, off = [], 0.0
+    for th, mat, nm in layers:
+        for k, p in slanted_plates(x0, x1, angle_deg, th, pitch, offset=off):
+            parts.append({"name": "%s %d: %s" % (label, k + 1, nm), "material": mat, "group": 100 + k, "points_mm": p})
+        off += th
+    return parts
+
 def write(fname, name, desc, parts, rng=None):
     item = {"name": name, "category": "armor", "description": desc, "material": "steel_rha",
             "shape": {"type": "assembly", "parts": parts}}
@@ -78,8 +92,9 @@ def write(fname, name, desc, parts, rng=None):
     print(fname, len(parts), "pieces")
 
 COMMON = (" Approximate reconstruction from public sources (forums, modders' and game reconstructions); real "
-          "tank armour is secret. Rubber (NERA) and explosive (ERA) layers are empty gaps until those materials "
-          "are added, so this shape protects LESS than the real thing. Simulated as a 2D vertical slice.")
+          "tank armour is secret. NERA rubber layers are neoprene; the explosive inside ERA blocks is still an "
+          "empty gap (explosives come in Stage G), so ERA protects LESS than the real thing. Simulated as a 2D "
+          "vertical slice.")
 
 # ---- T-90A turret cheek ----------------------------------------------------
 # Kontakt-5 block (inert for now: two 15 mm plates, gap for the explosive),
@@ -90,8 +105,7 @@ for k, (x, th) in enumerate([(0, 15), (60, 15)]):
     parts.append({"name": "Kontakt-5 plate %d (ERA, inert)" % (k + 1), "material": "steel_rha",
                   "points_mm": clip(slab(x + 60, th, 60), 0, 190, -H / 2, H / 2)})
 parts.append({"name": "Outer wall 65 mm", "material": "steel_rha", "points_mm": rect(200, 265)})
-for k, p in enumerate(slanted_plates(265, 765, 55, 24, 52)):
-    parts.append({"name": "Reflecting sheet %d (steel; rubber = gap)" % (k + 1), "material": "steel_rha", "points_mm": p})
+parts += sandwich(265, 765, 55, [(24, "steel_rha", "steel"), (6, "rubber_neoprene", "rubber")], 52, "Reflecting sheet")
 parts.append({"name": "Inner wall 150 mm", "material": "steel_rha", "points_mm": rect(765, 915)})
 write("tank_t90a_turret_section.json", "Tank cross-section: T-90A turret cheek",
       "Welded turret: Kontakt-5 explosive reactive armour in front (two 15 mm plates at 60 deg; explosive not "
@@ -114,8 +128,7 @@ write("tank_t80u_turret_section.json", "Tank cross-section: T-80U turret cheek",
 
 # ---- M1A2 Abrams turret cheek ---------------------------------------------
 parts = [{"name": "Front plate 60 mm", "material": "steel_rha", "points_mm": rect(0, 60)}]
-for k, p in enumerate(slanted_plates(60, 700, 60, 25, 70)):
-    parts.append({"name": "NERA plate %d (steel; rubber = gap)" % (k + 1), "material": "steel_rha", "points_mm": p})
+parts += sandwich(60, 700, 60, [(25, "steel_rha", "steel"), (10, "rubber_neoprene", "rubber")], 70, "NERA packet")
 parts.append({"name": "Back plate 120 mm", "material": "steel_rha", "points_mm": rect(700, 820)})
 write("tank_m1a2_turret_section.json", "Tank cross-section: M1A2 Abrams turret cheek",
       "Welded turret with a special-armour cavity: 60 mm front plate, a ~640 mm array of steel-rubber NERA plates "
@@ -128,9 +141,10 @@ parts = []
 for k, x in enumerate([0, 130]):
     parts.append({"name": "Wedge plate %d (45 mm hard steel)" % (k + 1), "material": "tool_steel_hrc53",
                   "points_mm": clip(slab(x + 40, 45, 60), 0, 320, -H / 2, H / 2)})
+parts.append({"name": "Wedge interlayer (rubber, assumed)", "material": "rubber_neoprene",
+              "points_mm": clip(slab(130, 20, 60), 0, 320, -H / 2, H / 2)})
 parts.append({"name": "Turret front plate 50 mm", "material": "steel_rha", "points_mm": rect(330, 380)})
-for k, p in enumerate(slanted_plates(380, 900, 45, 20, 55)):
-    parts.append({"name": "NERA plate %d (steel; rubber = gap)" % (k + 1), "material": "steel_rha", "points_mm": p})
+parts += sandwich(380, 900, 45, [(20, "steel_rha", "steel"), (8, "rubber_neoprene", "rubber")], 55, "NERA packet")
 parts.append({"name": "Back plate 100 mm", "material": "steel_rha", "points_mm": rect(900, 1000)})
 write("tank_leopard2a6_turret_section.json", "Tank cross-section: Leopard 2A6 turret cheek",
       "Spaced add-on wedge (two 45 mm hard-steel plates at ~60 deg, with interlayers) a few hundred mm in front of "
@@ -142,11 +156,13 @@ parts = [{"name": "Front plate 80 mm", "material": "steel_rha", "points_mm": rec
 x = 80
 for k in range(6):
     parts.append({"name": "Array steel plate %d (20 mm)" % (k + 1), "material": "steel_rha", "points_mm": rect(x, x + 20)})
-    x += 20 + 15  # 15 mm rubber interlayer = gap
+    x += 20
+    parts.append({"name": "Array rubber %d (15 mm)" % (k + 1), "material": "rubber_neoprene", "points_mm": rect(x, x + 15)})
+    x += 15
     parts.append({"name": "Array ceramic tile %d (25 mm, assumed)" % (k + 1), "material": "alumina_ad995", "points_mm": rect(x, x + 25)})
     x += 25 + 40
 parts.append({"name": "Back plate 120 mm", "material": "steel_rha", "points_mm": rect(x, x + 120)})
 write("tank_challenger2_turret_section.json", "Tank cross-section: Challenger 2 turret front",
       "Dorchester (Chobham-family) armour is the least public of all: here a generic array of steel plates, rubber "
-      "interlayers (gaps) and ceramic tiles between an 80 mm front plate and a 120 mm back plate, ~870 mm deep near "
+      "interlayers and ceramic tiles between an 80 mm front plate and a 120 mm back plate, ~870 mm deep near "
       "the gun. SPECULATIVE layout. Estimates vs long rods vary widely." + COMMON, parts, [400, 750])

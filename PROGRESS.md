@@ -588,3 +588,16 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   2) Explosives (JWL EOS + programmed burn) - Stage G: ERA (Kontakt-5,
      Relikt), HEAT jets, HESH. Then fill the tank cross-sections' gaps
      (rubber in NERA packets, explosive in ERA boxes).
+
+## 2026-11-28 — session 24: NERA rubber (Stage F)
+
+- Material 10 rubber_neoprene: Marsh 1980 LASL neoprene p.423 (rho0 1.439,
+  5 shots up 1.14-2.10 km/s) -> linear fit c0 2.79 km/s, s 1.42; Gamma 1.0,
+  G 1 MPa, JC A 20 MPa (no hardening), tear strain 3, spall 20 MPa, Tm 600 K
+  (typical values, approx). No natural-rubber entry in the book.
+- tools/gen_tank_sections.py: sandwich() packets (steel + rubber bonded per
+  packet): T-90A 24+6 @52, Abrams 25+10 @70, Leopard 20+8 @55 + wedge rubber
+  interlayer, Challenger 15 mm rubber; T-80U cells still aluminium.
+- Check (2D, W slab 1500 m/s, 2 x 8 mm steel at 60 deg, 120 us): gap ->
+  tip 159.5 mm, 1389 m/s; rubber -> 139.8 mm, 1371 m/s. Energy 1.000.
+- NEXT: Stage G explosives (JWL + programmed burn) -> ERA explosive, HEAT, HESH.
