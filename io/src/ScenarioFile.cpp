@@ -113,7 +113,7 @@ struct Reader {
 
     void settings(const json& s, const std::string& path, SolverSettings& out) const {
         onlyKeys(s, path, {"failure", "cfl", "visc_alpha", "visc_beta", "balsara_switch", "balsara_min",
-                           "density_filter_interval", "coalescence_porosity", "spall_incubation_time_us", "erode_debris",
+                           "density_filter_interval", "coalescence_porosity", "spall_incubation_time_us", "erode_debris", "failed_friction",
                            "threads"});
         if (s.contains("failure")) out.failure = boolean(s["failure"], path + ".failure");
         if (s.contains("cfl")) out.cfl = positive(s["cfl"], path + ".cfl");
@@ -123,6 +123,7 @@ struct Reader {
         if (s.contains("balsara_min")) out.balsaraMin = number(s["balsara_min"], path + ".balsara_min");
         if (s.contains("density_filter_interval"))
             out.densityFilterInterval = static_cast<int>(number(s["density_filter_interval"], path + ".density_filter_interval"));
+        if (s.contains("failed_friction")) out.failedFriction = number(s["failed_friction"], path + ".failed_friction");
         if (s.contains("erode_debris")) out.erodeDebris = boolean(s["erode_debris"], path + ".erode_debris");
         if (s.contains("coalescence_porosity"))
             out.coalescencePorosity = positive(s["coalescence_porosity"], path + ".coalescence_porosity");

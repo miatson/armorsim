@@ -460,6 +460,20 @@ void Solver::updatePorosity(std::size_t i) {
     P.pressure[i] = porousPressure(mat, rho, e, phi);
 }
 
+// Same body, and both particles can carry shear between them: intact, or
+// fractured (not molten) but both squeezed - then friction holds them (see
+// SolverSettings::failedFriction). Symmetric in i and j, so the pair sums stay
+// consistent.
+bool Solver::bonded(std::size_t i, std::size_t j) const {
+    const Particles& P = particles_;
+    if (P.part[j] != P.part[i]) return false;
+    const std::uint8_t fi = P.failed[i], fj = P.failed[j];
+    if (!fullyFailed(fi) && !fullyFailed(fj)) return true;
+    if (scenario_.settings.failedFriction <= 0.0) return false;
+    auto frictional = [](std::uint8_t f) { return f == kIntact || f == kSpall || f == kDuctile; };
+    return frictional(fi) && frictional(fj) && P.pressure[i] > 0.0 && P.pressure[j] > 0.0;
+}
+
 void Solver::computeDerived(std::size_t i) {
     const Particles& P = particles_;
     const Material& mat = materials_[P.material[i]];
@@ -596,8 +610,6 @@ void Solver::computeStrainRates(std::size_t i) {
     const Particles& P = particles_;
     const Vec2 xi = P.pos[i];
     const Vec2 vi = P.vel[i];
-    const std::uint16_t partI = P.part[i];
-
     // Two gradients:
     //  - gradSame: same body only. Drives shear (different bodies slide past
     //    each other without friction).
@@ -629,7 +641,7 @@ void Solver::computeStrainRates(std::size_t i) {
         const Mat2 dv = outer(relVel * vol, gw);
         const Mat2 dxm = outer((P.pos[j] - xi) * vol, gw);
         mAll += dxm;
-        if (P.part[j] == partI && !fullyFailed(P.failed[i]) && !fullyFailed(P.failed[j])) { // bonded
+        if (bonded(i, j)) { // same body and intact (or fractured but squeezed: friction)
             gradAll += dv;
             gradSame += dv;
             mSame += dxm;
@@ -725,7 +737,6 @@ void Solver::computeForces(std::size_t i) {
     const Vec2 xi = P.pos[i];
     const Vec2 vi = P.vel[i];
     const double rhoI = P.rho[i];
-    const std::uint16_t partI = P.part[i];
     const SymTensor sigmaI = totalStress(P.S[i], pEff_[i]);
     const double contactI = -std::max(P.pressure[i], 0.0);
     const double h = kernel_.h();
@@ -749,7 +760,7 @@ void Solver::computeForces(std::size_t i) {
         const Vec2 gw = kernel_.gradW(d, r);
         const double rhoJ = P.rho[j];
         // Bonded = same body and neither particle failed (see FAILURE).
-        const bool samePart = P.part[j] == partI && !fullyFailed(P.failed[i]) && !fullyFailed(P.failed[j]);
+        const bool samePart = bonded(i, j);
         // Ghosts sit at −r but are the same ring as their source: use |r|.
         const double rJ = axisymmetric_ ? std::abs(P.pos[j].y) : 1.0;
         const double ringRatio = rJ / rI;            // m_j / m_i per unit planar mass
@@ -963,7 +974,15 @@ void Solver::integrate(std::size_t i) {
         }
         if (erode_ && fullyFailed(P.failed[i]) && P.failed[i] != kDebris && !projectileBody_[P.part[i]])
             P.failed[i] = kDebris; // erosion: becomes flying debris (stickDebris)
-        if (fullyFailed(P.failed[i])) {
+        if (P.failed[i] == kDuctile && scenario_.settings.failedFriction > 0.0 && P.pressure[i] > 0.0) {
+            // Fractured but squeezed: the pieces grind on each other - Coulomb
+            // friction mu * p, never more than the intact strength (optional,
+            // off by default; see SolverSettings::failedFriction).
+            const double yieldF = std::min(yield, scenario_.settings.failedFriction * P.pressure[i]);
+            const double vmF = vonMises(S);
+            if (vmF > yieldF) S = vmF > 0.0 ? S * (yieldF / vmF) : S;
+            P.S[i] = S;
+        } else if (fullyFailed(P.failed[i])) {
             P.S[i] = {}; // no shear strength left (tension is cut in the pair sums)
         }
         if (P.failed[i] == kDebris) P.pressure[i] = 0.0; // carries no stress (its heat stays in `energy`)

@@ -101,6 +101,13 @@ struct SolverSettings {
     // to what it runs into) instead of piling up in front of the projectile.
     // Applies to 2D slices (plane strain) only; see the Solver constructor.
     bool erodeDebris = true;
+    // FRICTION OF FAILED MATERIAL: fractured (not molten) metal that is being
+    // squeezed keeps a Coulomb shear strength mu * p (capped by its intact
+    // strength); in tension it still has none. 0 (default) = failed material
+    // is a frictionless fluid. Tried as a cure for long rods going too deep:
+    // no measurable effect (DM53 tip at 300 us 247.3 vs 248.2 mm) - the real
+    // cause was too-narrow test blocks - so it stays off; kept as an option.
+    double failedFriction = 0.0;
     double cfl = 0.25;          // time step safety factor (see Solver.cpp)
     double hFactor = 1.3;       // smoothing length h = hFactor · dx
     double viscAlpha = 1.0;     // artificial viscosity, linear term

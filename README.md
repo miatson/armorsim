@@ -502,25 +502,23 @@ so treat these as a rough guide.
 using Odermatt's perforation equation. A range slider takes off an assumed 60 m/s per km of flight. The
 verdict is "gets through", "stopped" or "too close to call" against each estimate range.
 
-**Full simulation check (1.5 mm spacing, 262 s):** DM53 at 1720 m/s into a 770 mm
-block stopped at **~660 mm**. The thick-block fit (Lanz-Odermatt) says 502 mm, so the
-simulation goes about 30% too deep. It isn't resolution: two short runs to 300 µs
-reached 247 mm at 1.5 mm spacing and 257 mm at 1.0 mm, so finer is slightly deeper,
-not shallower. **It is rod slenderness, not speed.** The L/D-10 validation already covers 1750 m/s
-(+5.3%). At the same 1.5 mm spacing, a full-size L/D-10 rod (230 × 23 mm, 1720 m/s,
-55 s) went 266 mm against a fit of 236 mm (+13%). DM53 (L/D 28) went 660 mm against
-499 mm (+32%).
+**Full simulation check: solved.** Early full-size runs went too deep: DM53 reached 660 mm
+against the fit's 502 mm (+31%), and a full-size L/D-10 rod +13%. The cause was not
+the physics, resolution or rod length: **the test blocks were too narrow**. A block of
+radius 4.3 rod diameters has its free outer surface close enough that the steel around
+the crater is not held in, so the crater widens and the rod goes deeper.
+- **Wider blocks:** at radius ~11 diameters, the L/D-10 rod went 240 mm against a fit of
+  236 mm (+1.8%), and DM53 went **502 mm against 502 mm** (0%).
+- **Spacing doesn't matter here:** 1.15 mm and 1.5 mm gave the same depths.
+- **Ruled out on the way** (each a 30 s DM53 check):
+  - friction strength for fractured steel: no effect;
+  - steel 1.5× stronger: −8.5%;
+  - no heat-softening: +1.7%;
+  - 30% weaker rod: −0.7%;
+  - melting: never reached.
 
-Experiments show long, thin rods penetrating about 25% less per unit length than
-L/D-10 rods (the `tanh` term). The simulation shows only about 12%, so it misses half
-of that loss. Possible reasons:
-- Real long rods bend and yaw slightly.
-- The perfectly straight axisymmetric model can't do either.
-- How the eroding rod's head behaves over a long penetration.
-
-**Open (known limitation):** full simulations of very slender rods (L/D above ~15) go
-too deep. The app says so, and the Tank check uses the formula, not the simulation.
-The verdict against the Abrams estimate is the same either way: stopped.
+The app warns about narrow targets (radius under ~10 rod diameters), and the tank-front
+stand-in blocks are now 500 mm wide.
 
 ### Tank armour cross-sections and free placement
 
@@ -601,13 +599,14 @@ off, so the plates could no longer push and bend it (tilt −1.3°, no break-up)
 the *armour* erodes into debris. The projectile's broken material stays and transmits
 the push, except lone crumbs.
 
-**At full tank scale** (3BM59, 735 × 21 mm at 1650 m/s, against the Leopard 2A6 cheek,
-2.7 min), the rod still perforates: about 16% of it exits at 1020 m/s. Real-life
-estimates say it should not. The two remaining reasons are model limits, not NERA:
-- In a 2D slice the rod is an infinitely wide slab. It can bend and break in the
-  picture's plane, but not yaw out of it or shatter like a round rod.
-- Full simulations of rods ~30 diameters long go ~30% too deep (see "Tank rounds
-  against tank fronts").
+**At full tank scale** (3BM59 at 1650 m/s against the Leopard 2A6 cheek, slices 300
+and 500 mm wide, ~3 min each), the rod still perforates, with ~19% of it exiting at about
+1050 m/s. Against **586 mm of plain steel** (the same mass) 14% exits at 1155 m/s. So in
+2D at this scale the NERA array is about as good as plain steel of its mass (~0.95×),
+while real Burlington-type NERA is credited with ~1.4×. The reason: in a slice the
+21 mm rod is an infinitely wide slab, which bends in the picture's plane but cannot yaw
+out of it or shatter like a round rod. The long-rod "overshoot" was a separate problem,
+now solved (narrow test blocks; see "Tank rounds against tank fronts").
 
 Use the Tank check for verdicts. The explosive inside ERA is still an empty gap until
 Stage G.
@@ -697,9 +696,13 @@ when a plate has fewer than about 40 particles across it.
 
 ## Known limitations
 
-- Very slender rods (L/D above ~15, like real tank rounds) penetrate ~30% too deep in a
-  full simulation; short rods are within ~5-13%. Use the Tank check's formula figures for
-  numbers (see "Tank rounds against tank fronts").
+- Depth numbers need a WIDE target: radius at least ~10 projectile diameters. Narrow blocks
+  let rods go 13-30% too deep; the app warns.
+- Tank-scale NERA in a 2D slice is only about as effective as plain steel of the same mass
+  (3BM59 into the Leopard 2A6 cheek vs 586 mm of plain steel: 52 vs 39 kg/m of rod exits,
+  at 1054 vs 1155 m/s). Real Burlington-type NERA is credited with ~1.4× steel. At small
+  scale NERA works (Fras 2021 check), but a slab rod cannot yaw or shatter as a round rod
+  does. Use the Tank check for verdicts.
 
 - Ceramics (alumina, boron carbide, silicon carbide) are checked for consistency, not
   yet against a ceramic penetration experiment; ceramic armour results are qualitative.

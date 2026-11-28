@@ -638,3 +638,20 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   exits at 1020 m/s. Remaining causes: 2D slab rod, long-rod overshoot (~30%).
 - NEXT: Stage G explosives (ERA explosive, HEAT, HESH); later revisit long-rod
   overshoot (biggest remaining accuracy issue for tank-scale runs).
+
+## 2026-11-28 — session 27: long-rod "overshoot" solved (narrow test blocks)
+
+- Not resolution: L/D10 full size 1.5 vs 1.15 mm -> 266 / 269 mm; DM53 to
+  600 us 1.5 vs 1.15 -> 504 / 515 mm. Not material: 30 s DM53 checks (tip at
+  300 us, base 247.3): failed-material friction 0.5 -> 248.2; steel x1.5 ->
+  226.4; no thermal softening -> 251.5; rod x0.7 -> 245.6; melting never hit.
+- CAUSE: block radius too small (4.3 D). Wide blocks: L/D10 radius 250 mm
+  (11 D) -> 240.3 vs LO 236 (+1.8%, was +13%); DM53 radius 220, 1.7 mm,
+  950 us (266 s) -> 502.2 vs LO 502 (0%, was +31%).
+- failedFriction kept as option, default 0 (no effect). App: "narrow target"
+  warning (radius < 10 D) replaces the slender-rod warning. Tank stand-in
+  blocks 500 mm wide. Diagnostic env switches removed.
+- 3BM59 vs Leopard 2A6 cheek: 300 mm slice -> 16-19% exits; 500 mm slice
+  (2.2 mm, 192 s) -> 51.7 kg/m at 1054 m/s exits; equal-mass 586 mm plain
+  steel (139 s) -> 39.2 kg/m at 1155 m/s. => 2D tank-scale NERA ME ~0.95 vs
+  real ~1.4 (slab rod cannot yaw/shatter). Documented; Tank check for verdicts.

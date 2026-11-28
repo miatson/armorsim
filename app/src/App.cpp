@@ -152,10 +152,23 @@ std::string App::builderSummary() const {
                       "into thick steel armour. Compare with the rod's furthest point in Results.\n",
                       pl * lw * 1e3, pl);
         t += buf;
-        if (lw / spec.projectile.diameter > 15.0)
-            t += "Very long rod: the simulation goes too deep with rods this slender (a DM53-like rod, length 28 "
-                 "diameters, went ~30% deeper than the fit; a 10-diameter rod ~5-13%). Trust the formula figures "
-                 "for numbers, the simulation for how it looks.\n";
+        // Target width: a block narrower than ~10 rod diameters (radius) is not
+        // the 'thick armour' of the experiments - its free outer surface lets
+        // the crater widen and rods go too deep (radius 4.3 D: +13% / +32%;
+        // radius 11 D: +1.8% / 0%, see README).
+        for (const armor::ArmorLayer& l : spec.layers) {
+            if (l.thickness < 2.0 * spec.projectile.diameter || l.item.shape == armor::ItemShape::Assembly) continue;
+            const double radius = 0.5 * l.item.width;
+            if (radius < 10.0 * spec.projectile.diameter) {
+                std::snprintf(buf, sizeof buf,
+                              "Narrow target: this block is only %.1f rod diameters wide (radius). Real thick armour is "
+                              "much wider; narrow blocks let rods go 13-30%% too deep. Use a block of radius ~%.0f mm "
+                              "or more for depth numbers.\n",
+                              radius / spec.projectile.diameter, 10.0 * spec.projectile.diameter * 1e3);
+                t += buf;
+                break;
+            }
+        }
         const armor::LibraryItem& target = spec.layers[0].item;
         if (target.isTankEstimate()) {
             const bool du = spec.projectile.depletedUranium;

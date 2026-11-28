@@ -71,6 +71,7 @@ private:
     void setupMounts();
     void stickDebris();
     void applyMounts();
+    bool bonded(std::size_t i, std::size_t j) const;
     void computeDerived(std::size_t i);
     void filterDensity();
     void addAxisGhosts();
