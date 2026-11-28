@@ -575,3 +575,16 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   1318 -> 1332 m/s.
 - Round mode: erosion made L/D-10 P/L 0.942 (was 0.872, LO 0.852) and energy
   1.005 -> kept off there; validated behaviour unchanged.
+
+## 2026-11-28 — session 23: setup view for ready-made scenarios too
+
+- Setup view now shows before every run (Ready-made and Build your own).
+  Ready-made: movable items = bodies; round (axisymmetric) scenarios slide
+  along the axis only (half-shapes); plane-strain ones move/rotate freely;
+  probes move with their body. Dashed orange flight-path line, faint dashed
+  outline of where the projectile started. Overlap check interior-only.
+- PLANNED NEXT (user asked, do not forget): armour materials for NERA and ERA.
+  1) Rubber / elastomer (NERA interlayers) - Stage F.
+  2) Explosives (JWL EOS + programmed burn) - Stage G: ERA (Kontakt-5,
+     Relikt), HEAT jets, HESH. Then fill the tank cross-sections' gaps
+     (rubber in NERA packets, explosive in ERA boxes).

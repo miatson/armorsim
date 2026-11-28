@@ -97,6 +97,9 @@ private:
     void drawSetup();
     void drawPlacementControls();
     std::string itemName(int item) const;
+    std::vector<armor::Placement>& activePlacements();
+    armor::Scenario placedPresetScenario(std::vector<int>* itemOfPart, std::vector<std::string>* names,
+                                         std::vector<armor::ProbeSpec>* probes, std::vector<armor::Vec2>* ghost) const;
     void drawSimulateTab();
     void drawDetailsTab();
     void drawBuilder();
@@ -144,6 +147,10 @@ private:
     std::string previewSignature_; // refit the view when the layout changes
     int hoverItem_ = -1, dragItem_ = -1, selectedItem_ = 0;
     bool previewOverlap_ = false;
+    std::vector<armor::Placement> presetPlacements_; // ready-made: one per body
+    std::vector<std::string> previewNames_;          // ready-made: body names
+    int previewProj_ = -1;                           // preview part that moves (the projectile)
+    std::vector<armor::Vec2> ghost_;                 // projectile outline before it was moved
     std::string mountWarning_;
     float tankRangeKm_ = 2.0f; // Details > Tank check
     float spacingMm_ = 0.5f;
