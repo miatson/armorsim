@@ -163,7 +163,7 @@ ScenarioFile parseScenarioJson(const std::string& textIn, std::span<const Materi
     for (std::size_t k = 0; k < parts.size(); ++k) {
         const std::string path = "$.parts[" + std::to_string(k) + "]";
         const json& p = parts[k];
-        rd.onlyKeys(p, path, {"name", "material", "shape", "velocity_mps", "temperature_K", "contact_group"});
+        rd.onlyKeys(p, path, {"name", "material", "shape", "velocity_mps", "temperature_K", "contact_group", "held"});
         Part part;
         part.name = rd.text(rd.need(p, path, "name"), path + ".name");
         const std::string mat = rd.text(rd.need(p, path, "material"), path + ".material");
@@ -178,6 +178,7 @@ ScenarioFile parseScenarioJson(const std::string& textIn, std::span<const Materi
         if (s.mode == GeometryMode::Axisymmetric && part.velocity.y != 0.0)
             rd.fail(path + ".velocity_mps", "axisymmetric bodies can only move along the axis (y velocity must be 0)");
         if (p.contains("temperature_K")) part.temperature = rd.positive(p["temperature_K"], path + ".temperature_K");
+        if (p.contains("held")) part.held = rd.boolean(p["held"], path + ".held");
         if (p.contains("contact_group"))
             part.contactGroup = static_cast<int>(rd.number(p["contact_group"], path + ".contact_group"));
         s.parts.push_back(part);

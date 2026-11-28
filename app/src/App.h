@@ -129,6 +129,7 @@ private:
         float thicknessMm = 10.0f;
         float gapMm = 0.0f; // in front of this layer (not used for the first)
         bool glued = false; // glued to the next layer (ceramics: on by default)
+        bool held = false;  // held by the tank at the edges far from the shot (tank items: on)
     };
     int projItem_ = 0;
     int projMaterial_ = 0;
@@ -143,6 +144,7 @@ private:
     std::string previewSignature_; // refit the view when the layout changes
     int hoverItem_ = -1, dragItem_ = -1, selectedItem_ = 0;
     bool previewOverlap_ = false;
+    std::string mountWarning_;
     float tankRangeKm_ = 2.0f; // Details > Tank check
     float spacingMm_ = 0.5f;
     float endTimeUs_ = 50.0f;

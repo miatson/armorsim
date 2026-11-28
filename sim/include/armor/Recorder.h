@@ -73,6 +73,7 @@ struct Frame {
     double time = 0.0;
     double kineticEnergy = 0.0;  // J (per metre depth in plane strain)
     double internalEnergy = 0.0; // J
+    double absorbedEnergy = 0.0; // J taken out by the mounts of held bodies
     std::vector<float> x, y;
     std::vector<std::uint16_t> body; // contact body id per particle
     std::array<std::vector<float>, kFieldCount> values;

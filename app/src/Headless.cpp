@@ -63,8 +63,12 @@ int runScenario(const std::string& title, const armor::Scenario& scenario, const
     std::printf("  %s at t = %.2f us after %llu steps, %.1f s wall\n", blewUp ? "BLEW UP" : "finished",
                 solver.time() * 1e6, steps, wall);
     std::printf("  energy ratio %.4f, kinetic share %.3f, max speed %.1f m/s\n",
-                (d1.kinetic + d1.internal) / (d0.kinetic + d0.internal), d1.kinetic / (d1.kinetic + d1.internal),
+                (d1.kinetic + d1.internal + d1.absorbed) / (d0.kinetic + d0.internal), d1.kinetic / (d1.kinetic + d1.internal),
                 d1.maxSpeed);
+    if (solver.heldParticleCount() > 0 || d1.absorbed > 0.0)
+        std::printf("  mounts: %zu particles still held, %.3g J absorbed (%.1f%% of the start energy)\n",
+                    solver.heldParticleCount(), d1.absorbed, 100.0 * d1.absorbed / (d0.kinetic + d0.internal));
+    if (!solver.mountNote().empty()) std::printf("  note: %s\n", solver.mountNote().c_str());
     std::printf("  max plastic strain %.3f, max temperature %.0f K, max pressure now %.2f GPa\n", maxEp, maxT,
                 maxP / 1e9);
 

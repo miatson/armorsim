@@ -146,6 +146,96 @@ Solver::Solver(Scenario scenario, std::vector<Material> materials)
     if (nReal_ == 0) {
         throw std::invalid_argument("the scenario contains no particles");
     }
+    setupMounts();
+}
+
+// -----------------------------------------------------------------------------
+// MOUNTS ("held by the tank"). A piece of armour cut out of a tank has free
+// edges where the real vehicle continues. Free, it drifts and tumbles after
+// the hit, and its cut edges reflect the impact wave back as tension. A held
+// body gets an ABSORBING LAYER along its edges farthest from the shot line:
+// particles there are damped, v <- v exp(-rate dt), with the rate growing
+// smoothly (w^2) across the band to rate_max = 4 c / band. A gradual layer
+// soaks up outgoing waves instead of reflecting them (a rigid clamp would
+// reflect them too) and keeps the piece in place.
+//  - The zone follows the shot: it is placed from the projectile's position
+//    and direction, with a free zone around the shot path (MountZone).
+//  - A held particle that gets damaged, cracked or strongly deformed is
+//    released for good: the mount never holds material that is breaking.
+//  - The kinetic energy removed is counted (Diagnostics::absorbed), so the
+//    energy balance still closes.
+// -----------------------------------------------------------------------------
+void Solver::setupMounts() {
+    const Particles& P = particles_;
+    const std::size_t nParts = scenario_.parts.size();
+    std::vector<int> bodyHeld(65536, 0), bodyMoving(65536, 0);
+    bool any = false;
+    for (std::size_t k = 0; k < nParts; ++k) {
+        const std::uint16_t id = bodyId(scenario_, k);
+        if (scenario_.parts[k].held) { bodyHeld[id] = 1; any = true; }
+        if (lengthSquared(scenario_.parts[k].velocity) > 0.0) bodyMoving[id] = 1;
+    }
+    if (!any) return;
+    // Shot line: through the moving bodies' centre of mass, along their momentum.
+    double m = 0.0;
+    Vec2 c, mv;
+    for (std::size_t i = 0; i < nReal_; ++i)
+        if (bodyMoving[P.part[i]]) { m += P.mass[i]; c += P.pos[i] * P.mass[i]; mv += P.vel[i] * P.mass[i]; }
+    if (m <= 0.0 || lengthSquared(mv) <= 0.0) {
+        mountNote_ = "Nothing is moving, so held bodies are not held.";
+        return;
+    }
+    const Vec2 origin = c * (1.0 / m), dir = mv * (1.0 / length(mv));
+    auto dist = [&](Vec2 p) { const Vec2 r = p - origin; return std::abs(r.x * dir.y - r.y * dir.x); };
+    double projHalf = 0.0;
+    for (std::size_t i = 0; i < nReal_; ++i)
+        if (bodyMoving[P.part[i]]) projHalf = std::max(projHalf, dist(P.pos[i]));
+    const double projDiameter = 2.0 * projHalf + scenario_.dx;
+    // Per held body: farthest distance from the shot line -> zone.
+    std::vector<double> far(65536, 0.0);
+    for (std::size_t i = 0; i < nReal_; ++i)
+        if (bodyHeld[P.part[i]] && !bodyMoving[P.part[i]]) far[P.part[i]] = std::max(far[P.part[i]], dist(P.pos[i]));
+    std::vector<MountZone> zone(65536);
+    std::vector<int> done(65536, 0);
+    int skipped = 0;
+    for (std::size_t i = 0; i < nReal_; ++i) {
+        const std::uint16_t id = P.part[i];
+        if (!bodyHeld[id] || bodyMoving[id]) continue;
+        if (!done[id]) {
+            done[id] = 1;
+            zone[id] = mountZone(far[id], projDiameter, scenario_.dx);
+            if (!zone[id].ok) ++skipped;
+        }
+        const MountZone& z = zone[id];
+        if (!z.ok) continue;
+        const double w = std::clamp((dist(P.pos[i]) - z.start) / z.band, 0.0, 1.0);
+        if (w <= 0.0) continue;
+        const Material& mat = materials_[P.material[i]];
+        const double cs = std::sqrt(mat.bulkModulus / mat.density0);
+        held_.push_back(i);
+        holdRate_.push_back(4.0 * cs / z.band * w * w);
+    }
+    if (skipped > 0)
+        mountNote_ = std::to_string(skipped) + " held bod" + (skipped == 1 ? "y is" : "ies are") +
+                     " too close to the shot line to be held (shot near its edge) - left free.";
+}
+
+void Solver::applyMounts() {
+    Particles& P = particles_;
+    std::size_t keep = 0;
+    for (std::size_t k = 0; k < held_.size(); ++k) {
+        const std::size_t i = held_[k];
+        // Release for good once the material there starts to break.
+        if (P.failed[i] != 0 || P.damage[i] > 0.3 || P.plasticStrain[i] > 0.3) continue;
+        const double before = lengthSquared(P.vel[i]);
+        P.vel[i] *= std::exp(-holdRate_[k] * dt_);
+        absorbed_ += 0.5 * P.mass[i] * (before - lengthSquared(P.vel[i]));
+        held_[keep] = i;
+        holdRate_[keep] = holdRate_[k];
+        ++keep;
+    }
+    held_.resize(keep);
+    holdRate_.resize(keep);
 }
 
 // -----------------------------------------------------------------------------
@@ -203,6 +293,7 @@ void Solver::step() {
     pool_.parallelFor(n, [&](std::size_t b, std::size_t e) {
         for (std::size_t i = b; i < e; ++i) kick(i);
     });
+    if (!held_.empty()) applyMounts();
     // Ghosts must see the new velocities of the particles they mirror.
     for (std::size_t k = 0; k < ghostSource_.size(); ++k) {
         const Vec2 v = particles_.vel[ghostSource_[k]];
@@ -798,6 +889,7 @@ Diagnostics Solver::diagnostics() const {
         d.momentum += v * m;
         d.maxSpeed = std::max(d.maxSpeed, length(v));
     }
+    d.absorbed = absorbed_;
     return d;
 }
 
@@ -809,6 +901,7 @@ std::unique_ptr<Frame> Solver::captureFrame() const {
     f->time = time_;
     f->kineticEnergy = d.kinetic;
     f->internalEnergy = d.internal;
+    f->absorbedEnergy = d.absorbed;
     f->x.resize(n);
     f->y.resize(n);
     f->body.resize(n);

@@ -277,6 +277,7 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
                 PolygonShape poly;
                 for (const Vec2& v : ap.points) poly.points.push_back({x + v.x, v.y});
                 part.shape = theta != 0.0 ? transformShape(poly, {cx, 0.0}, theta, {0.0, 0.0}) : Shape{poly};
+                part.held = l.held;
                 s.parts.push_back(part);
             }
             x += l.item.thickness;
@@ -297,6 +298,7 @@ ScenarioFile buildScenario(const BuildSpec& spec, std::span<const Material> mate
         part.name = "Layer " + std::to_string(k + 1) + ": " + l.item.name;
         part.material = l.material;
         part.contactGroup = group;
+        part.held = l.held;
         gluedToPrevious = gluedToNext;
         if (axi) part.shape = RectShape{{cx, 0.25 * l.item.width}, {0.5 * l.thickness, 0.25 * l.item.width}, 0.0};
         else part.shape = RectShape{{cx, 0.0}, {0.5 * l.thickness, 0.5 * l.item.width}, theta};
@@ -406,6 +408,7 @@ std::string scenarioToJson(const ScenarioFile& file, std::span<const Material> m
         pj["velocity_mps"] = {part.velocity.x, part.velocity.y};
         if (part.temperature != 293.15) pj["temperature_K"] = part.temperature;
         if (part.contactGroup >= 0) pj["contact_group"] = part.contactGroup;
+        if (part.held) pj["held"] = true;
         parts.push_back(pj);
     }
     root["parts"] = parts;

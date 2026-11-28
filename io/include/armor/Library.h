@@ -99,6 +99,8 @@ struct ArmorLayer {
     // armour is glued to its backing; loose, the joint reflects the impact wave
     // as tension and the tile cracks from the back almost at once.
     bool bondedToNext = false;
+    // Held by the tank: edges far from the shot are held (see MountZone).
+    bool held = false;
 };
 
 // Where the user moved something in the setup view: an offset and a rotation

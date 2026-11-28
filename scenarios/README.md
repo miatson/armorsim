@@ -35,6 +35,7 @@ are an error**, so a typo can't be silently ignored.
 | `shape` | See below |
 | `velocity_mps` | `[vx, vy]`, m/s. Axisymmetric: vy must be 0 |
 | `temperature_K` | Initial temperature (default 293.15) |
+| `held` | `true`: held by the tank - edges far from the shot get an absorbing mount (see main README) |
 | `contact_group` | Parts with the same group (≥ 0) are bonded into one body (e.g. glued layers); default −1 = separate |
 
 Where parts overlap, the earlier one in the list wins.

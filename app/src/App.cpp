@@ -86,6 +86,9 @@ void App::resetBuilderLayer(std::size_t k, int item) {
     layers_[k].thicknessMm = static_cast<float>(lib.armor[static_cast<std::size_t>(item)].thickness * 1e3);
     // Ceramic tiles are glued to their backing in real armour.
     layers_[k].glued = materials_[static_cast<std::size_t>(layers_[k].material)].isCeramic();
+    // Tank fronts and cross-sections are pieces of a vehicle: held by default.
+    const armor::LibraryItem& it = lib.armor[static_cast<std::size_t>(item)];
+    layers_[k].held = it.isTankEstimate() || it.shape == armor::ItemShape::Assembly;
 }
 
 armor::BuildSpec App::builderSpec() const {
@@ -102,6 +105,7 @@ armor::BuildSpec App::builderSpec() const {
         layer.thickness = layer.item.shape == armor::ItemShape::Assembly ? layer.item.thickness : l.thicknessMm * 1e-3;
         layer.gapBefore = l.gapMm * 1e-3;
         layer.bondedToNext = l.glued;
+        layer.held = l.held;
         spec.layers.push_back(layer);
     }
     spec.obliquity = obliquityDeg_ * 3.14159265358979323846 / 180.0;
@@ -943,6 +947,11 @@ void App::drawBuilder() {
             ImGui::SliderFloat("Gap before (mm)", &l.gapMm, 0.0f, 100.0f, "%.1f");
             helpMarker("Empty space in front of this layer: spaced armour.");
         }
+        ImGui::Checkbox("Held by the tank", &l.held);
+        helpMarker("The edges of this layer farthest from the shot are held, as if the rest of the vehicle (or a "
+                   "test frame) continued there: the piece cannot fly off, and the cut edges soak up the impact "
+                   "wave instead of reflecting it. The held bands (hatched in the setup view) follow where you aim, "
+                   "always leave room around the shot, and let go of any material that starts to break.");
         if (k + 1 < layers_.size() && layers_[k + 1].gapMm <= 0.0f) {
             ImGui::Checkbox("Glued to the next layer", &l.glued);
             helpMarker("Glued layers act as one piece and can pull on each other. Real ceramic armour is glued to its "
@@ -1016,7 +1025,10 @@ void App::drawDetailsTab() {
             ImGui::Separator();
             ImGui::Text("Kinetic energy   %s", formatEnergy(f->kineticEnergy, perMetre).c_str());
             ImGui::Text("Internal energy  %s", formatEnergy(f->internalEnergy, perMetre).c_str());
-            ImGui::Text("Total            %s", formatEnergy(f->kineticEnergy + f->internalEnergy, perMetre).c_str());
+            if (f->absorbedEnergy > 0.0)
+                ImGui::Text("Absorbed by mounts %s", formatEnergy(f->absorbedEnergy, perMetre).c_str());
+            ImGui::Text("Total            %s",
+                        formatEnergy(f->kineticEnergy + f->internalEnergy + f->absorbedEnergy, perMetre).c_str());
             helpMarker("Kinetic: motion. Internal: compression, plastic work and heat. The total should stay nearly "
                        "constant - a few percent is lost to numerical damping, it should never grow.");
             if (perMetre) ImGui::TextDisabled("(2D slice: per metre of depth)");
@@ -1396,6 +1408,47 @@ void App::drawSetup() {
             drawPoly(pts, dim, Fade(line, 0.4f), 1.0f, true);
         }
     }
+    // Held bands (same rule as the solver, from the outlines): hatched.
+    mountWarning_.clear();
+    if (!parts.empty()) {
+        const armor::BuildSpec spec = builderSpec();
+        const armor::ShapeBox pb = armor::shapeBounds(parts[0].shape);
+        const armor::Vec2 origin = (pb.min + pb.max) * 0.5;
+        armor::Vec2 dir = parts[0].velocity;
+        const double sp = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (sp > 0) {
+            dir = dir * (1.0 / sp);
+            auto dist = [&](armor::Vec2 p) { const armor::Vec2 r = p - origin; return std::abs(r.x * dir.y - r.y * dir.x); };
+            double projHalf = 0.0;
+            for (const armor::Vec2& q : outlineOf(parts[0].shape)) projHalf = std::max(projHalf, dist(q));
+            const double dx = spec.spacing;
+            for (std::size_t k = 0; k < spec.layers.size(); ++k) {
+                if (!spec.layers[k].held) continue;
+                double farthest = 0.0;
+                for (std::size_t i = 1; i < parts.size(); ++i)
+                    if (previewItem_[i] == static_cast<int>(k + 1))
+                        for (const armor::Vec2& q : outlineOf(parts[i].shape)) farthest = std::max(farthest, dist(q));
+                const armor::MountZone z = armor::mountZone(farthest, 2.0 * projHalf + dx, dx);
+                if (!z.ok) {
+                    mountWarning_ += "Layer " + std::to_string(k + 1) + " has no room to be held this close to the shot (needs ~3 projectile widths + 10 mm free) - it will be free.  ";
+                    continue;
+                }
+                const float stepPx = 7.0f;
+                for (std::size_t i = 1; i < parts.size(); ++i) {
+                    if (previewItem_[i] != static_cast<int>(k + 1)) continue;
+                    const armor::ShapeBox b = armor::shapeBounds(parts[i].shape);
+                    const Vector2 s0 = view_.toScreen(b.min.x, b.max.y), s1 = view_.toScreen(b.max.x, b.min.y);
+                    for (float sy = std::max(s0.y, 0.0f); sy <= std::min(s1.y, area.height); sy += stepPx)
+                        for (float sx = std::max(s0.x, area.x); sx <= std::min(s1.x, area.x + area.width); sx += stepPx) {
+                            const armor::Vec2 w{view_.toWorldX(sx), view_.toWorldY(sy)};
+                            if (dist(w) < z.start || !armor::contains(parts[i].shape, w)) continue;
+                            DrawLineEx({sx - 2.5f, sy + 2.5f}, {sx + 2.5f, sy - 2.5f}, 1.5f, Color{255, 200, 80, 200});
+                        }
+                }
+            }
+        }
+    }
+
     // Flight direction of the projectile.
     if (!parts.empty()) {
         const armor::ShapeBox b = armor::shapeBounds(parts[0].shape);
@@ -1430,6 +1483,9 @@ void App::drawSetup() {
     if (!previewError_.empty()) DrawText(previewError_.c_str(), x0, y, 18, Color{255, 120, 120, 255});
     if (previewOverlap_) DrawText("The projectile overlaps the armour - drag it clear before simulating.", x0, y, 18,
                                   Color{255, 120, 120, 255});
+    else if (!mountWarning_.empty()) DrawText(mountWarning_.c_str(), x0, y, 16, Color{255, 190, 90, 255});
+    DrawText("Hatched: held by the tank (the rest of the vehicle continues there).", x0, y - 24, 16,
+             Color{255, 200, 80, 220});
     y += 26;
     DrawText(axi ? "Straight on: simulated as round bodies (axisymmetric). Moving or rotating anything switches to a 2D slice."
                  : "2D slice (plane strain): free positions and angles; depths are qualitative.",

@@ -30,6 +30,7 @@ struct Diagnostics {
     double internal = 0.0; // J
     Vec2 momentum;         // kg·m/s
     double maxSpeed = 0.0; // m/s
+    double absorbed = 0.0; // J taken out by mounts (held bodies); counts in the energy balance
 };
 
 class Solver {
@@ -61,8 +62,14 @@ public:
                              {P.failed.data(), n}, 1.5 * scenario_.dx);
     }
     std::unique_ptr<Frame> captureFrame() const;
+    // Held bodies: how many particles are held, and any warning (e.g. a shot
+    // too close to a body's edge for it to be held).
+    std::size_t heldParticleCount() const { return held_.size(); }
+    const std::string& mountNote() const { return mountNote_; }
 
 private:
+    void setupMounts();
+    void applyMounts();
     void computeDerived(std::size_t i);
     void filterDensity();
     void addAxisGhosts();
@@ -85,6 +92,11 @@ private:
 
     Particles particles_;  // real particles, plus mirror "ghosts" during a step
     std::size_t nReal_ = 0;
+    // Mounts: held particles and their damping rate (1/s); energy removed.
+    std::vector<std::size_t> held_;
+    std::vector<double> holdRate_;
+    double absorbed_ = 0.0;
+    std::string mountNote_;
 
     // Per-particle helpers, recomputed every step.
     std::vector<double> planarMass_;    // mass per unit depth / per radian (see Solver.cpp)

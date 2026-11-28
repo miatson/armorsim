@@ -546,3 +546,17 @@ fracture validation (plate plugging / V50 overlaps Stage E).
   = gaps (materials step next: rubber for NERA, explosive for ERA).
 - Tank check lists only the steel stand-in blocks (sections are the same tanks).
 - Fast tests pass (1334 assertions). Setup view checked by a window capture.
+
+## 2026-11-28 — session 21: "held by the tank" mounts
+
+- Part.held; Solver::setupMounts: shot line from moving bodies (centre of
+  mass, momentum direction); per held body MountZone(farthest distance,
+  projectile diameter, dx): free within 3D + 10 mm, absorbing band (max(6dx,
+  15% of reach)) at the far edges, rate 4c/band * w^2; v *= exp(-rate dt);
+  release when failed / damage > 0.3 / plastic strain > 0.3; absorbed KE
+  counted in Diagnostics/Frame (energy ratio includes it).
+- Scenario files: "held": true. Builder: per-layer "Held by the tank" (default
+  on for tank estimates and assemblies). Setup view hatches held bands with
+  the same rule, warns when a layer has no room to be held.
+- Test (30 us, 2 s): outer plate speed free 23.6 vs held 5.9 m/s, energy
+  ratio 0.996 incl. absorbed. Hatching not yet checked visually.

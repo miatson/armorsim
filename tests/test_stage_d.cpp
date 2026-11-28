@@ -342,3 +342,51 @@ TEST_CASE("armour assemblies (tank cross-sections) and free placement") {
     const ScenarioFile g = parseScenarioJson(scenarioToJson(moved, mats), mats, "roundtrip.json");
     CHECK(buildParticles(g.scenario, mats).size() == buildParticles(moved.scenario, mats).size());
 }
+
+TEST_CASE("mounts: held edges follow the shot, keep the plate in place, energy still balances") {
+    // Zone rule: room around the shot, band at the far edges, off when no room.
+    const MountZone z = mountZone(0.150, 0.010, 0.001);
+    CHECK(z.ok);
+    CHECK(z.start == Approx(0.150 - 0.0225));
+    CHECK(z.start >= 3 * 0.010 + 0.010);
+    CHECK_FALSE(mountZone(0.030, 0.010, 0.001).ok); // edge too close to the shot
+
+    const auto mats = defaultMaterials();
+    auto run = [&](bool held, double aimY) {
+        Scenario s;
+        s.mode = GeometryMode::PlaneStrain;
+        s.dx = 0.5e-3;
+        s.endTime = 30e-6;
+        s.parts.push_back({"ball", DiscShape{{-3.3e-3, aimY}, 2.5e-3}, kSteelRHA, {600.0, 0.0}});
+        Part plate{"plate", RectShape{{2e-3, 0.0}, {2e-3, 40e-3}, 0.0}, kAluminium6061, {}};
+        plate.held = held;
+        s.parts.push_back(plate);
+        Solver solver(s, mats);
+        const Diagnostics d0 = solver.diagnostics();
+        const std::size_t heldAtStart = solver.heldParticleCount();
+        // No held particle near the shot line.
+        // (positions are checked through the zone: nothing within the clearance)
+        while (!solver.finished()) solver.step();
+        const Diagnostics d1 = solver.diagnostics();
+        const Particles& P = solver.particles();
+        double m = 0, px = 0; // mean speed of the plate's outer parts (> 30 mm from the shot line)
+        for (std::size_t i = 0; i < solver.particleCount(); ++i)
+            if (P.part[i] == 1 && std::abs(P.pos[i].y - aimY) > 30e-3) { m += P.mass[i]; px += P.mass[i] * length(P.vel[i]); }
+        struct R { std::size_t held; double ratio, plateSpeed, absorbed; std::string note; };
+        return R{heldAtStart, (d1.kinetic + d1.internal + d1.absorbed) / (d0.kinetic + d0.internal), px / m, d1.absorbed,
+                 solver.mountNote()};
+    };
+    const auto free = run(false, 0.0);
+    const auto held = run(true, 0.0);
+    MESSAGE("outer plate speed, free: ", free.plateSpeed, " m/s; held: ", held.plateSpeed, " m/s, ", held.held,
+            " particles held, absorbed ", held.absorbed, " J/m, energy ratio ", held.ratio);
+    CHECK(free.held == 0);
+    CHECK(held.held > 50);
+    CHECK(held.absorbed > 0.0);
+    CHECK(held.ratio == Approx(1.0).epsilon(0.03));
+    CHECK(std::abs(held.plateSpeed) < std::abs(free.plateSpeed));
+    // Aimed 35 mm off centre: the near edge is within the clearance of a 5 mm ball... the plate is
+    // still held on its far side (one body: zone from its farthest point), so it stays held.
+    const auto offAim = run(true, 35e-3);
+    CHECK(offAim.held > 0);
+}

@@ -12,6 +12,7 @@
 //     sphere. This represents real 3D rods and round plates exactly - but only
 //     for impacts straight along the axis (0° obliquity).
 // -----------------------------------------------------------------------------
+#include <algorithm>
 #include <cstdint>
 #include <span>
 #include <string>
@@ -65,7 +66,35 @@ struct Part {
     // (full stress across the joint, e.g. glued armor layers). -1 = separate
     // body that can only push against others (frictionless contact).
     int contactGroup = -1;
+    // HELD BY THE TANK: the edges of this body farthest from the shot line
+    // are held by an absorbing mount, as if the rest of the vehicle continued
+    // there (see MountZone and Solver::setupMounts).
+    bool held = false;
 };
+
+// Where a held body is held. Distances are measured perpendicular to the shot
+// line (through the projectile's centre, along its velocity). Everything
+// closer than `start` is free; from `start` to `start + band` an absorbing
+// layer grows in strength. The free zone around the shot is at least
+// `clearance` = 3 projectile diameters + 10 mm (room for the crater and
+// cracks). If the body does not reach beyond the clearance far enough
+// (shot too close to its edge), it is not held (ok = false).
+struct MountZone {
+    double start = 0.0, band = 0.0;
+    bool ok = false;
+};
+inline MountZone mountZone(double farthest, double projectileDiameter, double dx) {
+    const double clearance = 3.0 * projectileDiameter + 0.010;
+    MountZone z;
+    z.band = std::max(6.0 * dx, 0.15 * farthest);
+    z.start = farthest - z.band;
+    if (z.start < clearance) {
+        z.start = clearance;
+        z.band = farthest - clearance;
+    }
+    z.ok = z.band >= 3.0 * dx;
+    return z;
+}
 
 struct SolverSettings {
     double cfl = 0.25;          // time step safety factor (see Solver.cpp)
